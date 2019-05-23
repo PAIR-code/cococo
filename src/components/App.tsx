@@ -7,8 +7,9 @@ import Typography from '@material-ui/core/Typography';
 
 import { Controls } from './controls';
 import { Editor } from './editor';
+import { Working } from './working';
 
-import { layout } from '../core';
+import { engine, layout } from '../core';
 
 @observer
 export default class App extends React.Component {
@@ -43,6 +44,7 @@ export default class App extends React.Component {
           <Editor width={width} height={height} />
           <Controls />
         </div>
+        <Working open={engine.isWorking} title="Working..." />
       </>
     );
   }

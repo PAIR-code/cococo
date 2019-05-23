@@ -41,7 +41,7 @@ export class Controls extends React.Component<{}> {
           {showPlay ? <PlayArrowIcon /> : <StopIcon />}
         </Button>
         <ToggleButtonGroup
-          value={editor.divisionWidth}
+          value={editor.quantizeStep}
           exclusive
           onChange={divisionWidth => {
             console.log(divisionWidth);
