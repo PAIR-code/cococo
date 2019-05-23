@@ -28,7 +28,7 @@ export class Notes extends React.Component<Props> {
 
     return (
       <Rect
-        key={`${note.name}:${note.position}`}
+        key={`${note.name}:${note.position}:${note.duration}`}
         x={x}
         y={y}
         width={noteWidth}

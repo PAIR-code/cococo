@@ -43,11 +43,10 @@ export class Controls extends React.Component<{}> {
         <ToggleButtonGroup
           value={editor.quantizeStep}
           exclusive
-          onChange={divisionWidth => {
-            console.log(divisionWidth);
-            // if (divisionWidth !== null) {
-            //   editor.divisionWidth = divisionWidth;
-            // }
+          onChange={(e, value) => {
+            if (value !== null) {
+              editor.quantizeStep = value;
+            }
           }}
         >
           <ToggleButton value={1}>1/16</ToggleButton>

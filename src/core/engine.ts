@@ -29,14 +29,13 @@ export class Engine {
   }
 
   async loadPlayer() {
-    const allNotes: mm.NoteSequence.INote[] = range(MIN_PITCH, MAX_PITCH).map(
-      pitch => {
-        return {
-          pitch,
-          velocity: NOTE_VELOCITY,
-        };
-      }
-    );
+    const allNotes: mm.NoteSequence.INote[] = range(
+      MIN_PITCH,
+      MAX_PITCH + 1
+    ).map(pitch => ({
+      pitch,
+      velocity: NOTE_VELOCITY,
+    }));
     const allNotesSeq = { notes: allNotes };
     await this.player.loadSamples(allNotesSeq);
     this.isPlayerLoaded = true;

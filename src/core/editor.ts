@@ -50,6 +50,7 @@ export class Editor {
     const position = divisionIndex * this.quantizeStep;
     const duration = this.quantizeStep;
     const note = new Note(value, position, duration);
+
     this.addNote(note);
 
     engine.playNote(note);

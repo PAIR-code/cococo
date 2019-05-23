@@ -1,5 +1,6 @@
 import React from 'react';
-import { Group, Rect, Line } from 'react-konva';
+import { Group, Rect } from 'react-konva';
+import { toJS } from 'mobx';
 import { observer } from 'mobx-react';
 import { range } from 'lodash';
 
@@ -24,6 +25,9 @@ export class Grid extends React.Component<Props> {
         {divisions.map(divisionIndex => {
           const x = (this.props.width * divisionIndex) / editor.nDivisions;
 
+          const isAccidental = item.name.includes('b');
+          const fillColor = isAccidental ? '#EEE' : '#FFF';
+
           return (
             <Rect
               key={divisionIndex}
@@ -31,8 +35,8 @@ export class Grid extends React.Component<Props> {
               y={0}
               width={width}
               height={noteHeight}
-              stroke="lightgray"
-              fill="rgba(0,0,0,0)"
+              stroke="#CCC"
+              fill={fillColor}
               strokeWidth={1}
               onClick={() => {
                 editor.handleGridClick(scaleIndex, divisionIndex);
