@@ -13,11 +13,11 @@ export interface ScaleValue {
 }
 
 export class Editor {
-  @observable notes = new Map<number, Note>();
+  @observable userNotes = new Map<number, Note>();
   @observable harmonies: Note[] = [];
 
-  @computed get notesArray() {
-    return [...this.notes.values(), ...this.harmonies];
+  @computed get allNotes() {
+    return [...this.userNotes.values(), ...this.harmonies];
   }
 
   @observable scale = makeNoteScale(MAX_PITCH, MIN_PITCH);
@@ -58,13 +58,13 @@ export class Editor {
 
   handleNoteClick(note: Note) {
     const { position } = note;
-    this.notes.delete(position);
+    this.userNotes.delete(position);
   }
 
   addNote(note: Note) {
     const { position } = note;
 
-    this.notes.set(position, note);
+    this.userNotes.set(position, note);
     this.currentlySelectedNotes.clear();
     this.currentlySelectedNotes.add(note);
   }

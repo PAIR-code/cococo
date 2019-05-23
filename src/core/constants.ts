@@ -14,3 +14,5 @@ export const SOUNDFONT_URL =
   'https://storage.googleapis.com/magentadata/js/soundfonts/sgm_plus';
 export const MODEL_URL =
   'https://storage.googleapis.com/magentadata/js/checkpoints/coconet/bach';
+
+export const COLOR_PRIMARY = '#3f51b5';

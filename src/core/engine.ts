@@ -79,7 +79,7 @@ export class Engine {
 
   getMagentaNoteSequence(merge = false) {
     const noteSequence = {
-      notes: editor.notesArray.map(note => note.magentaNote),
+      notes: editor.allNotes.map(note => note.magentaNote),
       tempos: [{ time: 0, qpm: this.bpm }],
       totalQuantizedSteps: editor.totalSixteenths,
       quantizationInfo: { stepsPerQuarter: 4 },
@@ -91,7 +91,7 @@ export class Engine {
 
   start() {
     if (this.isPlayerLoaded) {
-      if (editor.notesArray.length === 0) {
+      if (editor.allNotes.length === 0) {
         console.log('🤔 empty notes... not playing...');
         return;
       }

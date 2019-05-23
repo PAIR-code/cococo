@@ -4,11 +4,20 @@ import { observer } from 'mobx-react';
 
 import { editor } from '../core';
 import { Note } from '../core/note';
+import { COLOR_PRIMARY } from '../core/constants';
 
 export interface Props {
   width: number;
   height: number;
   noteHeight: number;
+}
+
+function getFillColor(isSelected: boolean, isUser: boolean) {
+  if (isUser) {
+    return isSelected ? '#F00' : COLOR_PRIMARY;
+  } else {
+    return 'gray';
+  }
 }
 
 @observer
@@ -24,7 +33,8 @@ export class Notes extends React.Component<Props> {
     const noteWidth = note.duration * sixteenthWidth;
 
     const isSelected = editor.isNoteSelected(note);
-    const fill = isSelected ? 'red' : 'grey';
+    const isUser = note.source === 'USER';
+    const fill = getFillColor(isSelected, isUser);
 
     return (
       <Rect
@@ -47,7 +57,10 @@ export class Notes extends React.Component<Props> {
 
     return (
       <Group width={width} height={height}>
-        {editor.notesArray.map(note => {
+        {editor.harmonies.map(note => {
+          return this.renderNote(note);
+        })}
+        {[...editor.userNotes.values()].map(note => {
           return this.renderNote(note);
         })}
       </Group>
