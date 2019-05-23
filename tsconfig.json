@@ -7,7 +7,9 @@
     "target": "es5",
     "jsx": "react",
     "lib": ["es5", "es6", "dom"],
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "downlevelIteration": true,
+    "esModuleInterop": true
   },
   "include": ["./src/**/*"],
   "awesomeTypescriptLoaderOptions": {

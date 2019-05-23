@@ -1,5 +1,5 @@
 {
-  "name": "Typescript React Template",
+  "name": "typescript_react_template",
   "version": "0.1.0",
   "description": "Typescript React Template",
   "author": "Andy Coenen",
@@ -47,8 +47,20 @@
     "webpack-merge": "^4.2.1"
   },
   "dependencies": {
+    "@magenta/music": "^1.8.0",
+    "@material-ui/core": "^4.0.0",
+    "@material-ui/icons": "^4.0.0",
+    "@material-ui/lab": "^4.0.0-alpha.13",
+    "@tensorflow/tfjs": "^1.1.2",
+    "konva": "^3.2.6",
+    "lodash": "^4.17.11",
+    "mobx": "^5.9.4",
+    "mobx-react": "^5.4.4",
     "react": "^16.8.6",
-    "react-dom": "^16.8.6"
+    "react-dom": "^16.8.6",
+    "react-konva": "^16.8.7-2",
+    "tonal": "^2.2.2",
+    "typestyle": "^2.0.2"
   },
   "prettier": {
     "printWidth": 80,

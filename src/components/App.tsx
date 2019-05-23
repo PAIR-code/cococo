@@ -1,18 +1,49 @@
-import * as React from 'react';
-import './App.scss';
+import React from 'react';
+import { observer } from 'mobx-react';
+import { style } from 'typestyle';
+import AppBar from '@material-ui/core/AppBar';
+import Toolbar from '@material-ui/core/Toolbar';
+import Typography from '@material-ui/core/Typography';
 
-const reactLogo = require('./../assets/img/react_logo.svg');
+import { Controls } from './controls';
+import { Editor } from './editor';
 
-export interface AppProps {}
+import { layout } from '../core';
 
-export default class App extends React.Component<AppProps, undefined> {
+@observer
+export default class App extends React.Component {
+  stageRef: HTMLDivElement;
+
+  componentDidMount() {
+    // Set up app resize observation here...
+    const { width } = this.stageRef.getBoundingClientRect();
+    layout.stageWidth = width;
+  }
+
   render() {
+    const width = layout.stageWidth;
+    const height = 600;
+
+    const stageStyle = style({
+      marginTop: 20,
+      width: '100%',
+      height: '100%',
+    });
+
     return (
-      <div className="app">
-        <h1>Hello World!</h1>
-        <p>Foo to the barz</p>
-        <img src={reactLogo} height="480" />
-      </div>
+      <>
+        <AppBar position="static" color="primary">
+          <Toolbar>
+            <Typography variant="h6" color="inherit">
+              🎹 Bach CoCoCo
+            </Typography>
+          </Toolbar>
+        </AppBar>
+        <div className={stageStyle} ref={ref => (this.stageRef = ref)}>
+          <Editor width={width} height={height} />
+          <Controls />
+        </div>
+      </>
     );
   }
 }

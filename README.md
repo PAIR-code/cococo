@@ -1,4 +1,6 @@
-# Minimal Typescript React Template
+# CoCoCo
+
+#### Collaborative Convolutional Counterpoint
 
 ## Installation
 
