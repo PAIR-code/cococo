@@ -3,7 +3,7 @@ import { Group, Rect, Line } from 'react-konva';
 import { observer } from 'mobx-react';
 import { range } from 'lodash';
 
-import { editorStore } from '../core';
+import { editor } from '../core';
 import { ScaleValue } from '../core/editor';
 
 export interface Props {
@@ -15,14 +15,14 @@ export interface Props {
 @observer
 export class Grid extends React.Component<Props> {
   renderLine(item: ScaleValue, scaleIndex: number) {
-    const divisions = range(editorStore.nDivisions);
+    const divisions = range(editor.nDivisions);
     const { width, noteHeight } = this.props;
     const y = noteHeight * scaleIndex;
 
     return (
       <Group key={scaleIndex} x={0} y={y}>
         {divisions.map(divisionIndex => {
-          const x = (this.props.width * divisionIndex) / editorStore.nDivisions;
+          const x = (this.props.width * divisionIndex) / editor.nDivisions;
 
           return (
             <Rect
@@ -35,7 +35,7 @@ export class Grid extends React.Component<Props> {
               fill="rgba(0,0,0,0)"
               strokeWidth={1}
               onClick={() => {
-                editorStore.handleGridClick(scaleIndex, divisionIndex);
+                editor.handleGridClick(scaleIndex, divisionIndex);
               }}
             />
           );
@@ -49,7 +49,7 @@ export class Grid extends React.Component<Props> {
 
     return (
       <Group width={width} height={height}>
-        {editorStore.scale.map((item: ScaleValue, index: number) => {
+        {editor.scale.map((item: ScaleValue, index: number) => {
           return this.renderLine(item, index);
         })}
       </Group>

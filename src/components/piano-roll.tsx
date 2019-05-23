@@ -1,8 +1,10 @@
 import React from 'react';
 import { Group, Rect } from 'react-konva';
-import { editorStore, engine } from '../core';
-import { Note, ScaleValue } from '../core/editor';
 import { observer } from 'mobx-react';
+
+import { editor, engine } from '../core';
+import { ScaleValue } from '../core/editor';
+import { Note } from '../core/note';
 
 export interface Props {
   width: number;
@@ -16,7 +18,7 @@ export class PianoRoll extends React.Component<Props> {
     const { width, noteHeight } = this.props;
     const y = noteHeight * index;
 
-    const isActive = editorStore.activeNoteValue === scaleNote.value;
+    const isActive = editor.activeNoteValue === scaleNote.value;
     const isWhite = scaleNote.name.length === 2;
     let fill = isWhite ? 'white' : 'black';
 
@@ -59,7 +61,7 @@ export class PianoRoll extends React.Component<Props> {
           document.body.style.cursor = 'default';
         }}
       >
-        {editorStore.scale.map((scaleNote: ScaleValue, index: number) => {
+        {editor.scale.map((scaleNote: ScaleValue, index: number) => {
           return this.renderKey(scaleNote, index);
         })}
       </Group>

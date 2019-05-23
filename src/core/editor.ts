@@ -1,46 +1,11 @@
 import { computed, observable } from 'mobx';
 import { makeNoteScale } from './tonal-utils';
-import * as tonal from 'tonal';
 import { range } from 'lodash';
 import * as mm from '@magenta/music';
 
+import { Note } from './note';
 import { engine } from './index';
 import { TOTAL_SIXTEENTHS, MAX_PITCH, MIN_PITCH } from './constants';
-
-export type Source = 'USER' | 'AGENT';
-
-export class Note {
-  source: Source = 'USER';
-
-  @observable value: number;
-  @observable position: number;
-  @observable duration: number;
-
-  @computed get name() {
-    return tonal.Note.fromMidi(this.value);
-  }
-
-  constructor(
-    value: number,
-    position: number,
-    duration: number,
-    source: Source = 'USER'
-  ) {
-    this.value = value;
-    this.position = position;
-    this.duration = duration;
-    this.source = source;
-  }
-
-  @computed get magentaNote() {
-    return {
-      pitch: this.value,
-      quantizedStartStep: this.position,
-      quantizedEndStep: this.position + this.duration,
-      program: 0,
-    };
-  }
-}
 
 export interface ScaleValue {
   value: number;
@@ -64,9 +29,10 @@ export class Editor {
   };
 
   @observable totalSixteenths = TOTAL_SIXTEENTHS;
-  @observable divisionWidth = 1;
+  @observable quantizeStep = 2;
+
   @computed get nDivisions() {
-    return this.totalSixteenths / this.divisionWidth;
+    return this.totalSixteenths / this.quantizeStep;
   }
   @computed get divisions() {
     const divisions = range(this.nDivisions);
@@ -79,14 +45,10 @@ export class Editor {
 
   @observable selectedTool = 'PAINT';
 
-  constructor() {
-    (window as any).app = this;
-  }
-
   handleGridClick(scaleIndex: number, divisionIndex: number) {
     const value = this.scale[scaleIndex].value;
-    const position = divisionIndex;
-    const duration = 1;
+    const position = divisionIndex * this.quantizeStep;
+    const duration = this.quantizeStep;
     const note = new Note(value, position, duration);
     this.addNote(note);
 

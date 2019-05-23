@@ -1,14 +1,16 @@
 import * as mm from '@magenta/music';
 import { observable } from 'mobx';
-import { Note } from './editor';
-import { editorStore } from '.';
+import { Note } from './note';
+import { editor } from './index';
 import { range } from 'lodash';
-import { DEFAULT_BPM, MIN_PITCH, MAX_PITCH, NOTE_VELOCITY } from './constants';
-
-const SOUNDFONT_URL =
-  'https://storage.googleapis.com/magentadata/js/soundfonts/sgm_plus';
-const MODEL_URL =
-  'https://storage.googleapis.com/magentadata/js/checkpoints/coconet/bach';
+import {
+  DEFAULT_BPM,
+  MIN_PITCH,
+  MAX_PITCH,
+  NOTE_VELOCITY,
+  SOUNDFONT_URL,
+  MODEL_URL,
+} from './constants';
 
 export class Engine {
   @observable isPlayerLoaded = false;
@@ -64,31 +66,33 @@ export class Engine {
 
   playNoteDown(note: Note) {
     if (this.isPlayerLoaded) {
-      editorStore.activeNoteValue = note.value;
+      editor.activeNoteValue = note.value;
       this.player.playNoteDown(note.magentaNote);
     }
   }
 
   playNoteUp(note: Note) {
     if (this.isPlayerLoaded) {
-      editorStore.activeNoteValue = null;
+      editor.activeNoteValue = null;
       this.player.playNoteUp(note.magentaNote);
     }
   }
 
-  getMagentaNoteSequence() {
+  getMagentaNoteSequence(merge = false) {
     const noteSequence = {
-      notes: editorStore.notesArray.map(note => note.magentaNote),
+      notes: editor.notesArray.map(note => note.magentaNote),
       tempos: [{ time: 0, qpm: this.bpm }],
-      totalQuantizedSteps: editorStore.totalSixteenths,
+      totalQuantizedSteps: editor.totalSixteenths,
       quantizationInfo: { stepsPerQuarter: 4 },
     };
-    return mm.sequences.mergeConsecutiveNotes(noteSequence);
+    return merge
+      ? mm.sequences.mergeConsecutiveNotes(noteSequence)
+      : mm.sequences.clone(noteSequence);
   }
 
   start() {
     if (this.isPlayerLoaded) {
-      if (editorStore.notesArray.length === 0) {
+      if (editor.notesArray.length === 0) {
         console.log('🤔 empty notes... not playing...');
         return;
       }
@@ -122,10 +126,8 @@ export class Engine {
 
     const output = mm.sequences.mergeConsecutiveNotes(results);
 
-    console.log('🔥', output);
-
     this.isWorking = false;
-    editorStore.addAgentNotes(output.notes);
+    editor.addAgentNotes(output.notes);
   }
 }
 

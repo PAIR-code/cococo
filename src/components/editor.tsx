@@ -1,7 +1,7 @@
 import React from 'react';
 import { Stage, Layer, Group } from 'react-konva';
 import { observer } from 'mobx-react';
-import { editorStore } from '../core';
+import { editor } from '../core';
 
 import { PianoRoll } from './piano-roll';
 import { Grid } from './grid';
@@ -21,7 +21,7 @@ export class Editor extends React.Component<Props> {
     const { width, height } = this.props;
     const color = 'rgba(255,0,0,0.1)';
 
-    const { scale } = editorStore;
+    const { scale } = editor;
     const notesHeight = scale.length * NOTE_HEIGHT;
     const notesWidth = width - PIANO_ROLL_WIDTH;
 

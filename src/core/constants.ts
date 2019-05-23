@@ -9,3 +9,8 @@ export const NOTE_VELOCITY = 79;
 export const DEFAULT_BPM = 80;
 
 export const TOTAL_SIXTEENTHS = 32;
+
+export const SOUNDFONT_URL =
+  'https://storage.googleapis.com/magentadata/js/soundfonts/sgm_plus';
+export const MODEL_URL =
+  'https://storage.googleapis.com/magentadata/js/checkpoints/coconet/bach';

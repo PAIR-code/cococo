@@ -2,8 +2,8 @@ import React from 'react';
 import { Group, Rect } from 'react-konva';
 import { observer } from 'mobx-react';
 
-import { editorStore } from '../core';
-import { Note } from '../core/editor';
+import { editor } from '../core';
+import { Note } from '../core/note';
 
 export interface Props {
   width: number;
@@ -16,14 +16,14 @@ export class Notes extends React.Component<Props> {
   renderNote(note: Note) {
     const { width, noteHeight } = this.props;
 
-    const indexFromMax = editorStore.scaleMax - note.value;
-    const divisonWidth = width / editorStore.nDivisions;
+    const indexFromMax = editor.scaleMax - note.value;
+    const sixteenthWidth = width / editor.totalSixteenths;
 
     const y = noteHeight * indexFromMax;
-    const x = note.position * divisonWidth;
-    const noteWidth = note.duration * divisonWidth;
+    const x = note.position * sixteenthWidth;
+    const noteWidth = note.duration * sixteenthWidth;
 
-    const isSelected = editorStore.isNoteSelected(note);
+    const isSelected = editor.isNoteSelected(note);
     const fill = isSelected ? 'red' : 'grey';
 
     return (
@@ -36,7 +36,7 @@ export class Notes extends React.Component<Props> {
         stroke="lightGray"
         fill={fill}
         onClick={() => {
-          editorStore.handleNoteClick(note);
+          editor.handleNoteClick(note);
         }}
       />
     );
@@ -47,7 +47,7 @@ export class Notes extends React.Component<Props> {
 
     return (
       <Group width={width} height={height}>
-        {editorStore.notesArray.map(note => {
+        {editor.notesArray.map(note => {
           return this.renderNote(note);
         })}
       </Group>

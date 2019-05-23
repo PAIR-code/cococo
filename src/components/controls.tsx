@@ -4,9 +4,11 @@ import Button from '@material-ui/core/Button';
 import MusicNoteIcon from '@material-ui/icons/MusicNote';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import StopIcon from '@material-ui/icons/Stop';
+import ToggleButton from '@material-ui/lab/ToggleButton';
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import { observer } from 'mobx-react';
 
-import { engine, layout } from '../core';
+import { engine, layout, editor } from '../core';
 
 @observer
 export class Controls extends React.Component<{}> {
@@ -38,6 +40,21 @@ export class Controls extends React.Component<{}> {
         >
           {showPlay ? <PlayArrowIcon /> : <StopIcon />}
         </Button>
+        <ToggleButtonGroup
+          value={editor.divisionWidth}
+          exclusive
+          onChange={divisionWidth => {
+            console.log(divisionWidth);
+            // if (divisionWidth !== null) {
+            //   editor.divisionWidth = divisionWidth;
+            // }
+          }}
+        >
+          <ToggleButton value={1}>1/16</ToggleButton>
+          <ToggleButton value={2}>1/8</ToggleButton>
+          <ToggleButton value={4}>1/4</ToggleButton>
+          <ToggleButton value={8}>1/2</ToggleButton>
+        </ToggleButtonGroup>
         <Button
           disabled={!harmonizeEnabled}
           variant="contained"
