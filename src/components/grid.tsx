@@ -1,15 +1,14 @@
 import React from 'react';
-import { Group, Rect } from 'react-konva';
-import { toJS } from 'mobx';
 import { observer } from 'mobx-react';
 import { range } from 'lodash';
 
 import { editor } from '../core';
 import { ScaleValue } from '../core/editor';
 
+import { Group } from './group';
+
 export interface Props {
   width: number;
-  height: number;
   noteHeight: number;
 }
 
@@ -29,7 +28,7 @@ export class Grid extends React.Component<Props> {
           const fillColor = isAccidental ? '#EEE' : '#FFF';
 
           return (
-            <Rect
+            <rect
               key={divisionIndex}
               x={x}
               y={0}
@@ -49,10 +48,8 @@ export class Grid extends React.Component<Props> {
   }
 
   render() {
-    const { width, height } = this.props;
-
     return (
-      <Group width={width} height={height}>
+      <Group>
         {editor.scale.map((item: ScaleValue, index: number) => {
           return this.renderLine(item, index);
         })}

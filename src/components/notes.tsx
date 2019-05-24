@@ -1,14 +1,14 @@
 import React from 'react';
-import { Group, Rect } from 'react-konva';
 import { observer } from 'mobx-react';
 
 import { editor } from '../core';
 import { Note } from '../core/note';
 import { COLOR_PRIMARY } from '../core/constants';
 
+import { Group } from './group';
+
 export interface Props {
   width: number;
-  height: number;
   noteHeight: number;
 }
 
@@ -37,7 +37,7 @@ export class Notes extends React.Component<Props> {
     const fill = getFillColor(isSelected, isUser);
 
     return (
-      <Rect
+      <rect
         key={`${note.name}:${note.position}:${note.duration}`}
         x={x}
         y={y}
@@ -53,10 +53,8 @@ export class Notes extends React.Component<Props> {
   }
 
   render() {
-    const { width, height } = this.props;
-
     return (
-      <Group width={width} height={height}>
+      <Group>
         {editor.agentNotes.map(note => {
           return this.renderNote(note);
         })}

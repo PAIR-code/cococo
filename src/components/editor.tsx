@@ -1,10 +1,10 @@
 import React from 'react';
-import { Stage, Layer, Group } from 'react-konva';
 import { observer } from 'mobx-react';
 import { editor } from '../core';
 
 import { PianoRoll } from './piano-roll';
 import { Grid } from './grid';
+import { Group } from './group';
 import { Notes } from './notes';
 
 export interface Props {
@@ -19,34 +19,23 @@ const NOTE_HEIGHT = 12;
 export class Editor extends React.Component<Props> {
   render() {
     const { width, height } = this.props;
-    const color = 'rgba(255,0,0,0.1)';
 
     const { scale } = editor;
     const notesHeight = scale.length * NOTE_HEIGHT;
     const notesWidth = width - PIANO_ROLL_WIDTH;
 
     return (
-      <Stage width={width} height={height} fill={color}>
-        <Layer>
-          <PianoRoll
-            width={PIANO_ROLL_WIDTH}
-            height={notesHeight}
-            noteHeight={NOTE_HEIGHT}
-          />
-          <Group x={PIANO_ROLL_WIDTH}>
-            <Grid
-              width={notesWidth}
-              height={notesHeight}
-              noteHeight={NOTE_HEIGHT}
-            />
-            <Notes
-              width={notesWidth}
-              height={notesHeight}
-              noteHeight={NOTE_HEIGHT}
-            />
-          </Group>
-        </Layer>
-      </Stage>
+      <svg width={width} height={height}>
+        <PianoRoll
+          width={PIANO_ROLL_WIDTH}
+          height={notesHeight}
+          noteHeight={NOTE_HEIGHT}
+        />
+        <Group x={PIANO_ROLL_WIDTH}>
+          <Grid width={notesWidth} noteHeight={NOTE_HEIGHT} />
+          <Notes width={notesWidth} noteHeight={NOTE_HEIGHT} />
+        </Group>
+      </svg>
     );
   }
 }

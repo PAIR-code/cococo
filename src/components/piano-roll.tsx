@@ -1,5 +1,4 @@
 import React from 'react';
-import { Group, Rect } from 'react-konva';
 import { observer } from 'mobx-react';
 
 import { editor, engine } from '../core';
@@ -25,7 +24,7 @@ export class PianoRoll extends React.Component<Props> {
     fill = isActive ? 'red' : fill;
 
     return (
-      <Rect
+      <rect
         key={index}
         x={0}
         y={y}
@@ -34,7 +33,8 @@ export class PianoRoll extends React.Component<Props> {
         fill={fill}
         stroke={'black'}
         strokeWidth={1}
-        onMouseDown={() => {
+        onMouseDown={e => {
+          e.preventDefault();
           const note = new Note(scaleNote.value, 0, 0.2);
           engine.playNoteDown(note);
 
@@ -51,9 +51,8 @@ export class PianoRoll extends React.Component<Props> {
     const { width, height } = this.props;
 
     return (
-      <Group
+      <g
         width={width}
-        height={height}
         onMouseEnter={() => {
           document.body.style.cursor = 'pointer';
         }}
@@ -64,7 +63,7 @@ export class PianoRoll extends React.Component<Props> {
         {editor.scale.map((scaleNote: ScaleValue, index: number) => {
           return this.renderKey(scaleNote, index);
         })}
-      </Group>
+      </g>
     );
   }
 }
