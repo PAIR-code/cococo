@@ -79,7 +79,7 @@ export class Engine {
 
   getMagentaNoteSequence(merge = false) {
     const noteSequence = {
-      notes: editor.allNotes.map(note => note.magentaNote),
+      notes: editor.userNotes.map(note => note.magentaNote),
       tempos: [{ time: 0, qpm: this.bpm }],
       totalQuantizedSteps: editor.totalSixteenths,
       quantizationInfo: { stepsPerQuarter: 4 },
@@ -124,6 +124,12 @@ export class Engine {
     });
 
     const output = mm.sequences.mergeConsecutiveNotes(results);
+
+    output.notes = output.notes.filter(note => {
+      const { pitch, quantizedStartStep: position } = note;
+      const overlaps = editor.overlapsWithUserNote(pitch, position);
+      return !overlaps;
+    });
 
     this.isWorking = false;
     editor.addAgentNotes(output.notes);

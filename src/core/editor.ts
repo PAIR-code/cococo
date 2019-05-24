@@ -13,11 +13,18 @@ export interface ScaleValue {
 }
 
 export class Editor {
-  @observable userNotes = new Map<number, Note>();
-  @observable harmonies: Note[] = [];
+  @observable private userNotesMap = new Map<string, Note>();
+  @observable private agentNotesMap = new Map<string, Note>();
+
+  @computed get userNotes() {
+    return [...this.userNotesMap.values()];
+  }
+  @computed get agentNotes() {
+    return [...this.agentNotesMap.values()];
+  }
 
   @computed get allNotes() {
-    return [...this.userNotes.values(), ...this.harmonies];
+    return [...this.userNotes, ...this.agentNotes];
   }
 
   @observable scale = makeNoteScale(MAX_PITCH, MIN_PITCH);
@@ -45,6 +52,15 @@ export class Editor {
 
   @observable selectedTool = 'PAINT';
 
+  private makeNoteKey(pitch: number, position: number) {
+    return `${pitch}:${position}`;
+  }
+
+  overlapsWithUserNote(pitch: number, position: number) {
+    const key = this.makeNoteKey(pitch, position);
+    return this.userNotesMap.has(key);
+  }
+
   handleGridClick(scaleIndex: number, divisionIndex: number) {
     const value = this.scale[scaleIndex].value;
     const position = divisionIndex * this.quantizeStep;
@@ -57,24 +73,26 @@ export class Editor {
   }
 
   handleNoteClick(note: Note) {
-    const { position } = note;
-    this.userNotes.delete(position);
+    const { position, value } = note;
+    const key = this.makeNoteKey(value, position);
+    this.userNotesMap.delete(key);
   }
 
   addNote(note: Note) {
-    const { position } = note;
-
-    this.userNotes.set(position, note);
+    const { position, value } = note;
+    const key = this.makeNoteKey(value, position);
+    this.userNotesMap.set(key, note);
     this.currentlySelectedNotes.clear();
     this.currentlySelectedNotes.add(note);
   }
 
   addAgentNotes(sequence: mm.NoteSequence.INote[]) {
-    this.harmonies = sequence.map(item => {
+    sequence.forEach(item => {
       const position = item.quantizedStartStep;
       const duration = item.quantizedEndStep - item.quantizedStartStep;
       const note = new Note(item.pitch, position, duration, 'AGENT');
-      return note;
+      const key = this.makeNoteKey(item.pitch, position);
+      this.agentNotesMap.set(key, note);
     });
   }
 }

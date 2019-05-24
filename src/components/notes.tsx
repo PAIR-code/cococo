@@ -57,10 +57,10 @@ export class Notes extends React.Component<Props> {
 
     return (
       <Group width={width} height={height}>
-        {editor.harmonies.map(note => {
+        {editor.agentNotes.map(note => {
           return this.renderNote(note);
         })}
-        {[...editor.userNotes.values()].map(note => {
+        {editor.userNotes.map(note => {
           return this.renderNote(note);
         })}
       </Group>
