@@ -1,5 +1,5 @@
 import * as mm from '@magenta/music';
-import { observable, toJS } from 'mobx';
+import { observable } from 'mobx';
 import { Note } from './note';
 import { editor } from './index';
 import { range } from 'lodash';
@@ -13,14 +13,42 @@ import {
   SOUNDFONT_URL,
   MODEL_URL,
 } from './constants';
+import { thisExpression } from '@babel/types';
+
+export class CallbackObject extends mm.BasePlayerCallback {
+  constructor(private engine: Engine) {
+    super();
+  }
+
+  run(note: mm.NoteSequence.INote, t: number) {
+    const { pitch, quantizedStartStep } = note;
+    editor.setNotePlaying(pitch, quantizedStartStep);
+  }
+  stop() {
+    if (this.engine.shouldLoop) {
+      this.engine.loop();
+    } else {
+      this.engine.stop();
+    }
+  }
+}
 
 export class Engine {
+  playerCallbackObject = new CallbackObject(this);
   @observable isPlayerLoaded = false;
   @observable isModelLoaded = false;
   @observable isPlaying = false;
   @observable isWorking = false;
 
-  player = new mm.SoundFontPlayer(SOUNDFONT_URL, Tone.master);
+  @observable shouldLoop = true;
+
+  player = new mm.SoundFontPlayer(
+    SOUNDFONT_URL,
+    Tone.master,
+    undefined,
+    undefined,
+    this.playerCallbackObject
+  );
   model = new mm.Coconet(MODEL_URL);
 
   @observable bpm = DEFAULT_BPM;
@@ -28,7 +56,6 @@ export class Engine {
   constructor() {
     this.loadPlayer();
     this.loadModel();
-    console.log('engine');
   }
 
   async loadPlayer() {
@@ -80,9 +107,9 @@ export class Engine {
     }
   }
 
-  getMagentaNoteSequence(merge = false) {
+  getMagentaNoteSequence(notes: Note[], merge = false) {
     const noteSequence = {
-      notes: editor.allNotes.map(note => note.magentaNote),
+      notes: notes.map(note => note.magentaNote),
       tempos: [{ time: 0, qpm: this.bpm }],
       totalQuantizedSteps: editor.totalSixteenths,
       quantizationInfo: { stepsPerQuarter: 4 },
@@ -99,16 +126,21 @@ export class Engine {
         return;
       }
 
-      console.log(toJS(editor.userNotes));
-      const sequence = this.getMagentaNoteSequence();
+      const sequence = this.getMagentaNoteSequence(editor.allNotes);
       this.player.start(sequence);
       this.isPlaying = true;
     }
   }
 
+  loop() {
+    editor.clearPlayingNotes();
+    this.start();
+  }
+
   stop() {
     this.player.stop();
     this.isPlaying = false;
+    editor.clearPlayingNotes();
   }
 
   async harmonize() {
@@ -121,7 +153,7 @@ export class Engine {
       this.stop();
     }
 
-    const sequence = this.getMagentaNoteSequence();
+    const sequence = this.getMagentaNoteSequence(editor.userNotes);
 
     const results = await this.model.infill(sequence, {
       temperature: 0.99,

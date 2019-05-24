@@ -11,6 +11,7 @@ import {
   MAX_PITCH,
   MIN_PITCH,
 } from './constants';
+import { throwStatement } from '@babel/types';
 
 export interface ScaleValue {
   value: number;
@@ -35,10 +36,39 @@ export class Editor {
   @observable scale = makeNoteScale(MAX_PITCH, MIN_PITCH);
   @observable activeNoteValue: number | null = null;
 
-  @observable currentlySelectedNotes = new Set<Note>();
+  @observable private currentlySelectedNotes = new Set<Note>();
   isNoteSelected = (note: Note) => {
     return this.currentlySelectedNotes.has(note);
   };
+
+  @observable private currentlyPlayingNotes = new Set<Note>();
+  private setCurrentlyPlaying(note: Note) {
+    note.isPlaying = true;
+    this.currentlyPlayingNotes.add(note);
+  }
+
+  clearPlayingNotes() {
+    this.currentlyPlayingNotes.clear();
+    this.allNotes.forEach(note => {
+      note.isPlaying = false;
+    });
+  }
+
+  setNotePlaying(pitch: number, position: number) {
+    const key = this.makeNoteKey(pitch, position);
+    const userNote = this.userNotesMap.get(key);
+    const agentNote = this.agentNotesMap.get(key);
+    if (userNote) this.setCurrentlyPlaying(userNote);
+    if (agentNote) this.setCurrentlyPlaying(agentNote);
+
+    // Clear all notes that are playing if the playhead has passed them
+    for (const playingNote of this.currentlyPlayingNotes.values()) {
+      if (playingNote.position + playingNote.duration <= position) {
+        playingNote.isPlaying = false;
+        this.currentlyPlayingNotes.delete(playingNote);
+      }
+    }
+  }
 
   @observable totalSixteenths = TOTAL_SIXTEENTHS;
   @observable quantizeStep = 2;
@@ -99,7 +129,10 @@ export class Editor {
     this.currentlySelectedNotes.add(note);
   }
 
-  addAgentNotes(sequence: mm.NoteSequence.INote[]) {
+  addAgentNotes(sequence: mm.NoteSequence.INote[], replace = true) {
+    if (replace) {
+      this.agentNotesMap.clear();
+    }
     sequence.forEach(item => {
       const position = item.quantizedStartStep;
       const duration = item.quantizedEndStep - item.quantizedStartStep;

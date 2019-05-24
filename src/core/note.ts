@@ -10,6 +10,8 @@ export class Note {
   @observable position: number;
   @observable duration: number;
 
+  @observable isPlaying = false;
+
   @computed get name() {
     return tonal.Note.fromMidi(this.value);
   }
@@ -33,5 +35,9 @@ export class Note {
       quantizedEndStep: this.position + this.duration,
       program: 0,
     };
+  }
+
+  @computed get key() {
+    return `${this.value}:${this.position}:${this.duration}`;
   }
 }

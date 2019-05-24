@@ -1,66 +1,40 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 
+import { Note as NoteModel } from '../core/note';
 import { editor } from '../core';
-import { Note } from '../core/note';
-import { COLOR_PRIMARY } from '../core/constants';
 
 import { Group } from './group';
+import { Note } from './note';
 
-export interface Props {
+export interface NotesProps {
   width: number;
   noteHeight: number;
 }
 
-function getFillColor(isSelected: boolean, isUser: boolean) {
-  if (isUser) {
-    return isSelected ? '#F00' : COLOR_PRIMARY;
-  } else {
-    return 'gray';
-  }
-}
-
 @observer
-export class Notes extends React.Component<Props> {
-  renderNote(note: Note) {
-    const { width, noteHeight } = this.props;
-
-    const indexFromMax = editor.scaleMax - note.value;
+export class Notes extends React.Component<NotesProps> {
+  getNoteProps(note: NoteModel) {
+    const { noteHeight, width } = this.props;
     const sixteenthWidth = width / editor.totalSixteenths;
+    const indexFromMax = editor.scaleMax - note.value;
 
     const y = noteHeight * indexFromMax;
     const x = note.position * sixteenthWidth;
     const noteWidth = note.duration * sixteenthWidth;
 
-    const isSelected = editor.isNoteSelected(note);
-    const isUser = note.source === 'USER';
-    const fill = getFillColor(isSelected, isUser);
-
-    return (
-      <rect
-        key={`${note.name}:${note.position}:${note.duration}`}
-        x={x}
-        y={y}
-        width={noteWidth}
-        height={noteHeight}
-        // stroke="lightGray"
-        fill={fill}
-        onClick={() => {
-          editor.handleNoteClick(note);
-        }}
-      />
-    );
+    return { x, y, height: noteHeight, width: noteWidth };
   }
 
   render() {
     return (
       <Group>
-        {editor.agentNotes.map(note => {
-          return this.renderNote(note);
-        })}
-        {editor.userNotes.map(note => {
-          return this.renderNote(note);
-        })}
+        {editor.agentNotes.map(note => (
+          <Note key={note.key} note={note} {...this.getNoteProps(note)} />
+        ))}
+        {editor.userNotes.map(note => (
+          <Note key={note.key} note={note} {...this.getNoteProps(note)} />
+        ))}
       </Group>
     );
   }
