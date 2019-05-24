@@ -1,5 +1,5 @@
 import * as mm from '@magenta/music';
-import { observable } from 'mobx';
+import { observable, toJS } from 'mobx';
 import { Note } from './note';
 import { editor } from './index';
 import { range } from 'lodash';
@@ -26,6 +26,7 @@ export class Engine {
   constructor() {
     this.loadPlayer();
     this.loadModel();
+    console.log('engine');
   }
 
   async loadPlayer() {
@@ -96,6 +97,7 @@ export class Engine {
         return;
       }
 
+      console.log(toJS(editor.userNotes));
       const sequence = this.getMagentaNoteSequence();
       this.player.start(sequence);
       this.isPlaying = true;

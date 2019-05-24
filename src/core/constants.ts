@@ -16,3 +16,22 @@ export const MODEL_URL =
   'https://storage.googleapis.com/magentadata/js/checkpoints/coconet/bach';
 
 export const COLOR_PRIMARY = '#3f51b5';
+
+export const DEFAULT_NOTES = [
+  62,
+  64,
+  65,
+  69,
+  72,
+  71,
+  71,
+  71,
+  69,
+  72,
+  71,
+  69,
+  67,
+  65,
+  64,
+  62,
+];

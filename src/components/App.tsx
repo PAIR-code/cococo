@@ -17,18 +17,22 @@ export default class App extends React.Component {
 
   componentDidMount() {
     // Set up app resize observation here...
-    const { width } = this.stageRef.getBoundingClientRect();
-    layout.stageWidth = width;
+    // const { width } = this.stageRef.getBoundingClientRect();
+    // layout.stageWidth = width;
   }
 
   render() {
     const width = layout.stageWidth;
     const height = 600;
 
-    const stageStyle = style({
+    const stageContainerStyle = style({
       marginTop: 20,
       width: '100%',
       height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
     });
 
     return (
@@ -40,7 +44,7 @@ export default class App extends React.Component {
             </Typography>
           </Toolbar>
         </AppBar>
-        <div className={stageStyle} ref={ref => (this.stageRef = ref)}>
+        <div className={stageContainerStyle} ref={ref => (this.stageRef = ref)}>
           <Editor width={width} height={height} />
           <Controls />
         </div>

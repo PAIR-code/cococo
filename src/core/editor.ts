@@ -5,7 +5,12 @@ import * as mm from '@magenta/music';
 
 import { Note } from './note';
 import { engine } from './index';
-import { TOTAL_SIXTEENTHS, MAX_PITCH, MIN_PITCH } from './constants';
+import {
+  DEFAULT_NOTES,
+  TOTAL_SIXTEENTHS,
+  MAX_PITCH,
+  MIN_PITCH,
+} from './constants';
 
 export interface ScaleValue {
   value: number;
@@ -51,6 +56,14 @@ export class Editor {
   }
 
   @observable selectedTool = 'PAINT';
+
+  constructor() {
+    DEFAULT_NOTES.forEach((pitch, i) => {
+      const note = new Note(pitch, i * 2, 2);
+      this.addNote(note);
+    });
+    this.currentlySelectedNotes.clear();
+  }
 
   private makeNoteKey(pitch: number, position: number) {
     return `${pitch}:${position}`;
