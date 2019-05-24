@@ -3,6 +3,8 @@ import { observable, toJS } from 'mobx';
 import { Note } from './note';
 import { editor } from './index';
 import { range } from 'lodash';
+import * as Tone from 'tone';
+
 import {
   DEFAULT_BPM,
   MIN_PITCH,
@@ -18,7 +20,7 @@ export class Engine {
   @observable isPlaying = false;
   @observable isWorking = false;
 
-  player = new mm.SoundFontPlayer(SOUNDFONT_URL);
+  player = new mm.SoundFontPlayer(SOUNDFONT_URL, Tone.master);
   model = new mm.Coconet(MODEL_URL);
 
   @observable bpm = DEFAULT_BPM;
@@ -80,7 +82,7 @@ export class Engine {
 
   getMagentaNoteSequence(merge = false) {
     const noteSequence = {
-      notes: editor.userNotes.map(note => note.magentaNote),
+      notes: editor.allNotes.map(note => note.magentaNote),
       tempos: [{ time: 0, qpm: this.bpm }],
       totalQuantizedSteps: editor.totalSixteenths,
       quantizationInfo: { stepsPerQuarter: 4 },

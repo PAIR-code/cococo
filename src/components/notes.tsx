@@ -43,7 +43,7 @@ export class Notes extends React.Component<Props> {
         y={y}
         width={noteWidth}
         height={noteHeight}
-        stroke="lightGray"
+        // stroke="lightGray"
         fill={fill}
         onClick={() => {
           editor.handleNoteClick(note);

@@ -12,9 +12,32 @@ export interface Props {
   noteHeight: number;
 }
 
+const DIVISIONS = [4, 8, 12, 16, 20, 24, 28];
+
 @observer
 export class Grid extends React.Component<Props> {
-  renderLine(item: ScaleValue, scaleIndex: number) {
+  renderDivision(divisionIndex: number) {
+    const x = (this.props.width / editor.totalSixteenths) * divisionIndex;
+    const height = this.props.noteHeight * editor.scale.length;
+
+    const isWhole = divisionIndex % 16 === 0;
+    const color = isWhole ? '#494949' : '#555';
+    const width = isWhole ? 2.5 : 1;
+
+    return (
+      <line
+        key={divisionIndex}
+        x1={x}
+        y1={0}
+        x2={x}
+        y2={height}
+        stroke={color}
+        strokeWidth={width}
+      />
+    );
+  }
+
+  renderNoteGrid(item: ScaleValue, scaleIndex: number) {
     const divisions = range(editor.nDivisions);
     const { width, noteHeight } = this.props;
     const y = noteHeight * scaleIndex;
@@ -22,7 +45,7 @@ export class Grid extends React.Component<Props> {
     return (
       <Group key={scaleIndex} x={0} y={y}>
         {divisions.map(divisionIndex => {
-          const x = (this.props.width * divisionIndex) / editor.nDivisions;
+          const x = (this.props.width / editor.nDivisions) * divisionIndex;
 
           const isAccidental = item.name.includes('b');
           const fillColor = isAccidental ? '#EEE' : '#FFF';
@@ -50,9 +73,10 @@ export class Grid extends React.Component<Props> {
   render() {
     return (
       <Group>
-        {editor.scale.map((item: ScaleValue, index: number) => {
-          return this.renderLine(item, index);
+        {editor.scale.map((scaleValue: ScaleValue, index: number) => {
+          return this.renderNoteGrid(scaleValue, index);
         })}
+        {DIVISIONS.map(division => this.renderDivision(division))}
       </Group>
     );
   }
