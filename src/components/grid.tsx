@@ -22,7 +22,7 @@ export class Grid extends React.Component<Props> {
 
     const isWhole = divisionIndex % 16 === 0;
     const color = isWhole ? '#494949' : '#555';
-    const width = isWhole ? 2.5 : 1;
+    const width = isWhole ? 2 : 1;
 
     return (
       <line
@@ -41,6 +41,7 @@ export class Grid extends React.Component<Props> {
     const divisions = range(editor.nDivisions);
     const { width, noteHeight } = this.props;
     const y = noteHeight * scaleIndex;
+    const gridWidth = width / editor.nDivisions;
 
     return (
       <Group key={scaleIndex} x={0} y={y}>
@@ -55,7 +56,7 @@ export class Grid extends React.Component<Props> {
               key={divisionIndex}
               x={x}
               y={0}
-              width={width}
+              width={gridWidth}
               height={noteHeight}
               stroke="#CCC"
               fill={fillColor}

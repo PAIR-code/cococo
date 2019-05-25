@@ -1,9 +1,7 @@
 import React from 'react';
 import { style } from 'typestyle';
 import Button from '@material-ui/core/Button';
-import MusicNoteIcon from '@material-ui/icons/MusicNote';
-import PlayArrowIcon from '@material-ui/icons/PlayArrow';
-import StopIcon from '@material-ui/icons/Stop';
+import { MusicNote, PlayArrow, Stop, Edit } from '@material-ui/icons';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import { observer } from 'mobx-react';
@@ -12,8 +10,15 @@ import { engine, layout, editor } from '../core';
 
 @observer
 export class Controls extends React.Component<{}> {
+  renderSpacer(width = 5) {
+    const spacerStyle = style({
+      width,
+      display: 'inline-block',
+    });
+    return <div className={spacerStyle} />;
+  }
   render() {
-    const PADDING = 40;
+    const PADDING = 20;
     const width = layout.stageWidth;
 
     const controlsStyle = style({
@@ -29,17 +34,21 @@ export class Controls extends React.Component<{}> {
     const showPlay = !engine.isPlaying;
 
     const harmonizeEnabled = engine.isModelLoaded && !engine.isWorking;
+    const reharmonize = editor.agentNotes.length > 0;
+    const canClearHarmonies = editor.agentNotes.length > 0;
 
     return (
       <div className={controlsStyle}>
-        <Button
-          disabled={playDisabled}
-          variant="contained"
-          color="primary"
-          onClick={() => engine.togglePlay()}
-        >
-          {showPlay ? <PlayArrowIcon /> : <StopIcon />}
-        </Button>
+        <div>
+          <Button
+            disabled={playDisabled}
+            variant="contained"
+            color="primary"
+            onClick={() => engine.togglePlay()}
+          >
+            {showPlay ? <PlayArrow /> : <Stop />}
+          </Button>
+        </div>
         <ToggleButtonGroup
           value={editor.quantizeStep}
           exclusive
@@ -54,15 +63,26 @@ export class Controls extends React.Component<{}> {
           <ToggleButton value={4}>1/4</ToggleButton>
           <ToggleButton value={8}>1/2</ToggleButton>
         </ToggleButtonGroup>
-        <Button
-          disabled={!harmonizeEnabled}
-          variant="contained"
-          color="primary"
-          onClick={() => engine.harmonize()}
-        >
-          Harmonize
-          <MusicNoteIcon />
-        </Button>
+        <div>
+          <Button
+            disabled={!harmonizeEnabled}
+            variant="contained"
+            color="primary"
+            onClick={() => engine.harmonize()}
+          >
+            {reharmonize ? 'Reharmonize' : 'Harmonize'}
+            <MusicNote />
+          </Button>
+          {this.renderSpacer()}
+          <Button
+            disabled={!canClearHarmonies}
+            variant="contained"
+            color="primary"
+            onClick={() => editor.clearAgentNotes()}
+          >
+            Clear
+          </Button>
+        </div>
       </div>
     );
   }

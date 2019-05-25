@@ -131,7 +131,7 @@ export class Editor {
 
   addAgentNotes(sequence: mm.NoteSequence.INote[], replace = true) {
     if (replace) {
-      this.agentNotesMap.clear();
+      this.clearAgentNotes();
     }
     sequence.forEach(item => {
       const position = item.quantizedStartStep;
@@ -140,5 +140,9 @@ export class Editor {
       const key = this.makeNoteKey(item.pitch, position);
       this.agentNotesMap.set(key, note);
     });
+  }
+
+  clearAgentNotes() {
+    this.agentNotesMap.clear();
   }
 }
