@@ -3,7 +3,7 @@ import React from 'react';
 export interface GroupProps {
   x?: number;
   y?: number;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export function Group(props: GroupProps) {

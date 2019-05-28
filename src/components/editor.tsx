@@ -6,6 +6,7 @@ import { PianoRoll } from './piano-roll';
 import { Grid } from './grid';
 import { Group } from './group';
 import { Notes } from './notes';
+import { Timeline } from './timeline';
 
 export interface Props {
   width: number;
@@ -23,17 +24,23 @@ export class Editor extends React.Component<Props> {
     const { scale } = editor;
     const notesHeight = scale.length * NOTE_HEIGHT;
     const notesWidth = width - PIANO_ROLL_WIDTH;
+    const timelineHeight = 20;
 
     return (
       <svg width={width} height={height}>
-        <PianoRoll
-          width={PIANO_ROLL_WIDTH}
-          height={notesHeight}
-          noteHeight={NOTE_HEIGHT}
-        />
         <Group x={PIANO_ROLL_WIDTH}>
-          <Grid width={notesWidth} noteHeight={NOTE_HEIGHT} />
-          <Notes width={notesWidth} noteHeight={NOTE_HEIGHT} />
+          <Timeline width={notesWidth} height={timelineHeight} />
+        </Group>
+        <Group y={timelineHeight}>
+          <PianoRoll
+            width={PIANO_ROLL_WIDTH}
+            height={notesHeight}
+            noteHeight={NOTE_HEIGHT}
+          />
+          <Group x={PIANO_ROLL_WIDTH}>
+            <Grid width={notesWidth} noteHeight={NOTE_HEIGHT} />
+            <Notes width={notesWidth} noteHeight={NOTE_HEIGHT} />
+          </Group>
         </Group>
       </svg>
     );

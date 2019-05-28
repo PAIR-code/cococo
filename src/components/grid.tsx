@@ -3,6 +3,7 @@ import { observer } from 'mobx-react';
 import { range } from 'lodash';
 
 import { editor } from '../core';
+import { DIVISIONS } from '../core/constants';
 import { ScaleValue } from '../core/editor';
 
 import { Group } from './group';
@@ -12,8 +13,6 @@ export interface Props {
   noteHeight: number;
 }
 
-const DIVISIONS = [4, 8, 12, 16, 20, 24, 28];
-
 @observer
 export class Grid extends React.Component<Props> {
   renderDivision(divisionIndex: number) {
@@ -22,7 +21,7 @@ export class Grid extends React.Component<Props> {
 
     const isWhole = divisionIndex % 16 === 0;
     const color = isWhole ? '#494949' : '#555';
-    const width = isWhole ? 2 : 1;
+    const strokeWidth = isWhole ? 2 : 1;
 
     return (
       <line
@@ -32,7 +31,7 @@ export class Grid extends React.Component<Props> {
         x2={x}
         y2={height}
         stroke={color}
-        strokeWidth={width}
+        strokeWidth={strokeWidth}
       />
     );
   }
