@@ -1,12 +1,18 @@
 import React from 'react';
 import { style } from 'typestyle';
 import Button from '@material-ui/core/Button';
-import { MusicNote, PlayArrow, Stop, Edit } from '@material-ui/icons';
+import {
+  MusicNote,
+  PlayArrow,
+  Stop,
+  Edit,
+  SelectAll,
+} from '@material-ui/icons';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import { observer } from 'mobx-react';
 
-import { engine, layout, editor } from '../core';
+import { engine, layout, editor, EditorTool } from '../core';
 
 @observer
 export class Controls extends React.Component<{}> {
@@ -49,6 +55,22 @@ export class Controls extends React.Component<{}> {
             {showPlay ? <PlayArrow /> : <Stop />}
           </Button>
         </div>
+        <ToggleButtonGroup
+          value={editor.selectedTool}
+          exclusive
+          onChange={(e, value: EditorTool) => {
+            if (value !== null) {
+              editor.selectedTool = value;
+            }
+          }}
+        >
+          <ToggleButton value={EditorTool.DRAW}>
+            <Edit />
+          </ToggleButton>
+          <ToggleButton value={EditorTool.SELECT}>
+            <SelectAll />
+          </ToggleButton>
+        </ToggleButtonGroup>
         <ToggleButtonGroup
           value={editor.quantizeStep}
           exclusive

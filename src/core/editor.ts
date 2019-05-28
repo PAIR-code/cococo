@@ -11,7 +11,11 @@ import {
   MAX_PITCH,
   MIN_PITCH,
 } from './constants';
-import { throwStatement } from '@babel/types';
+
+export const enum EditorTool {
+  DRAW = 'DRAW',
+  SELECT = 'SELECT',
+}
 
 export interface ScaleValue {
   value: number;
@@ -85,7 +89,7 @@ export class Editor {
     return this.scale[0].value;
   }
 
-  @observable selectedTool = 'PAINT';
+  @observable selectedTool: EditorTool = EditorTool.DRAW;
 
   constructor() {
     DEFAULT_NOTES.forEach((pitch, i) => {

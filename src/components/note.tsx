@@ -33,7 +33,6 @@ const NOTE_BORDER = 1;
 export class Note extends React.Component<NoteProps> {
   render() {
     const { note, width, height, x, y } = this.props;
-
     const fill = getFillColor(note);
 
     return (
@@ -48,6 +47,9 @@ export class Note extends React.Component<NoteProps> {
         fill={fill}
         onClick={() => {
           editor.handleNoteClick(note);
+        }}
+        onMouseDown={() => {
+          console.log('🐸', note);
         }}
       />
     );
