@@ -34,6 +34,7 @@ export class Controls extends React.Component<{}> {
       alignItems: 'center',
       paddingLeft: PADDING,
       paddingRight: PADDING,
+      marginTop: 10,
     });
 
     const playDisabled = !engine.isPlayerLoaded;
@@ -67,7 +68,7 @@ export class Controls extends React.Component<{}> {
           <ToggleButton value={EditorTool.DRAW}>
             <Edit />
           </ToggleButton>
-          <ToggleButton value={EditorTool.SELECT}>
+          <ToggleButton value={EditorTool.MASK}>
             <SelectAll />
           </ToggleButton>
         </ToggleButtonGroup>

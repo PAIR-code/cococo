@@ -20,20 +20,16 @@ export const COLOR_PRIMARY = '#3f51b5';
 export const DIVISIONS = [4, 8, 12, 16, 20, 24, 28];
 
 export const DEFAULT_NOTES = [
-  62,
-  64,
-  65,
-  69,
-  72,
-  71,
-  71,
-  71,
-  69,
-  72,
-  71,
-  69,
-  67,
-  65,
-  64,
-  62,
+  [76, 4],
+  [77, 2],
+  [79, 2],
+  [77, 6],
+  [76, 2],
+  [74, 4],
+  [72, 2],
+  [74, 2],
+  [76, 8],
 ];
+
+export const PIANO_ROLL_WIDTH = 24;
+export const NOTE_HEIGHT = 12;

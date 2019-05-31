@@ -1,10 +1,10 @@
 import { computed, observable } from 'mobx';
+import { range, inRange } from 'lodash';
 import { makeNoteScale } from './tonal-utils';
-import { range } from 'lodash';
 import * as mm from '@magenta/music';
 
 import { Note } from './note';
-import { engine } from './index';
+
 import {
   DEFAULT_NOTES,
   TOTAL_SIXTEENTHS,
@@ -14,12 +14,21 @@ import {
 
 export const enum EditorTool {
   DRAW = 'DRAW',
-  SELECT = 'SELECT',
+  MASK = 'MASK',
 }
 
 export interface ScaleValue {
   value: number;
   name: string;
+}
+
+export class Mask {
+  constructor(
+    public topLeftValue: number,
+    public topLeftPosition: number,
+    public bottomRightValue: number,
+    public bottomRightPosition: number
+  ) {}
 }
 
 export class Editor {
@@ -92,8 +101,10 @@ export class Editor {
   @observable selectedTool: EditorTool = EditorTool.DRAW;
 
   constructor() {
-    DEFAULT_NOTES.forEach((pitch, i) => {
-      const note = new Note(pitch, i * 2, 2);
+    let position = 0;
+    DEFAULT_NOTES.forEach(([pitch, duration], i) => {
+      const note = new Note(pitch, position, duration);
+      position += duration;
       this.addNote(note);
     });
     this.currentlySelectedNotes.clear();
@@ -108,21 +119,8 @@ export class Editor {
     return this.userNotesMap.has(key);
   }
 
-  handleGridClick(scaleIndex: number, divisionIndex: number) {
-    const value = this.scale[scaleIndex].value;
-    const position = divisionIndex * this.quantizeStep;
-    const duration = this.quantizeStep;
-    const note = new Note(value, position, duration);
-
-    this.addNote(note);
-
-    engine.playNote(note);
-  }
-
-  handleNoteClick(note: Note) {
-    const { position, value } = note;
-    const key = this.makeNoteKey(value, position);
-    this.userNotesMap.delete(key);
+  getValueFromScaleIndex(scaleIndex: number) {
+    return this.scale[scaleIndex].value;
   }
 
   addNote(note: Note) {
@@ -140,7 +138,8 @@ export class Editor {
     sequence.forEach(item => {
       const position = item.quantizedStartStep;
       const duration = item.quantizedEndStep - item.quantizedStartStep;
-      const note = new Note(item.pitch, position, duration, 'AGENT');
+      const voice = item.instrument;
+      const note = new Note(item.pitch, position, duration, 'AGENT', voice);
       const key = this.makeNoteKey(item.pitch, position);
       this.agentNotesMap.set(key, note);
     });
@@ -148,5 +147,41 @@ export class Editor {
 
   clearAgentNotes() {
     this.agentNotesMap.clear();
+  }
+
+  // Resolves conflicting note edits
+  endNoteDrag(note: Note) {
+    for (let other of this.userNotes) {
+      if (other.position === note.position && other.value === note.value) {
+        const key = this.makeNoteKey(other.value, other.position);
+        this.userNotesMap.delete(key);
+      }
+    }
+  }
+
+  private overlaps(note: Note, positionRange: number[], valueRange: number[]) {
+    const { value, position, duration } = note;
+    const [startPosition, endPosition] = positionRange;
+    const [startValue, endValue] = valueRange;
+    if (value < startValue || value > endValue) {
+      return false;
+    } else if (position >= startPosition && position < endPosition) {
+      return true;
+    } else if (
+      position < startPosition &&
+      position + duration > startPosition
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  maskNotes(positionRange: number[], valueRange: number[]) {
+    for (const note of [...this.userNotes, ...this.agentNotes]) {
+      if (this.overlaps(note, positionRange, valueRange)) {
+        note.isMasked = !note.isMasked;
+      }
+    }
   }
 }

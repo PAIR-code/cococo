@@ -23,7 +23,7 @@ export default class App extends React.Component {
 
   render() {
     const width = layout.stageWidth;
-    const height = 600;
+    const height = layout.stageHeight;
 
     const stageContainerStyle = style({
       marginTop: 20,
@@ -40,7 +40,7 @@ export default class App extends React.Component {
         <AppBar position="static" color="primary">
           <Toolbar>
             <Typography variant="h6" color="inherit">
-              🎹 Bach CoCoCo
+              𝄡 Bach CoCoCo
             </Typography>
           </Toolbar>
         </AppBar>

@@ -2,7 +2,7 @@ import React from 'react';
 import { observer } from 'mobx-react';
 import { range } from 'lodash';
 
-import { editor } from '../core';
+import { editor, interactions } from '../core';
 import { DIVISIONS } from '../core/constants';
 import { ScaleValue } from '../core/editor';
 
@@ -61,7 +61,7 @@ export class Grid extends React.Component<Props> {
               fill={fillColor}
               strokeWidth={1}
               onClick={() => {
-                editor.handleGridClick(scaleIndex, divisionIndex);
+                interactions.handleGridClick(scaleIndex, divisionIndex);
               }}
             />
           );

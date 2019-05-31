@@ -1,45 +1,49 @@
 import React from 'react';
 import { observer } from 'mobx-react';
-import { editor } from '../core';
+import { editor, layout, EditorTool } from '../core';
 
 import { PianoRoll } from './piano-roll';
 import { Grid } from './grid';
 import { Group } from './group';
 import { Notes } from './notes';
 import { Timeline } from './timeline';
+import { Masks } from './masks';
 
 export interface Props {
   width: number;
   height: number;
 }
 
-const PIANO_ROLL_WIDTH = 24;
-const NOTE_HEIGHT = 12;
-
 @observer
 export class Editor extends React.Component<Props> {
   render() {
     const { width, height } = this.props;
+    const { noteHeight, pianoRollWidth } = layout;
 
     const { scale } = editor;
-    const notesHeight = scale.length * NOTE_HEIGHT;
-    const notesWidth = width - PIANO_ROLL_WIDTH;
+    const notesHeight = scale.length * noteHeight;
+    const notesWidth = width - pianoRollWidth;
     const timelineHeight = 20;
+
+    const isMaskToolSelected = editor.selectedTool === EditorTool.MASK;
 
     return (
       <svg width={width} height={height}>
-        <Group x={PIANO_ROLL_WIDTH}>
+        <Group x={pianoRollWidth}>
           <Timeline width={notesWidth} height={timelineHeight} />
         </Group>
         <Group y={timelineHeight}>
           <PianoRoll
-            width={PIANO_ROLL_WIDTH}
+            width={pianoRollWidth}
             height={notesHeight}
-            noteHeight={NOTE_HEIGHT}
+            noteHeight={noteHeight}
           />
-          <Group x={PIANO_ROLL_WIDTH}>
-            <Grid width={notesWidth} noteHeight={NOTE_HEIGHT} />
-            <Notes width={notesWidth} noteHeight={NOTE_HEIGHT} />
+          <Group x={pianoRollWidth}>
+            <Grid width={notesWidth} noteHeight={noteHeight} />
+            <Notes width={notesWidth} noteHeight={noteHeight} />
+            {isMaskToolSelected && (
+              <Masks width={notesWidth} height={notesHeight} />
+            )}
           </Group>
         </Group>
       </svg>

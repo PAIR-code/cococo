@@ -30,10 +30,10 @@ export class Notes extends React.Component<NotesProps> {
     return (
       <Group>
         {editor.agentNotes.map(note => (
-          <Note key={note.key} note={note} {...this.getNoteProps(note)} />
+          <Note key={note.id} note={note} {...this.getNoteProps(note)} />
         ))}
         {editor.userNotes.map(note => (
-          <Note key={note.key} note={note} {...this.getNoteProps(note)} />
+          <Note key={note.id} note={note} {...this.getNoteProps(note)} />
         ))}
       </Group>
     );

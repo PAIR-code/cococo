@@ -2,12 +2,11 @@ import React from 'react';
 import { observer } from 'mobx-react';
 
 import { Note as NoteModel } from '../core/note';
-import { editor } from '../core';
+import { editor, interactions } from '../core';
 import { COLOR_PRIMARY } from '../core/constants';
 
 function getFillColor(note: NoteModel) {
-  const isSelected = editor.isNoteSelected(note);
-  const isPlaying = note.isPlaying;
+  const { isSelected, isPlaying } = note;
   const isUser = note.source === 'USER';
 
   if (isPlaying) {
@@ -37,20 +36,16 @@ export class Note extends React.Component<NoteProps> {
 
     return (
       <rect
-        key={`${note.name}:${note.position}:${note.duration}`}
+        key={note.id}
         x={x + 1}
         y={y + NOTE_BORDER}
         width={width - 2 * NOTE_BORDER}
         height={height - 2 * NOTE_BORDER}
         strokeWidth={1}
         stroke="#ddd"
+        opacity={note.isMasked ? 0.3 : 1}
         fill={fill}
-        onClick={() => {
-          editor.handleNoteClick(note);
-        }}
-        onMouseDown={() => {
-          console.log('🐸', note);
-        }}
+        onMouseDown={interactions.handleNoteMouseDown(note)}
       />
     );
   }

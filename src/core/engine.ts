@@ -1,5 +1,5 @@
 import * as mm from '@magenta/music';
-import { observable } from 'mobx';
+import { observable, toJS } from 'mobx';
 import { Note } from './note';
 import { editor } from './index';
 import { range } from 'lodash';
@@ -13,7 +13,12 @@ import {
   SOUNDFONT_URL,
   MODEL_URL,
 } from './constants';
-import { thisExpression } from '@babel/types';
+import { Voice } from './note';
+
+interface InfillMask {
+  step: number;
+  voice: number;
+}
 
 export class CallbackObject extends mm.BasePlayerCallback {
   constructor(private engine: Engine) {
@@ -122,7 +127,6 @@ export class Engine {
   start() {
     if (this.isPlayerLoaded) {
       if (editor.allNotes.length === 0) {
-        console.log('🤔 empty notes... not playing...');
         return;
       }
 
@@ -143,6 +147,32 @@ export class Engine {
     editor.clearPlayingNotes();
   }
 
+  getNotesToHarmonize() {
+    const { agentNotes, userNotes } = editor;
+    if (agentNotes.length === 0) {
+      return userNotes;
+    }
+
+    const filteredAgentNotes = agentNotes.filter(note => !note.isMasked);
+    return [...userNotes.filter(note => !note.isMasked), ...filteredAgentNotes];
+  }
+
+  getInfillMask(): InfillMask[] | undefined {
+    const mask = [];
+    const maskedAgentNotes = editor.agentNotes.filter(note => note.isMasked);
+    for (const note of maskedAgentNotes) {
+      const { position, duration, voice } = note;
+      for (let step = position; step < position + duration; step++) {
+        mask.push({ voice, step });
+      }
+    }
+    if (mask.length === 0) return undefined;
+    return mask.sort((a, b) => {
+      if (a.voice === b.voice) return a.step - b.step;
+      return a.voice - b.voice;
+    });
+  }
+
   async harmonize() {
     this.isWorking = true;
 
@@ -153,18 +183,19 @@ export class Engine {
       this.stop();
     }
 
-    const sequence = this.getMagentaNoteSequence(editor.userNotes);
+    const notesToHarmonize = this.getNotesToHarmonize();
+    const sequence = this.getMagentaNoteSequence(notesToHarmonize);
 
+    const infillMask = this.getInfillMask();
     const results = await this.model.infill(sequence, {
       temperature: 0.99,
+      infillMask,
     });
 
     const output = mm.sequences.mergeConsecutiveNotes(results);
 
     output.notes = output.notes.filter(note => {
-      const { pitch, quantizedStartStep: position } = note;
-      const overlaps = editor.overlapsWithUserNote(pitch, position);
-      return !overlaps;
+      return note.instrument !== Voice.ALTO;
     });
 
     this.isWorking = false;
