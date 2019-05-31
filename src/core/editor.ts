@@ -227,8 +227,6 @@ class Editor {
         const noteStart = note.position;
         const noteEnd = note.end;
 
-        console.log({ maskStart, maskEnd, noteStart, noteEnd });
-
         // Mask covers all of note
         if (noteStart >= maskStart && noteEnd <= maskEnd) {
           note.isMasked = true;

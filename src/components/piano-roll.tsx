@@ -3,6 +3,7 @@ import { style } from 'typestyle';
 import { observer } from 'mobx-react';
 
 import { editor, engine } from '../core';
+import { COLOR_PLAYING } from '../core/theme';
 import { ScaleValue } from '../core/editor';
 import { Note } from '../core/note';
 
@@ -22,7 +23,7 @@ export class PianoRoll extends React.Component<Props> {
     const isWhite = scaleNote.name.length === 2;
     let fill = isWhite ? 'white' : 'black';
 
-    fill = isActive ? 'red' : fill;
+    fill = isActive ? COLOR_PLAYING : fill;
     const fadeDuration = isActive ? 0 : 0.5;
 
     const rectStyle = style({
@@ -55,7 +56,7 @@ export class PianoRoll extends React.Component<Props> {
   }
 
   render() {
-    const { width, height } = this.props;
+    const { width } = this.props;
 
     return (
       <g
