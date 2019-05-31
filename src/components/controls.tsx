@@ -43,8 +43,7 @@ export class Controls extends React.Component<{}> {
     const showPlay = !engine.isPlaying;
 
     const harmonizeEnabled = engine.isModelLoaded && !engine.isWorking;
-    const reharmonize = editor.agentNotes.length > 0;
-    const canClearHarmonies = editor.agentNotes.length > 0;
+    const canClear = editor.allNotes.length > 0;
 
     return (
       <div className={controlsStyle}>
@@ -119,10 +118,10 @@ export class Controls extends React.Component<{}> {
           </Button>
           {this.renderSpacer()}
           <Button
-            disabled={!canClearHarmonies}
+            disabled={!canClear}
             variant="outlined"
             color="primary"
-            onClick={() => editor.clearAgentNotes()}
+            onClick={() => editor.clearAllNotes()}
           >
             Clear
           </Button>

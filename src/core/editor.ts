@@ -172,13 +172,19 @@ class Editor {
     }
   }
 
+  @undoable()
+  clearAllNotes() {
+    this.notesMap.clear();
+  }
+
   startNoteDrag() {
     undo.beginUndoable();
   }
 
   // Resolves conflicting note edits
-  endNoteDrag(note: Note, didUpdate = true) {
+  endNoteDrag(note: Note) {
     for (let other of this.allNotes) {
+      if (other === note) continue;
       if (other.position === note.position && other.pitch === note.pitch) {
         const key = this.makeNoteKey(other.pitch, other.position);
         this.notesMap.delete(key);

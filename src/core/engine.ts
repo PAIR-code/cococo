@@ -192,10 +192,6 @@ class Engine {
 
     const output = mm.sequences.mergeConsecutiveNotes(results);
 
-    // output.notes = output.notes.filter(note => {
-    //   return note.instrument !== Voice.ALTO;
-    // });
-
     this.isWorking = false;
     editor.addAgentNotes(output.notes);
   }
