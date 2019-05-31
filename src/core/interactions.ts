@@ -43,6 +43,7 @@ export class Interactions {
   };
 
   handleNoteMouseDown = (note: Note) => (e: React.MouseEvent) => {
+    editor.startNoteDrag();
     e.preventDefault();
 
     this.noteDragStartX = e.clientX;

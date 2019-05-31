@@ -7,12 +7,14 @@ import {
   Stop,
   Edit,
   SelectAll,
+  Undo,
+  Redo,
 } from '@material-ui/icons';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import { observer } from 'mobx-react';
 
-import { engine, layout, editor, EditorTool } from '../core';
+import { engine, layout, editor, EditorTool, undo } from '../core';
 
 @observer
 export class Controls extends React.Component<{}> {
@@ -54,6 +56,25 @@ export class Controls extends React.Component<{}> {
             onClick={() => engine.togglePlay()}
           >
             {showPlay ? <PlayArrow /> : <Stop />}
+          </Button>
+        </div>
+        <div>
+          <Button
+            disabled={!undo.canUndo}
+            variant="contained"
+            color="primary"
+            onClick={() => undo.undo()}
+          >
+            {<Undo />}
+          </Button>
+          {this.renderSpacer()}
+          <Button
+            disabled={!undo.canRedo}
+            variant="contained"
+            color="primary"
+            onClick={() => undo.redo()}
+          >
+            {<Redo />}
           </Button>
         </div>
         <ToggleButtonGroup
