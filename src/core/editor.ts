@@ -4,7 +4,7 @@ import { makeNoteScale } from './tonal-utils';
 import * as mm from '@magenta/music';
 
 import { Note, Source } from './note';
-import { undo } from './index';
+import undo, { undoable } from './undo';
 
 import {
   DEFAULT_NOTES,
@@ -32,7 +32,7 @@ export class Mask {
   ) {}
 }
 
-export class Editor {
+class Editor {
   @observable notesMap = new Map<string, Note>();
 
   @computed get allNotes() {
@@ -127,18 +127,17 @@ export class Editor {
     this.notesMap.set(key, note);
   }
 
+  @undoable()
   addNote(note: Note, shouldSelect = false) {
-    undo.beginUndoable();
     this._addNote(note);
     if (shouldSelect) {
       this.currentlySelectedNotes.clear();
       this.currentlySelectedNotes.add(note);
     }
-    undo.completeUndoable();
   }
 
+  @undoable()
   addAgentNotes(sequence: mm.NoteSequence.INote[], replace = true) {
-    undo.beginUndoable();
     if (replace) {
       this.clearAgentNotes();
     }
@@ -156,17 +155,15 @@ export class Editor {
       const key = this.makeNoteKey(item.pitch, position);
       this.notesMap.set(key, note);
     });
-    undo.completeUndoable();
   }
 
+  @undoable()
   clearAgentNotes() {
-    undo.beginUndoable();
     for (const [key, note] of this.notesMap.entries()) {
       if (note.source === Source.AGENT) {
         this.notesMap.delete(key);
       }
     }
-    undo.completeUndoable();
   }
 
   startNoteDrag() {
@@ -210,13 +207,14 @@ export class Editor {
     return false;
   }
 
+  @undoable()
   maskNotes(positionRange: number[], valueRange: number[]) {
-    undo.beginUndoable();
     for (const note of [...this.userNotes, ...this.agentNotes]) {
       if (this.overlaps(note, positionRange, valueRange)) {
         note.isMasked = !note.isMasked;
       }
     }
-    undo.completeUndoable();
   }
 }
+
+export default new Editor();

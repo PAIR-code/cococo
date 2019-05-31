@@ -1,7 +1,7 @@
 import * as mm from '@magenta/music';
-import { observable, toJS } from 'mobx';
+import { observable } from 'mobx';
 import { Note } from './note';
-import { editor } from './index';
+import editor from './editor';
 import { range } from 'lodash';
 import * as Tone from 'tone';
 
@@ -38,7 +38,11 @@ export class CallbackObject extends mm.BasePlayerCallback {
   }
 }
 
-export class Engine {
+function delay(ms = 1) {
+  return new Promise(resolve => setTimeout(() => resolve(), ms));
+}
+
+class Engine {
   playerCallbackObject = new CallbackObject(this);
   @observable isPlayerLoaded = false;
   @observable isModelLoaded = false;
@@ -203,6 +207,4 @@ export class Engine {
   }
 }
 
-function delay(ms = 1) {
-  return new Promise(resolve => setTimeout(() => resolve(), ms));
-}
+export default new Engine();

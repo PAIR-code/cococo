@@ -3,7 +3,7 @@ import { computed, observable } from 'mobx';
 import { editor } from './index';
 import { PIANO_ROLL_WIDTH } from './constants';
 
-export class Layout {
+class Layout {
   @observable stageWidth = 1200;
   @observable stageHeight = 600;
 
@@ -22,3 +22,5 @@ export class Layout {
     return this.stageWidth / editor.totalSixteenths;
   }
 }
+
+export default new Layout();

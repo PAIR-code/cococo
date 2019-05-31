@@ -3,7 +3,7 @@ import { computed, observable } from 'mobx';
 import { Note, SerializedNote } from './note';
 import { editor } from './index';
 
-export class Undo {
+class Undo {
   @observable undoStack: SerializedNote[][] = [];
   @observable redoStack: SerializedNote[][] = [];
 
@@ -65,19 +65,21 @@ export class Undo {
   }
 }
 
-// export function undoable(getUndo: () => Undo) {
-//   return function(
-//     target: any,
-//     propertyKey: string,
-//     descriptor: PropertyDescriptor
-//   ) {
-//     const undo = getUndo();
-//     const originalMethod = descriptor.value;
-//     descriptor.value = function() {
-//       undo.beginUndoable();
-//       originalMethod.apply(this, arguments);
-//       undo.completeUndoable();
-//     };
-//     return descriptor;
-//   };
-// }
+const undo = new Undo();
+export default undo;
+
+export function undoable() {
+  return function(
+    target: any,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+  ) {
+    const originalMethod = descriptor.value;
+    descriptor.value = function() {
+      undo.beginUndoable();
+      originalMethod.apply(this, arguments);
+      undo.completeUndoable();
+    };
+    return descriptor;
+  };
+}

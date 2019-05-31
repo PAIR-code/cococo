@@ -16,7 +16,7 @@ function clampPitch(pitch: number) {
   return _.clamp(pitch, MIN_PITCH, MAX_PITCH);
 }
 
-export class Interactions {
+class Interactions {
   private noteDragStartX = 0;
   private noteDragStartY = 0;
   private noteDragStartPosition = 0;
@@ -127,3 +127,5 @@ export class Interactions {
     document.addEventListener('mouseup', mouseUp);
   };
 }
+
+export default new Interactions();

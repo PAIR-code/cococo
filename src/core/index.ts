@@ -1,14 +1,14 @@
-import { Editor } from './editor';
-import { Engine } from './engine';
-import { Interactions } from './interactions';
-import { Layout } from './layout';
-import { Undo } from './undo';
+import _editor from './editor';
+import _engine from './engine';
+import _interactions from './interactions';
+import _layout from './layout';
+import _undo from './undo';
 
 export { EditorTool } from './editor';
 export { Note } from './note';
 
-export const undo = new Undo();
-export const editor = new Editor();
-export const engine = new Engine();
-export const interactions = new Interactions();
-export const layout = new Layout();
+export const editor = _editor;
+export const engine = _engine;
+export const interactions = _interactions;
+export const layout = _layout;
+export const undo = _undo;
