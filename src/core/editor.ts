@@ -3,7 +3,7 @@ import { range, inRange } from 'lodash';
 import { makeNoteScale } from './tonal-utils';
 import * as mm from '@magenta/music';
 
-import { Note } from './note';
+import { Note, Source } from './note';
 
 import {
   DEFAULT_NOTES,
@@ -11,6 +11,7 @@ import {
   MAX_PITCH,
   MIN_PITCH,
 } from './constants';
+import { string } from 'prop-types';
 
 export const enum EditorTool {
   DRAW = 'DRAW',
@@ -32,18 +33,17 @@ export class Mask {
 }
 
 export class Editor {
-  @observable private userNotesMap = new Map<string, Note>();
-  @observable private agentNotesMap = new Map<string, Note>();
-
-  @computed get userNotes() {
-    return [...this.userNotesMap.values()];
-  }
-  @computed get agentNotes() {
-    return [...this.agentNotesMap.values()];
-  }
+  @observable notesMap = new Map<string, Note>();
 
   @computed get allNotes() {
-    return [...this.userNotes, ...this.agentNotes];
+    return [...this.userNotes.values(), ...this.agentNotes.values()];
+  }
+
+  @computed get userNotes() {
+    return this.allNotes.filter(note => note.source === Source.USER);
+  }
+  @computed get agentNotes() {
+    return this.allNotes.filter(note => note.source === Source.AGENT);
   }
 
   @observable scale = makeNoteScale(MAX_PITCH, MIN_PITCH);
@@ -69,10 +69,8 @@ export class Editor {
 
   setNotePlaying(pitch: number, position: number) {
     const key = this.makeNoteKey(pitch, position);
-    const userNote = this.userNotesMap.get(key);
-    const agentNote = this.agentNotesMap.get(key);
-    if (userNote) this.setCurrentlyPlaying(userNote);
-    if (agentNote) this.setCurrentlyPlaying(agentNote);
+    const note = this.notesMap.get(key);
+    if (note) this.setCurrentlyPlaying(note);
 
     // Clear all notes that are playing if the playhead has passed them
     for (const playingNote of this.currentlyPlayingNotes.values()) {
@@ -116,7 +114,7 @@ export class Editor {
 
   overlapsWithUserNote(pitch: number, position: number) {
     const key = this.makeNoteKey(pitch, position);
-    return this.userNotesMap.has(key);
+    return this.notesMap.has(key);
   }
 
   getValueFromScaleIndex(scaleIndex: number) {
@@ -126,7 +124,7 @@ export class Editor {
   addNote(note: Note) {
     const { position, value } = note;
     const key = this.makeNoteKey(value, position);
-    this.userNotesMap.set(key, note);
+    this.notesMap.set(key, note);
     this.currentlySelectedNotes.clear();
     this.currentlySelectedNotes.add(note);
   }
@@ -139,14 +137,24 @@ export class Editor {
       const position = item.quantizedStartStep;
       const duration = item.quantizedEndStep - item.quantizedStartStep;
       const voice = item.instrument;
-      const note = new Note(item.pitch, position, duration, 'AGENT', voice);
+      const note = new Note(
+        item.pitch,
+        position,
+        duration,
+        Source.AGENT,
+        voice
+      );
       const key = this.makeNoteKey(item.pitch, position);
-      this.agentNotesMap.set(key, note);
+      this.notesMap.set(key, note);
     });
   }
 
   clearAgentNotes() {
-    this.agentNotesMap.clear();
+    for (const [key, note] of this.notesMap.entries()) {
+      if (note.source === Source.AGENT) {
+        this.notesMap.delete(key);
+      }
+    }
   }
 
   // Resolves conflicting note edits
@@ -154,7 +162,7 @@ export class Editor {
     for (let other of this.userNotes) {
       if (other.position === note.position && other.value === note.value) {
         const key = this.makeNoteKey(other.value, other.position);
-        this.userNotesMap.delete(key);
+        this.notesMap.delete(key);
       }
     }
   }

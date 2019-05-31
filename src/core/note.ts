@@ -6,7 +6,10 @@ function generateId() {
   return id++;
 }
 
-export type Source = 'USER' | 'AGENT';
+export const enum Source {
+  USER = 'USER',
+  AGENT = 'AGENT',
+}
 export const enum Voice {
   ALTO = 0,
   SOPRANO = 1,
@@ -14,10 +17,21 @@ export const enum Voice {
   BASS = 3,
 }
 
-export class Note {
-  source: Source = 'USER';
+export interface SerializedNote {
+  id: number;
+  source: Source;
+  value: number;
+  position: number;
+  duration: number;
+  voice: number;
+  isPlaying: boolean;
+  isSelected: boolean;
+  isMasked: boolean;
+}
 
+export class Note {
   id = generateId();
+  source: Source = Source.USER;
 
   @observable value: number;
   @observable position: number;
@@ -36,7 +50,7 @@ export class Note {
     value: number,
     position: number,
     duration: number,
-    source: Source = 'USER',
+    source: Source = Source.USER,
     voice = Voice.ALTO
   ) {
     this.value = value;
@@ -55,5 +69,29 @@ export class Note {
       quantizedEndStep: this.position + this.duration,
       instrument: this.voice,
     };
+  }
+
+  serialize(): SerializedNote {
+    return {
+      id: this.id,
+      source: this.source,
+      value: this.value,
+      position: this.position,
+      duration: this.duration,
+      voice: this.voice,
+      isPlaying: this.isPlaying,
+      isSelected: this.isSelected,
+      isMasked: this.isMasked,
+    };
+  }
+
+  static fromSerialized(serializedNote: SerializedNote) {
+    const { value, position, duration, source, voice } = serializedNote;
+    const newNote = new Note(value, position, duration, source, voice);
+    newNote.id = serializedNote.id;
+    newNote.isPlaying = serializedNote.isPlaying;
+    newNote.isSelected = serializedNote.isSelected;
+    newNote.isMasked = serializedNote.isMasked;
+    return newNote;
   }
 }
