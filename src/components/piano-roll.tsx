@@ -1,4 +1,5 @@
 import React from 'react';
+import { style } from 'typestyle';
 import { observer } from 'mobx-react';
 
 import { editor, engine } from '../core';
@@ -22,17 +23,23 @@ export class PianoRoll extends React.Component<Props> {
     let fill = isWhite ? 'white' : 'black';
 
     fill = isActive ? 'red' : fill;
+    const fadeDuration = isActive ? 0 : 0.5;
+
+    const rectStyle = style({
+      transition: `fill ${fadeDuration}s`,
+      fill,
+      stroke: '#CCC',
+      strokeWidth: 1,
+    });
 
     return (
       <rect
         key={index}
+        className={rectStyle}
         x={0}
         y={y}
         width={width}
         height={noteHeight}
-        fill={fill}
-        stroke={'black'}
-        strokeWidth={1}
         onMouseDown={e => {
           e.preventDefault();
           const note = new Note(scaleNote.pitch, 0, 0.2);
@@ -52,6 +59,7 @@ export class PianoRoll extends React.Component<Props> {
 
     return (
       <g
+        y={0}
         width={width}
         onMouseEnter={() => {
           document.body.style.cursor = 'pointer';

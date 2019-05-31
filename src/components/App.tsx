@@ -4,12 +4,14 @@ import { style } from 'typestyle';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
+import { ThemeProvider } from '@material-ui/styles';
 
 import { Controls } from './controls';
 import { Editor } from './editor';
 import { Working } from './working';
 
 import { engine, layout } from '../core';
+import { theme } from '../core/theme';
 
 @observer
 export default class App extends React.Component {
@@ -36,7 +38,7 @@ export default class App extends React.Component {
     });
 
     return (
-      <>
+      <ThemeProvider theme={theme}>
         <AppBar position="static" color="primary">
           <Toolbar>
             <Typography variant="h6" color="inherit">
@@ -49,7 +51,7 @@ export default class App extends React.Component {
           <Controls />
         </div>
         <Working open={engine.isWorking} title="Working..." />
-      </>
+      </ThemeProvider>
     );
   }
 }

@@ -51,7 +51,7 @@ export class Controls extends React.Component<{}> {
         <div>
           <Button
             disabled={playDisabled}
-            variant="contained"
+            variant="outlined"
             color="primary"
             onClick={() => engine.togglePlay()}
           >
@@ -61,7 +61,7 @@ export class Controls extends React.Component<{}> {
         <div>
           <Button
             disabled={!undo.canUndo}
-            variant="contained"
+            variant="outlined"
             color="primary"
             onClick={() => undo.undo()}
           >
@@ -70,7 +70,7 @@ export class Controls extends React.Component<{}> {
           {this.renderSpacer()}
           <Button
             disabled={!undo.canRedo}
-            variant="contained"
+            variant="outlined"
             color="primary"
             onClick={() => undo.redo()}
           >
@@ -110,17 +110,17 @@ export class Controls extends React.Component<{}> {
         <div>
           <Button
             disabled={!harmonizeEnabled}
-            variant="contained"
+            variant="outlined"
             color="primary"
             onClick={() => engine.harmonize()}
           >
-            {reharmonize ? 'Reharmonize' : 'Harmonize'}
+            Harmonize
             <MusicNote />
           </Button>
           {this.renderSpacer()}
           <Button
             disabled={!canClearHarmonies}
-            variant="contained"
+            variant="outlined"
             color="primary"
             onClick={() => editor.clearAgentNotes()}
           >

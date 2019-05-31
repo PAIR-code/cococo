@@ -15,8 +15,6 @@ export const SOUNDFONT_URL =
 export const MODEL_URL =
   'https://storage.googleapis.com/magentadata/js/checkpoints/coconet/bach';
 
-export const COLOR_PRIMARY = '#3f51b5';
-
 export const DIVISIONS = [4, 8, 12, 16, 20, 24, 28];
 
 export const DEFAULT_NOTES = [
