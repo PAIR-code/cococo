@@ -178,7 +178,7 @@ class Editor {
 
   // Resolves conflicting note edits
   endNoteDrag(note: Note, didUpdate = true) {
-    for (let other of this.userNotes) {
+    for (let other of this.allNotes) {
       if (other.position === note.position && other.pitch === note.pitch) {
         const key = this.makeNoteKey(other.pitch, other.position);
         this.notesMap.delete(key);
@@ -220,7 +220,7 @@ class Editor {
 
   @undoable()
   maskNotes(positionRange: number[], pitchRange: number[]) {
-    for (const note of [...this.userNotes, ...this.agentNotes]) {
+    for (const note of this.allNotes) {
       if (this.overlaps(note, positionRange, pitchRange)) {
         // Split any notes that overlap the range, then set the overlapping portion to be masked.
         const [maskStart, maskEnd] = positionRange;

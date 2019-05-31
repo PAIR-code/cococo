@@ -152,19 +152,13 @@ class Engine {
   }
 
   getNotesToHarmonize() {
-    const { agentNotes, userNotes } = editor;
-    if (agentNotes.length === 0) {
-      return userNotes;
-    }
-
-    const filteredAgentNotes = agentNotes.filter(note => !note.isMasked);
-    return [...userNotes.filter(note => !note.isMasked), ...filteredAgentNotes];
+    return editor.allNotes.filter(note => !note.isMasked);
   }
 
   getInfillMask(): InfillMask[] | undefined {
     const mask = [];
-    const maskedAgentNotes = editor.agentNotes.filter(note => note.isMasked);
-    for (const note of maskedAgentNotes) {
+    const maskedNotes = editor.allNotes.filter(note => note.isMasked);
+    for (const note of maskedNotes) {
       const { position, duration, voice } = note;
       for (let step = position; step < position + duration; step++) {
         mask.push({ voice, step });
@@ -198,9 +192,9 @@ class Engine {
 
     const output = mm.sequences.mergeConsecutiveNotes(results);
 
-    output.notes = output.notes.filter(note => {
-      return note.instrument !== Voice.ALTO;
-    });
+    // output.notes = output.notes.filter(note => {
+    //   return note.instrument !== Voice.ALTO;
+    // });
 
     this.isWorking = false;
     editor.addAgentNotes(output.notes);
