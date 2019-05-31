@@ -20,12 +20,10 @@ export const enum Voice {
 export interface SerializedNote {
   id: number;
   source: Source;
-  value: number;
+  pitch: number;
   position: number;
   duration: number;
   voice: number;
-  isPlaying: boolean;
-  isSelected: boolean;
   isMasked: boolean;
 }
 
@@ -33,40 +31,47 @@ export class Note {
   id = generateId();
   source: Source = Source.USER;
 
-  @observable value: number;
+  @observable pitch: number;
   @observable position: number;
   @observable duration: number;
   @observable voice: number;
 
-  @observable isPlaying = false;
-  @observable isSelected = false;
   @observable isMasked = false;
 
+  @observable isPlaying = false;
+  @observable isSelected = false;
+
   @computed get name() {
-    return tonal.Note.fromMidi(this.value);
+    return tonal.Note.fromMidi(this.pitch);
+  }
+
+  @computed get start() {
+    return this.position;
+  }
+
+  @computed get end() {
+    return this.position + this.duration;
   }
 
   constructor(
-    value: number,
+    pitch: number,
     position: number,
     duration: number,
     source: Source = Source.USER,
     voice = Voice.ALTO
   ) {
-    this.value = value;
+    this.pitch = pitch;
     this.position = position;
     this.duration = duration;
     this.source = source;
     this.voice = voice;
   }
 
-  setVoice() {}
-
   @computed get magentaNote() {
     return {
-      pitch: this.value,
+      pitch: this.pitch,
       quantizedStartStep: this.position,
-      quantizedEndStep: this.position + this.duration,
+      quantizedEndStep: this.end,
       instrument: this.voice,
     };
   }
@@ -75,23 +80,45 @@ export class Note {
     return {
       id: this.id,
       source: this.source,
-      value: this.value,
+      pitch: this.pitch,
       position: this.position,
       duration: this.duration,
       voice: this.voice,
-      isPlaying: this.isPlaying,
-      isSelected: this.isSelected,
       isMasked: this.isMasked,
     };
   }
 
+  moveStart(nextPosition: number) {
+    nextPosition = Math.min(nextPosition, this.end - 1);
+    const nextDuration = this.duration - (nextPosition - this.position);
+    this.duration = Math.max(1, nextDuration);
+    this.position = nextPosition;
+    return this;
+  }
+
+  moveEnd(nextEnd: number) {
+    nextEnd = Math.max(nextEnd, this.position + 1);
+    const nextDuration = this.duration - (this.end - nextEnd);
+    this.duration = Math.max(1, nextDuration);
+    return this;
+  }
+
   static fromSerialized(serializedNote: SerializedNote) {
-    const { value, position, duration, source, voice } = serializedNote;
-    const newNote = new Note(value, position, duration, source, voice);
+    const { pitch, position, duration, source, voice } = serializedNote;
+    const newNote = new Note(pitch, position, duration, source, voice);
     newNote.id = serializedNote.id;
-    newNote.isPlaying = serializedNote.isPlaying;
-    newNote.isSelected = serializedNote.isSelected;
     newNote.isMasked = serializedNote.isMasked;
     return newNote;
+  }
+
+  // Copies all note data to a new note, with new id;
+  static fromNote(note: Note) {
+    return new Note(
+      note.pitch,
+      note.position,
+      note.duration,
+      note.source,
+      note.voice
+    );
   }
 }

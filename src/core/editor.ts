@@ -19,7 +19,7 @@ export const enum EditorTool {
 }
 
 export interface ScaleValue {
-  value: number;
+  pitch: number;
   name: string;
 }
 
@@ -61,7 +61,7 @@ class Editor {
   }
 
   @computed get scaleMax() {
-    return this.scale[0].value;
+    return this.scale[0].pitch;
   }
 
   @observable selectedTool: EditorTool = EditorTool.DRAW;
@@ -112,19 +112,25 @@ class Editor {
     return `${pitch}:${position}`;
   }
 
+  private _addNote(note: Note) {
+    const { position, pitch: pitch } = note;
+    const key = this.makeNoteKey(pitch, position);
+    this.notesMap.set(key, note);
+  }
+
+  private _removeNote(note: Note) {
+    const { position, pitch: pitch } = note;
+    const key = this.makeNoteKey(pitch, position);
+    this.notesMap.delete(key);
+  }
+
   overlapsWithUserNote(pitch: number, position: number) {
     const key = this.makeNoteKey(pitch, position);
     return this.notesMap.has(key);
   }
 
   getValueFromScaleIndex(scaleIndex: number) {
-    return this.scale[scaleIndex].value;
-  }
-
-  private _addNote(note: Note) {
-    const { position, value } = note;
-    const key = this.makeNoteKey(value, position);
-    this.notesMap.set(key, note);
+    return this.scale[scaleIndex].pitch;
   }
 
   @undoable()
@@ -173,8 +179,8 @@ class Editor {
   // Resolves conflicting note edits
   endNoteDrag(note: Note, didUpdate = true) {
     for (let other of this.userNotes) {
-      if (other.position === note.position && other.value === note.value) {
-        const key = this.makeNoteKey(other.value, other.position);
+      if (other.position === note.position && other.pitch === note.pitch) {
+        const key = this.makeNoteKey(other.pitch, other.position);
         this.notesMap.delete(key);
       }
     }
@@ -189,11 +195,11 @@ class Editor {
     }
   }
 
-  private overlaps(note: Note, positionRange: number[], valueRange: number[]) {
-    const { value, position, duration } = note;
+  private overlaps(note: Note, positionRange: number[], pitchRange: number[]) {
+    const { pitch: pitch, position, duration } = note;
     const [startPosition, endPosition] = positionRange;
-    const [startValue, endValue] = valueRange;
-    if (value < startValue || value > endValue) {
+    const [startValue, endValue] = pitchRange;
+    if (pitch < startValue || pitch > endValue) {
       return false;
     } else if (position >= startPosition && position < endPosition) {
       return true;
@@ -207,11 +213,44 @@ class Editor {
     return false;
   }
 
+  private replaceNoteWithNotes(note: Note, otherNotes: Note[]) {
+    this._removeNote(note);
+    otherNotes.forEach(otherNote => this._addNote(otherNote));
+  }
+
   @undoable()
-  maskNotes(positionRange: number[], valueRange: number[]) {
+  maskNotes(positionRange: number[], pitchRange: number[]) {
     for (const note of [...this.userNotes, ...this.agentNotes]) {
-      if (this.overlaps(note, positionRange, valueRange)) {
-        note.isMasked = !note.isMasked;
+      if (this.overlaps(note, positionRange, pitchRange)) {
+        // Split any notes that overlap the range, then set the overlapping portion to be masked.
+        const [maskStart, maskEnd] = positionRange;
+        const noteStart = note.position;
+        const noteEnd = note.end;
+
+        console.log({ maskStart, maskEnd, noteStart, noteEnd });
+
+        // Mask covers all of note
+        if (noteStart >= maskStart && noteEnd <= maskEnd) {
+          note.isMasked = true;
+        } else if (noteStart >= maskStart && noteEnd > maskEnd) {
+          const a = Note.fromNote(note).moveEnd(maskEnd);
+          const b = Note.fromNote(note).moveStart(maskEnd);
+          a.isMasked = true;
+          this.replaceNoteWithNotes(note, [a, b]);
+        } else if (noteStart < maskStart && noteEnd <= maskEnd) {
+          const a = Note.fromNote(note).moveEnd(maskStart);
+          const b = Note.fromNote(note).moveStart(maskStart);
+          b.isMasked = true;
+          this.replaceNoteWithNotes(note, [a, b]);
+        } else if (noteStart < maskStart && noteEnd > maskEnd) {
+          const a = Note.fromNote(note).moveEnd(maskStart);
+          const b = Note.fromNote(note)
+            .moveStart(maskStart)
+            .moveEnd(maskEnd);
+          const c = Note.fromNote(note).moveStart(maskEnd);
+          b.isMasked = true;
+          this.replaceNoteWithNotes(note, [a, b, c]);
+        }
       }
     }
   }

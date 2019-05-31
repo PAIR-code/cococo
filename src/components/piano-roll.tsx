@@ -17,7 +17,7 @@ export class PianoRoll extends React.Component<Props> {
     const { width, noteHeight } = this.props;
     const y = noteHeight * index;
 
-    const isActive = editor.activeNoteValue === scaleNote.value;
+    const isActive = editor.activeNoteValue === scaleNote.pitch;
     const isWhite = scaleNote.name.length === 2;
     let fill = isWhite ? 'white' : 'black';
 
@@ -35,7 +35,7 @@ export class PianoRoll extends React.Component<Props> {
         strokeWidth={1}
         onMouseDown={e => {
           e.preventDefault();
-          const note = new Note(scaleNote.value, 0, 0.2);
+          const note = new Note(scaleNote.pitch, 0, 0.2);
           engine.playNoteDown(note);
 
           const mouseup = () => {

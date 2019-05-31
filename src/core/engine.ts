@@ -104,7 +104,7 @@ class Engine {
 
   playNoteDown(note: Note) {
     if (this.isPlayerLoaded) {
-      editor.activeNoteValue = note.value;
+      editor.activeNoteValue = note.pitch;
       this.player.playNoteDown(note.magentaNote);
     }
   }

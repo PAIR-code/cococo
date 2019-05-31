@@ -4,8 +4,8 @@ import { observable } from 'mobx';
 import { EditorTool, Note, editor, engine, layout } from './index';
 import { MAX_PITCH, MIN_PITCH } from './constants';
 
-function quantizePosition(position: number) {
-  return Math.round(position / editor.quantizeStep) * editor.quantizeStep;
+function quantizePosition(position: number, fn = Math.round) {
+  return fn(position / editor.quantizeStep) * editor.quantizeStep;
 }
 
 function clampPosition(position: number) {
@@ -35,9 +35,9 @@ class Interactions {
     );
     const nextValue = clampPitch(this.noteDragStartPitch - deltaPitch);
 
-    if (nextPosition !== note.position || nextValue !== note.value) {
+    if (nextPosition !== note.position || nextValue !== note.pitch) {
       note.position = nextPosition;
-      note.value = nextValue;
+      note.pitch = nextValue;
       engine.playNote(note);
     }
   };
@@ -49,7 +49,7 @@ class Interactions {
     this.noteDragStartX = e.clientX;
     this.noteDragStartY = e.clientY;
     this.noteDragStartPosition = note.position;
-    this.noteDragStartPitch = note.value;
+    this.noteDragStartPitch = note.pitch;
 
     const mouseMove = this.handleNoteDrag(note);
     const mouseUp = () => {
@@ -106,8 +106,8 @@ class Interactions {
       const endY = aY > bY ? aY : bY;
 
       const positionRange = [
-        Math.floor(startX / layout.sixteenthWidth),
-        Math.ceil(endX / layout.sixteenthWidth),
+        quantizePosition(startX / layout.sixteenthWidth, Math.floor),
+        quantizePosition(endX / layout.sixteenthWidth, Math.ceil),
       ];
       const valueRange = [
         MAX_PITCH - Math.floor(endY / layout.noteHeight),

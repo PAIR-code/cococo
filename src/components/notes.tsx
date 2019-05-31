@@ -17,7 +17,7 @@ export class Notes extends React.Component<NotesProps> {
   getNoteProps(note: NoteModel) {
     const { noteHeight, width } = this.props;
     const sixteenthWidth = width / editor.totalSixteenths;
-    const indexFromMax = editor.scaleMax - note.value;
+    const indexFromMax = editor.scaleMax - note.pitch;
 
     const y = noteHeight * indexFromMax;
     const x = note.position * sixteenthWidth;

@@ -28,10 +28,10 @@ export function getNoteDetailsFromLine(lineDivision: number) {
 }
 
 export function makeNoteScale(max = 81, min = 36) {
-  return range(max, min).map(value => {
-    const name = tonal.Note.fromMidi(value);
+  return range(max, min).map(pitch => {
+    const name = tonal.Note.fromMidi(pitch);
     return {
-      value,
+      pitch,
       name,
     };
   });
