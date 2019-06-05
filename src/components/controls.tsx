@@ -91,6 +91,9 @@ export class Controls extends React.Component<{}> {
           <ToggleButton value={EditorTool.MASK}>
             <SelectAll />
           </ToggleButton>
+          <ToggleButton value={EditorTool.ERASE}>
+            <SelectAll />
+          </ToggleButton>
         </ToggleButtonGroup>
         <ToggleButtonGroup
           value={editor.quantizeStep}

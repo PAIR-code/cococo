@@ -60,9 +60,11 @@ export class Grid extends React.Component<Props> {
               stroke="#CCC"
               fill={fillColor}
               strokeWidth={1}
+              onMouseDown={interactions.handleGridMouseDown}
               onClick={() => {
                 interactions.handleGridClick(scaleIndex, divisionIndex);
               }}
+              
             />
           );
         })}

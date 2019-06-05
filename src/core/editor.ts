@@ -16,6 +16,7 @@ import {
 export const enum EditorTool {
   DRAW = 'DRAW',
   MASK = 'MASK',
+  ERASE = 'ERASE',
 }
 
 export interface ScaleValue {
@@ -34,7 +35,7 @@ export class Mask {
 
 class Editor {
   @observable notesMap = new Map<string, Note>();
-
+  
   @computed get allNotes() {
     return [...this.notesMap.values()];
   }
@@ -118,7 +119,8 @@ class Editor {
     this.notesMap.set(key, note);
   }
 
-  private _removeNote(note: Note) {
+  @undoable()
+  removeNote(note: Note) {
     const { position, pitch: pitch } = note;
     const key = this.makeNoteKey(pitch, position);
     this.notesMap.delete(key);
@@ -220,7 +222,7 @@ class Editor {
   }
 
   private replaceNoteWithNotes(note: Note, otherNotes: Note[]) {
-    this._removeNote(note);
+    this.removeNote(note);
     otherNotes.forEach(otherNote => this._addNote(otherNote));
   }
 

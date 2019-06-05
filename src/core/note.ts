@@ -37,7 +37,6 @@ export class Note {
   @observable voice: number;
 
   @observable isMasked = false;
-
   @observable isPlaying = false;
   @observable isSelected = false;
 
