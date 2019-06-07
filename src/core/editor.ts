@@ -35,7 +35,7 @@ export class Mask {
 
 class Editor {
   @observable notesMap = new Map<string, Note>();
-  
+
   @computed get allNotes() {
     return [...this.notesMap.values()];
   }
@@ -228,6 +228,32 @@ class Editor {
 
   @undoable()
   maskNotes(positionRange: number[], pitchRange: number[]) {
+    // If all notes in the mask are already masked, unmask them
+    var allNotesAlreadyMasked = true;
+    var notesInMask = [];
+    for (const note of this.allNotes) {
+      if (this.overlaps(note, positionRange, pitchRange)) {
+        const [maskStart, maskEnd] = positionRange;
+        const noteStart = note.position;
+        const noteEnd = note.end;
+
+        // Mask doesn't cover full note
+        if (noteStart < maskStart || noteEnd > maskEnd) {
+          allNotesAlreadyMasked = false;
+        } else if (!note.isMasked) {
+          allNotesAlreadyMasked = false;
+        }
+        notesInMask.push(note);
+      }
+    }
+    if (allNotesAlreadyMasked) {
+      notesInMask.map(function(note) {
+        note.isMasked = false;
+      });
+      return;
+    }
+
+    // If not all notes are already masked, do the usual masking
     for (const note of this.allNotes) {
       if (this.overlaps(note, positionRange, pitchRange)) {
         // Split any notes that overlap the range, then set the overlapping portion to be masked.
