@@ -8,7 +8,6 @@ import { COLOR_PLAYING, COLOR_SELECTED, VOICE_COLORS } from '../core/theme';
 
 function getFillColor(note: NoteModel) {
   const { isSelected, isPlaying } = note;
-
   if (isPlaying) {
     return COLOR_PLAYING;
   } else if (isSelected) {
@@ -16,7 +15,6 @@ function getFillColor(note: NoteModel) {
   } else {
     return VOICE_COLORS[note.voice];
   }
-
 }
 
 export interface NoteProps {
@@ -53,7 +51,7 @@ export class Note extends React.Component<NoteProps> {
         y={y + NOTE_BORDER}
         width={width - 2 * NOTE_BORDER}
         height={height - 2 * NOTE_BORDER}
-        onMouseDown={interactions.handleNoteMouseDown(note) }
+        onMouseDown={interactions.handleNoteMouseDown(note)}
         onMouseMove={interactions.handleNoteHover(note)}
       />
     );
