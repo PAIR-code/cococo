@@ -17,12 +17,6 @@ import { theme } from '../core/theme';
 export default class App extends React.Component {
   stageRef: HTMLDivElement;
 
-  componentDidMount() {
-    // Set up app resize observation here...
-    // const { width } = this.stageRef.getBoundingClientRect();
-    // layout.stageWidth = width;
-  }
-
   render() {
     const width = layout.stageWidth;
     const height = layout.stageHeight;

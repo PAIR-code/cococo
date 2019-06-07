@@ -1,3 +1,4 @@
+import _api from './api';
 import _editor from './editor';
 import _engine from './engine';
 import _interactions from './interactions';
@@ -7,6 +8,7 @@ import _undo from './undo';
 export { EditorTool } from './editor';
 export { Note } from './note';
 
+export const api = _api;
 export const editor = _editor;
 export const engine = _engine;
 export const interactions = _interactions;

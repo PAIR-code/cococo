@@ -22,13 +22,13 @@ class Interactions {
   private noteDragStartPosition = 0;
   private noteDragStartPitch = 0;
 
-  handleNoteHover = (note: Note) => (e: React.MouseEvent) => { 
-    if(this.isEraseDragging){
+  handleNoteHover = (note: Note) => (e: React.MouseEvent) => {
+    if (this.isEraseDragging) {
       editor.removeNote(note);
     }
   };
-  
-  private handleNoteDrag = (note: Note) => (e: MouseEvent) => { 
+
+  private handleNoteDrag = (note: Note) => (e: MouseEvent) => {
     const deltaX = e.clientX - this.noteDragStartX;
     const deltaY = e.clientY - this.noteDragStartY;
 
@@ -50,8 +50,7 @@ class Interactions {
 
   private handleEditNoteDrag = (note: Note) => (e: MouseEvent) => {
     editor.removeNote(note);
-
-  }
+  };
 
   handleNoteMouseDown = (note: Note) => (e: React.MouseEvent) => {
     editor.startNoteDrag();
@@ -99,13 +98,14 @@ class Interactions {
     ];
   };
 
-  
   handleGridMouseDown = (e: React.MouseEvent<SVGRectElement>) => {
-    if(editor.selectedTool === EditorTool.ERASE) {this.isEraseDragging = true;}
+    if (editor.selectedTool === EditorTool.ERASE) {
+      this.isEraseDragging = true;
+    }
     const mouseUp = () => {
       this.isEraseDragging = false;
       document.removeEventListener('mouseup', mouseUp);
-    }
+    };
     document.addEventListener('mouseup', mouseUp);
   };
 

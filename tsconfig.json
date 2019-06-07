@@ -9,8 +9,7 @@
     "lib": ["es5", "es6", "dom"],
     "experimentalDecorators": true,
     "downlevelIteration": true,
-    "esModuleInterop": true,
-    "forceIsolatedModules": true
+    "esModuleInterop": true
   },
   "include": ["./src/**/*"],
   "exclude": ["node_modules/"],
