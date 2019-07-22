@@ -22,6 +22,11 @@ class Interactions {
   private noteDragStartPosition = 0;
   private noteDragStartPitch = 0;
 
+  private loopStartDragStartX = 0;
+  private loopEndDragStartX = 0;
+  private loopStartDragStartPosition = 0;
+  private loopEndDragStartPosition = 0;
+
   handleNoteHover = (note: Note) => (e: React.MouseEvent) => {
     if (this.isEraseDragging) {
       editor.removeNote(note);
@@ -41,6 +46,7 @@ class Interactions {
     );
     const nextValue = clampPitch(this.noteDragStartPitch - deltaPitch);
 
+    console.log("handleNoteDrag nextPosition: ", nextPosition);
     if (nextPosition !== note.position || nextValue !== note.pitch) {
       note.position = nextPosition;
       note.pitch = nextValue;
@@ -64,6 +70,70 @@ class Interactions {
     const mouseMove = this.handleNoteDrag(note);
     const mouseUp = () => {
       editor.endNoteDrag(note);
+      document.removeEventListener('mousemove', mouseMove);
+      document.removeEventListener('mouseup', mouseUp);
+    };
+    document.addEventListener('mousemove', mouseMove);
+    document.addEventListener('mouseup', mouseUp);
+  };
+
+  private handleLoopStartDrag = (e: MouseEvent) => {
+    const deltaX = e.clientX - this.loopStartDragStartX;
+
+    const deltaPosition = Math.floor(deltaX / layout.sixteenthWidth);
+
+    const deltaQuantized = quantizePosition(deltaPosition);
+    const nextPosition = clampPosition(
+      this.loopStartDragStartPosition + deltaQuantized
+    );
+
+    if (nextPosition !== engine.loopStart) {
+      if (nextPosition >= 0 && nextPosition < editor.totalSixteenths) {
+        engine.loopStart = nextPosition;
+      }
+    }
+  };
+
+  private handleLoopEndDrag = (e: MouseEvent) => {
+    const deltaX = e.clientX - this.loopEndDragStartX;
+
+    const deltaPosition = Math.floor(deltaX / layout.sixteenthWidth);
+
+    const deltaQuantized = quantizePosition(deltaPosition);
+    const nextPosition = clampPosition(
+      this.loopEndDragStartPosition + deltaQuantized
+    );
+
+    if (nextPosition !== engine.loopEnd) {
+      if (nextPosition > 0 && nextPosition <= editor.totalSixteenths) {
+        engine.loopEnd = nextPosition;
+      }
+    }
+  };
+
+  handleLoopStartMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    this.loopStartDragStartX = e.clientX;
+    this.loopStartDragStartPosition = engine.loopStart;
+
+    const mouseMove = this.handleLoopStartDrag;
+    const mouseUp = () => {
+      document.removeEventListener('mousemove', mouseMove);
+      document.removeEventListener('mouseup', mouseUp);
+    };
+    document.addEventListener('mousemove', mouseMove);
+    document.addEventListener('mouseup', mouseUp);
+  };
+
+  handleLoopEndMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    this.loopEndDragStartX = e.clientX;
+    this.loopEndDragStartPosition = engine.loopEnd;
+
+    const mouseMove = this.handleLoopEndDrag;
+    const mouseUp = () => {
       document.removeEventListener('mousemove', mouseMove);
       document.removeEventListener('mouseup', mouseUp);
     };

@@ -51,8 +51,8 @@ class Engine {
 
   @observable shouldLoop = true;
 
-  @observable loopStart = 0;
-  @observable loopEnd = 16;
+  @observable loopStart = 4;
+  @observable loopEnd = 20;
 
   player = new mm.SoundFontPlayer(
     SOUNDFONT_URL,
@@ -151,6 +151,7 @@ class Engine {
         return note.quantizedStartStep != note.quantizedEndStep;
       });
 
+      console.log(loopSequence);
       this.player.start(loopSequence);
       this.isPlaying = true;
     }

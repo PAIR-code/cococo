@@ -3,7 +3,7 @@ import { observer } from 'mobx-react';
 
 import { Group } from './group';
 
-import { editor, engine } from '../core';
+import { editor, engine, interactions } from '../core';
 import { DIVISIONS } from '../core/constants';
 
 export interface Props {
@@ -19,7 +19,7 @@ export class Timeline extends React.Component<Props> {
     const startX = (width / editor.totalSixteenths) * engine.loopStart;
     const endX = (width / editor.totalSixteenths) * engine.loopEnd - 1;
     const color = 'black';
-    const strokeWidth = 2;
+    const strokeWidth = 5;
 
     return (
       <Group>
@@ -31,6 +31,7 @@ export class Timeline extends React.Component<Props> {
           y2={height}
           stroke={color}
           strokeWidth={strokeWidth}
+          onMouseDown={interactions.handleLoopStartMouseDown}
         />
 
         <line
@@ -41,6 +42,7 @@ export class Timeline extends React.Component<Props> {
           y2={height}
           stroke={color}
           strokeWidth={strokeWidth}
+          onMouseDown={interactions.handleLoopEndMouseDown}
         />
       </Group>
     );
