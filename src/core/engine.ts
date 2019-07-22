@@ -51,6 +51,9 @@ class Engine {
 
   @observable shouldLoop = true;
 
+  @observable loopStart = 0;
+  @observable loopEnd = 16;
+
   player = new mm.SoundFontPlayer(
     SOUNDFONT_URL,
     Tone.master,
@@ -135,7 +138,20 @@ class Engine {
       }
 
       const sequence = this.getMagentaNoteSequence(editor.allNotes);
-      this.player.start(sequence);
+      const loopSequence = mm.sequences.trim(
+        sequence,
+        this.loopStart,
+        this.loopEnd,
+        true
+      );
+
+      // trim can give a note that has quantizedStartStep == quantizedEndStep
+      // when on boarder of trim region.
+      loopSequence.notes = loopSequence.notes.filter(note => {
+        return note.quantizedStartStep != note.quantizedEndStep;
+      });
+
+      this.player.start(loopSequence);
       this.isPlaying = true;
     }
   }
