@@ -4,6 +4,7 @@ import { Note } from './note';
 import editor from './editor';
 import { range } from 'lodash';
 import * as Tone from 'tone';
+import { trim } from './magenta-utils'
 
 import {
   DEFAULT_BPM,
@@ -12,6 +13,7 @@ import {
   NOTE_VELOCITY,
   SOUNDFONT_URL,
   MODEL_URL,
+  TOTAL_SIXTEENTHS,
 } from './constants';
 import { Voice } from './note';
 
@@ -27,7 +29,10 @@ export class CallbackObject extends mm.BasePlayerCallback {
 
   run(note: mm.NoteSequence.INote, t: number) {
     const { pitch, quantizedStartStep } = note;
-    editor.setNotePlaying(pitch, quantizedStartStep);
+
+    // this offsets the position by loopStart, so that the notes correspond to the notes in the notesMap
+    // which allows the notes to be highlighted red for playing
+    editor.setNotePlaying(pitch, quantizedStartStep + this.engine.loopStart);
   }
   stop() {
     if (this.engine.shouldLoop) {
@@ -50,6 +55,9 @@ class Engine {
   @observable isWorking = false;
 
   @observable shouldLoop = true;
+
+  @observable loopStart = 0;
+  @observable loopEnd = TOTAL_SIXTEENTHS;
 
   player = new mm.SoundFontPlayer(
     SOUNDFONT_URL,
@@ -135,7 +143,20 @@ class Engine {
       }
 
       const sequence = this.getMagentaNoteSequence(editor.allNotes);
-      this.player.start(sequence);
+      const loopSequence = trim(
+        sequence,
+        this.loopStart,
+        this.loopEnd,
+        true
+      );
+
+      // trim can give a note that has quantizedStartStep == quantizedEndStep
+      // when on border of trim region.
+      loopSequence.notes = loopSequence.notes.filter(note => {
+        return note.quantizedStartStep !== note.quantizedEndStep;
+      });
+
+      this.player.start(loopSequence);
       this.isPlaying = true;
     }
   }

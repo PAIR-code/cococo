@@ -12,6 +12,10 @@ function clampPosition(position: number) {
   return _.clamp(position, editor.totalSixteenths - 1);
 }
 
+function clampLoopPosition(postion: number) {
+  return _.clamp(postion, 0, editor.totalSixteenths)
+}
+
 function clampPitch(pitch: number) {
   return _.clamp(pitch, MIN_PITCH, MAX_PITCH);
 }
@@ -21,6 +25,11 @@ class Interactions {
   private noteDragStartY = 0;
   private noteDragStartPosition = 0;
   private noteDragStartPitch = 0;
+
+  private loopStartDragStartX = 0;
+  private loopEndDragStartX = 0;
+  private loopStartDragStartPosition = 0;
+  private loopEndDragStartPosition = 0;
 
   handleNoteHover = (note: Note) => (e: React.MouseEvent) => {
     if (this.isEraseDragging) {
@@ -64,6 +73,67 @@ class Interactions {
     const mouseMove = this.handleNoteDrag(note);
     const mouseUp = () => {
       editor.endNoteDrag(note);
+      document.removeEventListener('mousemove', mouseMove);
+      document.removeEventListener('mouseup', mouseUp);
+    };
+    document.addEventListener('mousemove', mouseMove);
+    document.addEventListener('mouseup', mouseUp);
+  };
+
+  private handleLoopStartDrag = (e: MouseEvent) => {
+    const deltaX = e.clientX - this.loopStartDragStartX;
+
+    const deltaPosition = Math.floor(deltaX / layout.sixteenthWidth);
+
+    const deltaQuantized = quantizePosition(deltaPosition);
+    const nextPosition = clampLoopPosition(
+      this.loopStartDragStartPosition + deltaQuantized
+    );
+
+    if ((nextPosition !== engine.loopStart) && (nextPosition < engine.loopEnd)) {
+      engine.loopStart = nextPosition;
+    }
+  };
+
+  private handleLoopEndDrag = (e: MouseEvent) => {
+    const deltaX = e.clientX - this.loopEndDragStartX;
+
+    const deltaPosition = Math.floor(deltaX / layout.sixteenthWidth);
+
+
+    const deltaQuantized = quantizePosition(deltaPosition);
+    const nextPosition = clampLoopPosition(
+      this.loopEndDragStartPosition + deltaQuantized
+    );
+
+    if ((nextPosition !== engine.loopEnd) && (nextPosition > engine.loopStart)) {
+      engine.loopEnd = nextPosition;
+    }
+  };
+
+  handleLoopStartMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    this.loopStartDragStartX = e.clientX;
+    this.loopStartDragStartPosition = engine.loopStart;
+
+    const mouseMove = this.handleLoopStartDrag;
+    const mouseUp = () => {
+      document.removeEventListener('mousemove', mouseMove);
+      document.removeEventListener('mouseup', mouseUp);
+    };
+    document.addEventListener('mousemove', mouseMove);
+    document.addEventListener('mouseup', mouseUp);
+  };
+
+  handleLoopEndMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    this.loopEndDragStartX = e.clientX;
+    this.loopEndDragStartPosition = engine.loopEnd;
+
+    const mouseMove = this.handleLoopEndDrag;
+    const mouseUp = () => {
       document.removeEventListener('mousemove', mouseMove);
       document.removeEventListener('mouseup', mouseUp);
     };

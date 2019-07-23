@@ -3,7 +3,7 @@ import { observer } from 'mobx-react';
 
 import { Group } from './group';
 
-import { editor } from '../core';
+import { editor, engine, interactions } from '../core';
 import { DIVISIONS } from '../core/constants';
 
 export interface Props {
@@ -16,30 +16,34 @@ export class Timeline extends React.Component<Props> {
   render() {
     const { width, height } = this.props;
 
+    const startX = (width / editor.totalSixteenths) * engine.loopStart;
+    const endX = (width / editor.totalSixteenths) * engine.loopEnd - 1;
+    const color = 'black';
+    const strokeWidth = 5;
+
     return (
       <Group>
-        {DIVISIONS.map(divisionIndex => {
-          const x = (width / editor.totalSixteenths) * divisionIndex;
+        <line
+          key="loopStart"
+          x1={startX}
+          y1={0}
+          x2={startX}
+          y2={height}
+          stroke={color}
+          strokeWidth={strokeWidth}
+          onMouseDown={interactions.handleLoopStartMouseDown}
+        />
 
-          const isWhole = divisionIndex % 16 === 0;
-          const isHalf = divisionIndex % 8 === 0;
-          const y1 = isWhole ? 0 : isHalf ? height / 2 : height / 4;
-
-          const color = isWhole ? '#494949' : '#555';
-          const strokeWidth = isWhole ? 2 : 1;
-
-          return (
-            <line
-              key={divisionIndex}
-              x1={x}
-              y1={y1}
-              x2={x}
-              y2={height}
-              stroke={color}
-              strokeWidth={strokeWidth}
-            />
-          );
-        })}
+        <line
+          key="loopEnd"
+          x1={endX}
+          y1={0}
+          x2={endX}
+          y2={height}
+          stroke={color}
+          strokeWidth={strokeWidth}
+          onMouseDown={interactions.handleLoopEndMouseDown}
+        />
       </Group>
     );
   }
