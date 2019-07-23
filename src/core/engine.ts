@@ -12,6 +12,7 @@ import {
   NOTE_VELOCITY,
   SOUNDFONT_URL,
   MODEL_URL,
+  TOTAL_SIXTEENTHS,
 } from './constants';
 import { Voice } from './note';
 
@@ -51,8 +52,8 @@ class Engine {
 
   @observable shouldLoop = true;
 
-  @observable loopStart = 4;
-  @observable loopEnd = 20;
+  @observable loopStart = 0;
+  @observable loopEnd = TOTAL_SIXTEENTHS;
 
   player = new mm.SoundFontPlayer(
     SOUNDFONT_URL,
@@ -161,7 +162,6 @@ class Engine {
         return note.quantizedStartStep != note.quantizedEndStep;
       });
 
-      console.log(loopSequence);
       this.player.start(loopSequence);
       this.isPlaying = true;
     }

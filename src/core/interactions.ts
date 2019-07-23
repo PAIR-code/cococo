@@ -12,6 +12,10 @@ function clampPosition(position: number) {
   return _.clamp(position, editor.totalSixteenths - 1);
 }
 
+function clampLoopPosition(postion: number) {
+  return _.clamp(postion, 0, editor.totalSixteenths)
+}
+
 function clampPitch(pitch: number) {
   return _.clamp(pitch, MIN_PITCH, MAX_PITCH);
 }
@@ -46,7 +50,6 @@ class Interactions {
     );
     const nextValue = clampPitch(this.noteDragStartPitch - deltaPitch);
 
-    console.log("handleNoteDrag nextPosition: ", nextPosition);
     if (nextPosition !== note.position || nextValue !== note.pitch) {
       note.position = nextPosition;
       note.pitch = nextValue;
@@ -83,14 +86,12 @@ class Interactions {
     const deltaPosition = Math.floor(deltaX / layout.sixteenthWidth);
 
     const deltaQuantized = quantizePosition(deltaPosition);
-    const nextPosition = clampPosition(
+    const nextPosition = clampLoopPosition(
       this.loopStartDragStartPosition + deltaQuantized
     );
 
-    if (nextPosition !== engine.loopStart) {
-      if (nextPosition >= 0 && nextPosition < editor.totalSixteenths) {
-        engine.loopStart = nextPosition;
-      }
+    if ((nextPosition !== engine.loopStart) && (nextPosition < engine.loopEnd)) {
+      engine.loopStart = nextPosition;
     }
   };
 
@@ -99,15 +100,14 @@ class Interactions {
 
     const deltaPosition = Math.floor(deltaX / layout.sixteenthWidth);
 
+
     const deltaQuantized = quantizePosition(deltaPosition);
-    const nextPosition = clampPosition(
+    const nextPosition = clampLoopPosition(
       this.loopEndDragStartPosition + deltaQuantized
     );
 
-    if (nextPosition !== engine.loopEnd) {
-      if (nextPosition > 0 && nextPosition <= editor.totalSixteenths) {
-        engine.loopEnd = nextPosition;
-      }
+    if ((nextPosition !== engine.loopEnd) && (nextPosition > engine.loopStart)) {
+      engine.loopEnd = nextPosition;
     }
   };
 
