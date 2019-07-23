@@ -5,6 +5,7 @@ import {
   MusicNote,
   PlayArrow,
   Stop,
+  Delete,
   Edit,
   SelectAll,
   Undo,
@@ -92,7 +93,7 @@ export class Controls extends React.Component<{}> {
             <SelectAll />
           </ToggleButton>
           <ToggleButton value={EditorTool.ERASE}>
-            <SelectAll />
+            <Delete />
           </ToggleButton>
         </ToggleButtonGroup>
         <ToggleButtonGroup
