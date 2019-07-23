@@ -4,6 +4,7 @@ import { Note } from './note';
 import editor from './editor';
 import { range } from 'lodash';
 import * as Tone from 'tone';
+import { trim } from './magenta-utils'
 
 import {
   DEFAULT_BPM,
@@ -44,60 +45,6 @@ export class CallbackObject extends mm.BasePlayerCallback {
 
 function delay(ms = 1) {
   return new Promise(resolve => setTimeout(() => resolve(), ms));
-}
-
-/**
- * Trim notes from a NoteSequence to lie within a specified time range.
- * Notes starting before `start` are not included. Notes ending after
- * `end` are not included, unless `truncateEndNotes` is true.
- * @param ns The NoteSequence for which to trim notes.
- * @param start The time after which all notes should begin. This should be
- * either seconds (if ns is unquantized), or a quantized step (if ns is
- * quantized).
- * @param end The time before which all notes should end. This should be
- * either seconds (if ns is unquantized), or a quantized step (if ns is
- * quantized).
- * @param truncateEndNotes Optional. If true, then notes starting before
- * the end time but ending after it will be included and truncated.
- * @returns A new NoteSequence with all notes trimmed to lie between `start`
- * and `end`, and time-shifted to begin at 0.
- */
-export function trim(
-    ns: mm.INoteSequence, start: number, end: number, truncateEndNotes?: boolean) {
-  return mm.sequences.isQuantizedSequence(ns) ?
-      trimHelper(
-          ns, start, end, 'totalQuantizedSteps', 'quantizedStartStep',
-          'quantizedEndStep', truncateEndNotes) :
-      trimHelper(
-          ns, start, end, 'totalTime', 'startTime', 'endTime',
-          truncateEndNotes);
-}
-
-function trimHelper(
-    ns: mm.INoteSequence, start: number, end: number,
-    totalKey: 'totalQuantizedSteps'|'totalTime',
-    startKey: 'startTime'|'quantizedStartStep',
-    endKey: 'endTime'|'quantizedEndStep', truncateEndNotes?: boolean) {
-  const result = mm.sequences.clone(ns);
-  result[totalKey] = end;
-  // result.notes = result.notes.filter(
-  //     n => n[startKey] >= start && n[startKey] <= end &&
-  //         (truncateEndNotes || n[endKey] <= end));
-  result.notes = result.notes.filter(
-      n => n[startKey] >= start && n[startKey] < end &&
-          (truncateEndNotes || n[endKey] <= end));
-
-  // Shift the sequence to start at 0.
-  for (let i = 0; i < result.notes.length; i++) {
-    result.notes[i][startKey] -= start;
-    result.notes[i][endKey] -= start;
-
-    if (truncateEndNotes) {
-      result.notes[i][endKey] = Math.min(result.notes[i][endKey], end);
-    }
-  }
-  result[totalKey] = Math.min(ns[totalKey] - start, end);
-  return result;
 }
 
 class Engine {
@@ -196,22 +143,19 @@ class Engine {
       }
 
       const sequence = this.getMagentaNoteSequence(editor.allNotes);
-      console.log(`trim(sequence, ${this.loopStart}, ${this.loopEnd}, true)`)
       const loopSequence = trim(
         sequence,
         this.loopStart,
-        // FIXME(rlouie): using loopEnd still includes one too many notes for playback
         this.loopEnd,
         true
       );
 
       // trim can give a note that has quantizedStartStep == quantizedEndStep
-      // when on boarder of trim region.
+      // when on border of trim region.
       loopSequence.notes = loopSequence.notes.filter(note => {
-        return note.quantizedStartStep != note.quantizedEndStep;
+        return note.quantizedStartStep !== note.quantizedEndStep;
       });
 
-      console.log(loopSequence);
       this.player.start(loopSequence);
       this.isPlaying = true;
     }
