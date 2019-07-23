@@ -28,7 +28,10 @@ export class CallbackObject extends mm.BasePlayerCallback {
 
   run(note: mm.NoteSequence.INote, t: number) {
     const { pitch, quantizedStartStep } = note;
-    editor.setNotePlaying(pitch, quantizedStartStep);
+
+    // this offsets the position by loopStart, so that the notes correspond to the notes in the notesMap
+    // which allows the notes to be highlighted red for playing
+    editor.setNotePlaying(pitch, quantizedStartStep + this.engine.loopStart);
   }
   stop() {
     if (this.engine.shouldLoop) {
@@ -146,15 +149,6 @@ class Engine {
         this.loopEnd,
         true
       );
-
-      // this offsets the start step and end step, so that the notes correspond to the notes in the notesMap
-      // which allows the notes to be highlighted red for playing (in editor.setNotePlaying)
-      // FIXME(rlouie): still pauses quantizedStartStep seconds before the beginning of loopStart plays
-      loopSequence.notes = loopSequence.notes.map(note => {
-        note.quantizedStartStep = note.quantizedStartStep + this.loopStart;
-        note.quantizedEndStep = note.quantizedEndStep + this.loopStart;
-        return note;
-      })
 
       // trim can give a note that has quantizedStartStep == quantizedEndStep
       // when on boarder of trim region.
