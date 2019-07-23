@@ -11,8 +11,8 @@ export const enum Source {
   AGENT = 'AGENT',
 }
 export const enum Voice {
-  ALTO = 0,
-  SOPRANO = 1,
+  SOPRANO = 0,
+  ALTO = 1,
   TENOR = 2,
   BASS = 3,
 }
@@ -57,7 +57,7 @@ export class Note {
     position: number,
     duration: number,
     source: Source = Source.USER,
-    voice = Voice.ALTO
+    voice = Voice.SOPRANO
   ) {
     this.pitch = pitch;
     this.position = position;

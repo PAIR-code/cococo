@@ -19,13 +19,13 @@ export const COLOR_PRIMARY = primary[500];
 export const COLOR_PLAYING = secondary[500];
 export const COLOR_SELECTED = secondary[500];
 
-export const COLOR_ALTO = COLOR_PRIMARY;
-export const COLOR_SOPRANO = primary[700];
+export const COLOR_SOPRANO = COLOR_PRIMARY;
+export const COLOR_ALTO = primary[700];
 export const COLOR_TENOR = primary[800];
 export const COLOR_BASS = primary[900];
 export const VOICE_COLORS = [
-  COLOR_ALTO,
   COLOR_SOPRANO,
+  COLOR_ALTO,
   COLOR_TENOR,
   COLOR_BASS,
 ];
