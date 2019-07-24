@@ -6,13 +6,12 @@ export class Sequences {
   @observable nSequencesToGenerate = 2;
   @observable generatedSequences: NoteSequence[][] = [];
 
-  @observable candidateSequences: NoteSequence[] | null = null;
-  @observable selectedCandidateSequenceIndex: number | null = null;
+  @observable candidateSequences: NoteSequence[] = [];
+  @observable selectedCandidateSequenceIndex = 0;
 
-  addSequences = (sequences: NoteSequence[]) => {
+  addCandidateSequences = (sequences: NoteSequence[]) => {
     this.generatedSequences.push(sequences);
     this.candidateSequences = sequences;
-    this.selectCandidateSequence(0);
   };
 
   getEmptySequence = () => {
@@ -21,21 +20,19 @@ export class Sequences {
 
   selectCandidateSequence = (index: number | null) => {
     this.selectedCandidateSequenceIndex = index;
-    editor.setTempNotes(index === null ? [] : this.candidateSequences[index]);
+    editor.setTempNotes(this.candidateSequences[index]);
   };
 
   commitSelectedCandidateSequence = () => {
     const index = this.selectedCandidateSequenceIndex;
-    if (index !== null) {
-      editor.setTempNotes([]);
-      editor.addAgentNotes(this.candidateSequences[index]);
-    }
-    this.candidateSequences = null;
+    editor.setTempNotes([]);
+    editor.addAgentNotes(this.candidateSequences[index]);
+    this.candidateSequences = [];
   };
 
   clearCandidateSequences = () => {
-    this.candidateSequences = null;
-    this.selectedCandidateSequenceIndex = null;
+    this.candidateSequences = [];
+    this.selectedCandidateSequenceIndex = 0;
     editor.setTempNotes([]);
   };
 }

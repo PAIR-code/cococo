@@ -1,7 +1,6 @@
 import { computed, observable } from 'mobx';
 import { range } from 'lodash';
 import { makeNoteScale } from './tonal-utils';
-import * as mm from '@magenta/music';
 import * as _ from 'lodash';
 
 import { Note, Source } from './note';
@@ -13,7 +12,6 @@ import {
   MAX_PITCH,
   MIN_PITCH,
 } from './constants';
-import { string } from 'prop-types';
 
 export const enum EditorTool {
   DRAW = 'DRAW',
@@ -143,6 +141,14 @@ class Editor {
 
   @undoable()
   removeNote(note: Note) {
+    this.removeNote(note);
+  }
+
+  removeCandidateNoteSequence(notes: Note[]) {
+    notes.forEach(note => this._removeNote(note));
+  }
+
+  private _removeNote(note: Note) {
     const { position, pitch: pitch } = note;
     const key = this.makeNoteKey(pitch, position);
     this.notesMap.delete(key);
@@ -273,10 +279,19 @@ class Editor {
     );
   }
 
+  isNoteMasked(note: Note) {
+    const { voice, start } = note;
+    const mask = this.generationMasks[voice];
+    for (let maskIndex of mask) {
+      if (maskIndex >= start) return true;
+    }
+    return false;
+  }
+
   // The following logic is the old, note-based way of applying generation
   // masks. Since we're now using the maskLane approach, we'll
   @undoable()
-  maskNotesLegacy(positionRange: number[], pitchRange: number[]) {
+  private maskNotesLegacy(positionRange: number[], pitchRange: number[]) {
     // If all notes in the mask are already masked, unmask them
     var allNotesAlreadyMasked = true;
     var notesInMask = [];

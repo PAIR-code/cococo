@@ -1,5 +1,6 @@
 import React from 'react';
 import { observer } from 'mobx-react';
+import { style } from 'typestyle';
 
 import { layout, Note } from '../core';
 import { VOICE_COLORS, COLOR_SELECTED } from '../core/theme';
@@ -14,6 +15,7 @@ export interface SequenceProps {
   maxPosition: number;
   isSelected: boolean;
   onSelect: () => void;
+  title: string;
 }
 
 const MIN_PITCH_RANGE = 12;
@@ -25,18 +27,19 @@ export class Sequence extends React.Component<SequenceProps> {
     const { minPitch, maxPitch, minPosition, maxPosition, notes } = this.props;
     const pitchRange = maxPitch - minPitch;
     const positionRange = maxPosition - minPosition;
-    const padding = 2;
-    const height = layout.sequenceHeight - 2 * padding;
-    const width = layout.sequencesWidth - 2 * padding;
+    const paddingX = 4;
+    const paddingY = 2;
+    const height = layout.sequenceHeight - 2 * paddingX;
+    const width = layout.sequencesWidth - 2 * paddingY;
 
     const pitchHeight = height / Math.max(pitchRange, MIN_PITCH_RANGE);
     const sixteenthWidth = width / Math.max(positionRange, MIN_POSITION_RANGE);
 
     return (
-      <Group x={padding} y={padding}>
+      <Group x={paddingX} y={paddingY}>
         {notes.map(note => {
           const x = (note.position - minPosition) * sixteenthWidth;
-          const y = height - (note.pitch - minPitch + 1) * pitchHeight;
+          const y = height - (note.pitch - minPitch) * pitchHeight;
           const offsetY = y;
           return (
             <rect
@@ -60,6 +63,12 @@ export class Sequence extends React.Component<SequenceProps> {
     const border = isSelected
       ? `2px solid ${COLOR_SELECTED}`
       : '1px solid gray';
+
+    const titleStyle = style({
+      fontFamily: 'Roboto',
+      backgroundColor: 'rgba(0,0,0,0.2)',
+    });
+
     return (
       <svg
         width={layout.sequencesWidth}
@@ -68,6 +77,9 @@ export class Sequence extends React.Component<SequenceProps> {
         onClick={onSelect}
       >
         {!isEmpty && this.renderNotes()}
+        <text x={6} y={20} className={titleStyle}>
+          {this.props.title}
+        </text>
       </svg>
     );
   }

@@ -221,8 +221,20 @@ class Engine {
       outputSequences.push(filteredSequence);
     }
 
+    // Now, set the first candidate sequence to be the original, masked sequence
+    const maskedSequence = [];
+    editor.allNotes.forEach(note => {
+      if (editor.isNoteMasked(note)) {
+        maskedSequence.push(note);
+      }
+    });
+    editor.removeCandidateNoteSequence(maskedSequence);
+    sequences.addCandidateSequences([maskedSequence, ...outputSequences]);
+
+    // Select the first, non-masked sequence
+    sequences.selectCandidateSequence(1);
+
     this.isWorking = false;
-    sequences.addSequences(outputSequences);
   }
 }
 

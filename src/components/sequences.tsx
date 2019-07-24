@@ -58,20 +58,11 @@ export class Sequences extends React.Component<SequencesProps> {
 
     return (
       <div className={sequencesContainerStyle}>
-        <Sequence
-          key={'empty'}
-          notes={[]}
-          maxPitch={maxPitch}
-          minPitch={minPitch}
-          maxPosition={maxPosition}
-          minPosition={minPosition}
-          isSelected={sequences.selectedCandidateSequenceIndex === null}
-          onSelect={() => sequences.selectCandidateSequence(null)}
-        />
         {noteSequences.map((notes, index) => {
           return (
             <Sequence
               key={index}
+              title={index === 0 ? 'original' : ''}
               notes={notes}
               maxPitch={maxPitch}
               minPitch={minPitch}
