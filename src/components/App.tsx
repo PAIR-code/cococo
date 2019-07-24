@@ -10,7 +10,7 @@ import { Controls } from './controls';
 import { Editor } from './editor';
 import { Working } from './working';
 
-import { engine, layout } from '../core';
+import { engine } from '../core';
 import { theme } from '../core/theme';
 
 @observer
@@ -18,9 +18,6 @@ export default class App extends React.Component {
   stageRef: HTMLDivElement;
 
   render() {
-    const width = layout.stageWidth;
-    const height = layout.stageHeight;
-
     const stageContainerStyle = style({
       marginTop: 20,
       width: '100%',
@@ -41,7 +38,7 @@ export default class App extends React.Component {
           </Toolbar>
         </AppBar>
         <div className={stageContainerStyle} ref={ref => (this.stageRef = ref)}>
-          <Editor width={width} height={height} />
+          <Editor />
           <Controls />
         </div>
         <Working open={engine.isWorking} title="Working..." />

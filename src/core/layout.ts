@@ -4,14 +4,14 @@ import { editor } from './index';
 import { PIANO_ROLL_WIDTH } from './constants';
 
 class Layout {
-  @observable stageWidth = 1200;
-  @observable stageHeight = 600;
+  @observable editorWidth = 1200;
+  @observable editorHeight = 600;
 
   @observable timelineHeight = 20;
   @observable pianoRollWidth = PIANO_ROLL_WIDTH;
 
   @computed get notesHeight() {
-    return this.stageHeight - this.timelineHeight;
+    return this.editorHeight - this.timelineHeight;
   }
 
   @computed get noteHeight() {
@@ -19,7 +19,7 @@ class Layout {
   }
 
   @computed get sixteenthWidth() {
-    return this.stageWidth / editor.totalSixteenths;
+    return this.editorWidth / editor.totalSixteenths;
   }
 }
 

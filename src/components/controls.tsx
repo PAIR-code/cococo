@@ -28,7 +28,7 @@ export class Controls extends React.Component<{}> {
   }
   render() {
     const PADDING = 20;
-    const width = layout.stageWidth;
+    const width = layout.editorWidth;
 
     const controlsStyle = style({
       width: width - 2 * PADDING,
