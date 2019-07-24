@@ -25,7 +25,7 @@ export class LoopOverlay extends React.Component<Props> {
           x={0}
           y={0}
           height={height}
-          width={startX}
+          width={Math.max(startX, 0)}
           fill={'black'}
           fillOpacity={0.1}
         />
@@ -34,7 +34,7 @@ export class LoopOverlay extends React.Component<Props> {
           x={endX}
           y={0}
           height={height}
-          width={width - endX}
+          width={Math.max(width - endX, 0)}
           fill={'black'}
           fillOpacity={0.1}
         />
