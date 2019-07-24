@@ -64,7 +64,6 @@ export class Grid extends React.Component<Props> {
               onClick={() => {
                 interactions.handleGridClick(scaleIndex, divisionIndex);
               }}
-              
             />
           );
         })}
