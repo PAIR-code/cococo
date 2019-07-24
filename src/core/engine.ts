@@ -2,9 +2,10 @@ import * as mm from '@magenta/music';
 import { observable } from 'mobx';
 import { Note } from './note';
 import editor from './editor';
+import sequences from './sequences';
 import { range } from 'lodash';
 import * as Tone from 'tone';
-import { trim } from './magenta-utils';
+import { trim, fromMagentaSequence } from './magenta-utils';
 
 import {
   DEFAULT_BPM,
@@ -15,7 +16,6 @@ import {
   MODEL_URL,
   TOTAL_SIXTEENTHS,
 } from './constants';
-import { Voice } from './note';
 
 interface InfillMask {
   step: number;
@@ -181,7 +181,7 @@ class Engine {
     });
   }
 
-  async harmonize() {
+  async harmonize(nHarmonizations = 1) {
     this.isWorking = true;
 
     // Allow the UX to respond before computing so heavily!
@@ -191,19 +191,28 @@ class Engine {
       this.stop();
     }
 
-    const notesToHarmonize = [...editor.allNotes];
-    const sequence = this.getMagentaNoteSequence(notesToHarmonize);
+    const outputSequences: mm.NoteSequence[] = [];
+    for (let i = 0; i < nHarmonizations; i++) {
+      const notesToHarmonize = [...editor.allNotes];
+      const sequence = this.getMagentaNoteSequence(notesToHarmonize);
+      const infillMask = this.getInfillMask();
+      const results = await this.model.infill(sequence, {
+        temperature: 0.99,
+        infillMask,
+      });
 
-    const infillMask = this.getInfillMask();
-    const results = await this.model.infill(sequence, {
-      temperature: 0.99,
-      infillMask,
-    });
-
-    const output = mm.sequences.mergeConsecutiveNotes(results);
+      const outputSequence = mm.sequences.mergeConsecutiveNotes(results);
+      outputSequences.push(outputSequence);
+    }
 
     this.isWorking = false;
-    editor.addAgentNotes(output.notes);
+    sequences.addSequences(outputSequences);
+
+    if (outputSequences.length === 1) {
+      const result = outputSequences[0];
+      const notes = fromMagentaSequence(result);
+      editor.addAgentNotes(notes);
+    }
   }
 }
 

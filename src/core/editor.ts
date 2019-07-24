@@ -149,22 +149,12 @@ class Editor {
   }
 
   @undoable()
-  addAgentNotes(sequence: mm.NoteSequence.INote[], replace = true) {
+  addAgentNotes(notes: Note[], replace = true) {
     if (replace) {
       this.clearAgentNotes();
     }
-    sequence.forEach(item => {
-      const position = item.quantizedStartStep;
-      const duration = item.quantizedEndStep - item.quantizedStartStep;
-      const voice = item.instrument;
-      const note = new Note(
-        item.pitch,
-        position,
-        duration,
-        Source.AGENT,
-        voice
-      );
-      const key = this.makeNoteKey(item.pitch, position);
+    notes.forEach(note => {
+      const key = this.makeNoteKey(note.pitch, note.position);
       this.notesMap.set(key, note);
     });
   }
