@@ -1,11 +1,18 @@
 import React from 'react';
 import _ from 'lodash';
 import { observable } from 'mobx';
-import { EditorTool, Note, editor, engine, layout } from './index';
+import { EditorTool, editor, engine, layout } from './index';
 import { MAX_PITCH, MIN_PITCH } from './constants';
+import { Note, Source } from './note';
 
 function quantizePosition(position: number, fn = Math.round) {
   return fn(position / editor.quantizeStep) * editor.quantizeStep;
+}
+
+function getQuantizedPositionFromX(x: number) {
+  const width = layout.sixteenthWidth * editor.totalSixteenths;
+  const position = Math.floor((x / width) * editor.totalSixteenths);
+  return quantizePosition(clampPosition(position));
 }
 
 function clampPosition(position: number) {
@@ -156,6 +163,7 @@ class Interactions {
 
   @observable isMaskToolDragging = false;
   @observable isEraseToolDragging = false;
+  @observable isDrawToolDragging = false;
 
   private maskToolDragStartClientXY = [0, 0];
   @observable maskToolDragStartXY = [0, 0];
@@ -172,14 +180,61 @@ class Interactions {
     ];
   };
 
-  handleGridMouseDown = (e: React.MouseEvent<SVGRectElement>) => {
+  private noteBeingDrawn?: Note;
+  private noteDrawStartX = 0;
+  private noteDrawStartPosition = 0;
+
+  private handleDrawMouseDown = (
+    scaleIndex: number,
+    divisionIndex: number,
+    e: React.MouseEvent
+  ) => {
+    const value = editor.getValueFromScaleIndex(scaleIndex);
+    const voice = editor.selectedVoice;
+    const position = divisionIndex * editor.quantizeStep;
+    const duration = editor.quantizeStep;
+
+    const note = new Note(value, position, duration, Source.USER, voice);
+    this.noteBeingDrawn = note;
+    this.noteDrawStartX = e.clientX;
+    this.noteDrawStartPosition = note.position;
+
+    editor.addNote(note);
+    engine.playNote(note);
+  };
+
+  handleDrawMouseMove = (e: MouseEvent) => {
+    const noteBeingDrawn = this.noteBeingDrawn;
+    if (!noteBeingDrawn) {
+      return;
+    }
+    const nextX = e.clientX;
+    const nextPosition = getQuantizedPositionFromX(nextX);
+    console.log(nextX, nextPosition);
+  };
+
+  handleGridMouseDown = (scaleIndex: number, divisionIndex: number) => (
+    e: React.MouseEvent
+  ) => {
+    let resetTool: () => void = () => {};
+    let mouseMove: (e: MouseEvent) => void = () => {};
+
     if (editor.selectedTool === EditorTool.ERASE) {
       this.isEraseToolDragging = true;
+      resetTool = () => (this.isEraseToolDragging = false);
+    } else if (editor.selectedTool === EditorTool.DRAW) {
+      this.isDrawToolDragging = true;
+      resetTool = () => (this.isDrawToolDragging = false);
+      this.handleDrawMouseDown(scaleIndex, divisionIndex, e);
+      mouseMove = this.handleDrawMouseMove;
     }
+
     const mouseUp = () => {
-      this.isEraseToolDragging = false;
+      resetTool();
+      document.removeEventListener('mousemove', mouseMove);
       document.removeEventListener('mouseup', mouseUp);
     };
+    document.addEventListener('mousemove', mouseMove);
     document.addEventListener('mouseup', mouseUp);
   };
 

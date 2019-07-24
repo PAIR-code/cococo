@@ -3,7 +3,7 @@ import { range } from 'lodash';
 import { makeNoteScale } from './tonal-utils';
 import * as _ from 'lodash';
 
-import { Note, NoteSequence, Source } from './note';
+import { Note, NoteSequence, Source, Voice } from './note';
 import undo, { undoable } from './undo';
 
 import {
@@ -78,6 +78,7 @@ class Editor {
   }
 
   @observable selectedTool: EditorTool = EditorTool.DRAW;
+  @observable selectedVoice: Voice = Voice.SOPRANO;
 
   // Masks are maintained as an array of masked sixteenth notes, one per voice.
   @observable generationMasks: number[][] = [[], [], [], []];
