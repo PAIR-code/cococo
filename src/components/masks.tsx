@@ -13,14 +13,16 @@ export interface NotesProps {
 @observer
 export class Masks extends React.Component<NotesProps> {
   renderDragRect() {
-    const { maskDragStartXY, maskDragXY } = interactions;
-    const maskDragWidth = maskDragXY[0] - maskDragStartXY[0];
-    const maskDragHeight = maskDragXY[1] - maskDragStartXY[1];
+    const { maskToolDragStartXY, maskToolDragXY } = interactions;
+    const maskToolDragWidth = maskToolDragXY[0] - maskToolDragStartXY[0];
+    const maskToolDragHeight = maskToolDragXY[1] - maskToolDragStartXY[1];
 
-    const x = maskDragWidth >= 0 ? maskDragStartXY[0] : maskDragXY[0];
-    const y = maskDragHeight >= 0 ? maskDragStartXY[1] : maskDragXY[1];
-    const width = Math.abs(maskDragWidth);
-    const height = Math.abs(maskDragHeight);
+    const x =
+      maskToolDragWidth >= 0 ? maskToolDragStartXY[0] : maskToolDragXY[0];
+    const y =
+      maskToolDragHeight >= 0 ? maskToolDragStartXY[1] : maskToolDragXY[1];
+    const width = Math.abs(maskToolDragWidth);
+    const height = Math.abs(maskToolDragHeight);
 
     const style = {
       stroke: '#AAAAAA',
@@ -42,9 +44,9 @@ export class Masks extends React.Component<NotesProps> {
           width={width}
           height={height}
           fillOpacity={0}
-          onMouseDown={interactions.handleMaskMouseDown}
+          onMouseDown={interactions.handleMaskToolMouseDown}
         />
-        {interactions.isMaskDragging && this.renderDragRect()}
+        {interactions.isMaskToolDragging && this.renderDragRect()}
       </Group>
     );
   }

@@ -13,7 +13,7 @@ function clampPosition(position: number) {
 }
 
 function clampLoopPosition(postion: number) {
-  return _.clamp(postion, 0, editor.totalSixteenths)
+  return _.clamp(postion, 0, editor.totalSixteenths);
 }
 
 function clampPitch(pitch: number) {
@@ -32,7 +32,7 @@ class Interactions {
   private loopEndDragStartPosition = 0;
 
   handleNoteHover = (note: Note) => (e: React.MouseEvent) => {
-    if (this.isEraseDragging) {
+    if (this.isEraseToolDragging) {
       editor.removeNote(note);
     }
   };
@@ -90,7 +90,7 @@ class Interactions {
       this.loopStartDragStartPosition + deltaQuantized
     );
 
-    if ((nextPosition !== engine.loopStart) && (nextPosition < engine.loopEnd)) {
+    if (nextPosition !== engine.loopStart && nextPosition < engine.loopEnd) {
       engine.loopStart = nextPosition;
     }
   };
@@ -100,13 +100,12 @@ class Interactions {
 
     const deltaPosition = Math.floor(deltaX / layout.sixteenthWidth);
 
-
     const deltaQuantized = quantizePosition(deltaPosition);
     const nextPosition = clampLoopPosition(
       this.loopEndDragStartPosition + deltaQuantized
     );
 
-    if ((nextPosition !== engine.loopEnd) && (nextPosition > engine.loopStart)) {
+    if (nextPosition !== engine.loopEnd && nextPosition > engine.loopStart) {
       engine.loopEnd = nextPosition;
     }
   };
@@ -155,43 +154,48 @@ class Interactions {
     engine.playNote(note);
   }
 
-  @observable isMaskDragging = false;
-  @observable isEraseDragging = false;
-  private maskDragStartClientXY = [0, 0];
-  @observable maskDragStartXY = [0, 0];
-  @observable maskDragXY = [0, 0];
+  @observable isMaskToolDragging = false;
+  @observable isEraseToolDragging = false;
 
-  handleMaskDrag = (e: MouseEvent) => {
-    this.maskDragXY = [
-      e.clientX - this.maskDragStartClientXY[0] + this.maskDragStartXY[0],
-      e.clientY - this.maskDragStartClientXY[1] + this.maskDragStartXY[1],
+  private maskToolDragStartClientXY = [0, 0];
+  @observable maskToolDragStartXY = [0, 0];
+  @observable maskToolDragXY = [0, 0];
+
+  handleMaskToolDrag = (e: MouseEvent) => {
+    this.maskToolDragXY = [
+      e.clientX -
+        this.maskToolDragStartClientXY[0] +
+        this.maskToolDragStartXY[0],
+      e.clientY -
+        this.maskToolDragStartClientXY[1] +
+        this.maskToolDragStartXY[1],
     ];
   };
 
   handleGridMouseDown = (e: React.MouseEvent<SVGRectElement>) => {
     if (editor.selectedTool === EditorTool.ERASE) {
-      this.isEraseDragging = true;
+      this.isEraseToolDragging = true;
     }
     const mouseUp = () => {
-      this.isEraseDragging = false;
+      this.isEraseToolDragging = false;
       document.removeEventListener('mouseup', mouseUp);
     };
     document.addEventListener('mouseup', mouseUp);
   };
 
-  handleMaskMouseDown = (e: React.MouseEvent<SVGRectElement>) => {
+  handleMaskToolMouseDown = (e: React.MouseEvent<SVGRectElement>) => {
     e.preventDefault();
     const target = e.target as SVGRectElement;
     const dim = target.getBoundingClientRect();
-    this.maskDragStartXY = [e.clientX - dim.left, e.clientY - dim.top];
-    this.maskDragXY = [e.clientX - dim.left, e.clientY - dim.top];
-    this.maskDragStartClientXY = [e.clientX, e.clientY];
+    this.maskToolDragStartXY = [e.clientX - dim.left, e.clientY - dim.top];
+    this.maskToolDragXY = [e.clientX - dim.left, e.clientY - dim.top];
+    this.maskToolDragStartClientXY = [e.clientX, e.clientY];
 
-    this.isMaskDragging = true;
+    this.isMaskToolDragging = true;
 
     const mouseUp = () => {
-      let [aX, aY] = this.maskDragStartXY;
-      const [bX, bY] = this.maskDragXY;
+      let [aX, aY] = this.maskToolDragStartXY;
+      const [bX, bY] = this.maskToolDragXY;
       const startX = aX <= bX ? aX : bX;
       const startY = aY <= bY ? aY : bY;
       const endX = aX > bX ? aX : bX;
@@ -208,15 +212,68 @@ class Interactions {
 
       editor.maskNotes(positionRange, valueRange);
 
-      this.isMaskDragging = false;
-      this.maskDragStartClientXY = [0, 0];
-      this.maskDragStartXY = [0, 0];
-      this.maskDragXY = [0, 0];
-      document.removeEventListener('mousemove', this.handleMaskDrag);
+      this.isMaskToolDragging = false;
+      this.maskToolDragStartClientXY = [0, 0];
+      this.maskToolDragStartXY = [0, 0];
+      this.maskToolDragXY = [0, 0];
+      document.removeEventListener('mousemove', this.handleMaskToolDrag);
       document.removeEventListener('mouseup', mouseUp);
     };
-    document.addEventListener('mousemove', this.handleMaskDrag);
+    document.addEventListener('mousemove', this.handleMaskToolDrag);
     document.addEventListener('mouseup', mouseUp);
+  };
+
+  private maskLaneDragStartX = 0;
+  private maskLaneDragX = 0;
+  private maskLaneDragStartClientX = 0;
+
+  handleMaskLaneMouseDown = voiceIndex => (
+    e: React.MouseEvent<SVGRectElement>
+  ) => {
+    e.preventDefault();
+    const target = e.target as SVGRectElement;
+    const dim = target.getBoundingClientRect();
+    this.maskLaneDragStartX = e.clientX - dim.left;
+    this.maskLaneDragX = e.clientX - dim.left;
+    this.maskLaneDragStartClientX = e.clientX;
+
+    this.isMaskToolDragging = true;
+
+    const mouseMove = (e: MouseEvent) => {
+      this.maskLaneDragX =
+        e.clientX - this.maskLaneDragStartClientX + this.maskLaneDragStartX;
+    };
+
+    const mouseUp = () => {
+      let aX = this.maskLaneDragStartX;
+      const bX = this.maskLaneDragX;
+      const startX = aX <= bX ? aX : bX;
+      const endX = aX > bX ? aX : bX;
+
+      const positionRange = [
+        quantizePosition(startX / layout.sixteenthWidth, Math.floor),
+        quantizePosition(endX / layout.sixteenthWidth, Math.ceil),
+      ];
+
+      editor.generationMasks[voiceIndex] = _.range(
+        positionRange[0],
+        positionRange[1]
+      );
+
+      document.removeEventListener('mousemove', mouseMove);
+      document.removeEventListener('mouseup', mouseUp);
+    };
+
+    document.addEventListener('mousemove', mouseMove);
+    document.addEventListener('mouseup', mouseUp);
+  };
+
+  handleMaskLaneClick = (voiceIndex: number) => () => {
+    editor.addMask(voiceIndex, _.range(0, editor.totalSixteenths));
+  };
+
+  handleMaskRectClick = (voiceIndex: number, maskIndices: number[]) => () => {
+    editor.removeMask(voiceIndex, maskIndices);
   };
 }
 

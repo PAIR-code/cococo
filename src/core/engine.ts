@@ -4,7 +4,7 @@ import { Note } from './note';
 import editor from './editor';
 import { range } from 'lodash';
 import * as Tone from 'tone';
-import { trim } from './magenta-utils'
+import { trim } from './magenta-utils';
 
 import {
   DEFAULT_BPM,
@@ -143,12 +143,7 @@ class Engine {
       }
 
       const sequence = this.getMagentaNoteSequence(editor.allNotes);
-      const loopSequence = trim(
-        sequence,
-        this.loopStart,
-        this.loopEnd,
-        true
-      );
+      const loopSequence = trim(sequence, this.loopStart, this.loopEnd, true);
 
       // trim can give a note that has quantizedStartStep == quantizedEndStep
       // when on border of trim region.
@@ -172,21 +167,15 @@ class Engine {
     editor.clearPlayingNotes();
   }
 
-  getNotesToHarmonize() {
-    return editor.allNotes.filter(note => !note.isMasked);
-  }
-
   getInfillMask(): InfillMask[] | undefined {
-    const mask = [];
-    const maskedNotes = editor.allNotes.filter(note => note.isMasked);
-    for (const note of maskedNotes) {
-      const { position, duration, voice } = note;
-      for (let step = position; step < position + duration; step++) {
-        mask.push({ voice, step });
-      }
-    }
-    if (mask.length === 0) return undefined;
-    return mask.sort((a, b) => {
+    const infillMask = [];
+    editor.generationMasks.forEach((mask, voice) => {
+      mask.forEach(maskIndex => {
+        infillMask.push({ voice, step: maskIndex });
+      });
+    });
+    if (infillMask.length === 0) return undefined;
+    return infillMask.sort((a, b) => {
       if (a.voice === b.voice) return a.step - b.step;
       return a.voice - b.voice;
     });
@@ -202,7 +191,7 @@ class Engine {
       this.stop();
     }
 
-    const notesToHarmonize = this.getNotesToHarmonize();
+    const notesToHarmonize = [...editor.allNotes];
     const sequence = this.getMagentaNoteSequence(notesToHarmonize);
 
     const infillMask = this.getInfillMask();
