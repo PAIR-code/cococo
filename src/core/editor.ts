@@ -2,6 +2,7 @@ import { computed, observable } from 'mobx';
 import { range } from 'lodash';
 import { makeNoteScale } from './tonal-utils';
 import * as mm from '@magenta/music';
+import * as _ from 'lodash';
 
 import { Note, Source } from './note';
 import undo, { undoable } from './undo';
@@ -66,6 +67,9 @@ class Editor {
   }
 
   @observable selectedTool: EditorTool = EditorTool.DRAW;
+
+  // Masks are maintained as an array of masked sixteenth notes, one per voice.
+  @observable generationMasks: number[][] = [[], [], [], []];
 
   constructor() {
     let position = 0;
@@ -228,6 +232,43 @@ class Editor {
 
   @undoable()
   maskNotes(positionRange: number[], pitchRange: number[]) {
+    const notesInMask: Note[] = [];
+    for (const note of this.allNotes) {
+      if (this.overlaps(note, positionRange, pitchRange)) {
+        notesInMask.push(note);
+      }
+    }
+
+    const maskSetsByVoice = _.range(4).map(() => new Set<number>());
+    notesInMask.forEach(note => {
+      const maskStart = Math.max(positionRange[0], note.start);
+      const maskEnd = Math.min(positionRange[1], note.end);
+      const maskRange = _.range(maskStart, maskEnd);
+
+      this.addMask(note.voice, maskRange);
+    });
+  }
+
+  addMask(voiceIndex: number, mask: number[]) {
+    const maskSet = new Set<number>(this.generationMasks[voiceIndex]);
+    mask.forEach(maskIndex => maskSet.add(maskIndex));
+    this.generationMasks[voiceIndex] = [...maskSet.values()].sort(
+      (a, b) => a - b
+    );
+  }
+
+  removeMask(voiceIndex: number, mask: number[]) {
+    const maskSet = new Set<number>(this.generationMasks[voiceIndex]);
+    mask.forEach(maskIndex => maskSet.delete(maskIndex));
+    this.generationMasks[voiceIndex] = [...maskSet.values()].sort(
+      (a, b) => a - b
+    );
+  }
+
+  // The following logic is the old, note-based way of applying generation
+  // masks. Since we're now using the maskLane approach, we'll
+  @undoable()
+  maskNotesLegacy(positionRange: number[], pitchRange: number[]) {
     // If all notes in the mask are already masked, unmask them
     var allNotesAlreadyMasked = true;
     var notesInMask = [];

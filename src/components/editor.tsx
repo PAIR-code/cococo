@@ -6,6 +6,7 @@ import { PianoRoll } from './piano-roll';
 import { Grid } from './grid';
 import { Group } from './group';
 import { LoopOverlay } from './loop-overlay';
+import { MaskLanes } from './mask-lanes';
 import { Notes } from './notes';
 import { Timeline } from './timeline';
 import { Masks } from './masks';
@@ -15,8 +16,13 @@ export interface Props {}
 @observer
 export class Editor extends React.Component<Props> {
   render() {
-    const { editorWidth: width, editorHeight: height } = layout;
-    const { noteHeight, pianoRollWidth } = layout;
+    const {
+      editorWidth: width,
+      editorHeight: height,
+      maskLanesHeight,
+      noteHeight,
+      pianoRollWidth,
+    } = layout;
 
     const { scale } = editor;
     const notesHeight = scale.length * noteHeight;
@@ -29,7 +35,14 @@ export class Editor extends React.Component<Props> {
         <Group x={pianoRollWidth}>
           <Timeline width={notesWidth} height={layout.timelineHeight} />
         </Group>
-        <Group y={layout.timelineHeight}>
+        <Group y={layout.maskLanesY}>
+          <MaskLanes
+            width={notesWidth}
+            height={maskLanesHeight}
+            labelWidth={pianoRollWidth}
+          />
+        </Group>
+        <Group y={layout.notesY}>
           <PianoRoll
             width={pianoRollWidth}
             height={notesHeight}
