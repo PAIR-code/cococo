@@ -111,15 +111,6 @@ export class Controls extends React.Component<{}> {
           <ToggleButton value={8}>1/2</ToggleButton>
         </ToggleButtonGroup>
         <div>
-          <Button
-            disabled={!harmonizeEnabled}
-            variant="outlined"
-            color="primary"
-            onClick={() => engine.harmonize()}
-          >
-            Harmonize
-            <MusicNote />
-          </Button>
           {this.renderSpacer()}
           <Button
             disabled={!canClear}

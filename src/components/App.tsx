@@ -8,9 +8,10 @@ import { ThemeProvider } from '@material-ui/styles';
 
 import { Controls } from './controls';
 import { Editor } from './editor';
+import { Sequences } from './sequences';
 import { Working } from './working';
 
-import { engine } from '../core';
+import { engine, layout } from '../core';
 import { theme } from '../core/theme';
 
 @observer
@@ -23,9 +24,20 @@ export default class App extends React.Component {
       width: '100%',
       height: '100%',
       display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'center',
+    });
+    const editorContainerStyle = style({
+      width: layout.editorWidth,
+      height: '100%',
+      display: 'flex',
       flexDirection: 'column',
       justifyContent: 'center',
       alignItems: 'center',
+    });
+    const sequencesContainerStyle = style({
+      width: layout.sequencesWidth,
+      height: '100%',
     });
 
     return (
@@ -38,8 +50,13 @@ export default class App extends React.Component {
           </Toolbar>
         </AppBar>
         <div className={stageContainerStyle} ref={ref => (this.stageRef = ref)}>
-          <Editor />
-          <Controls />
+          <div className={editorContainerStyle}>
+            <Editor />
+            <Controls />
+          </div>
+          <div className={sequencesContainerStyle}>
+            <Sequences />
+          </div>
         </div>
         <Working open={engine.isWorking} title="Working..." />
       </ThemeProvider>

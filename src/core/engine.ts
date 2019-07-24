@@ -1,6 +1,6 @@
 import * as mm from '@magenta/music';
 import { observable } from 'mobx';
-import { Note } from './note';
+import { Note, NoteSequence } from './note';
 import editor from './editor';
 import sequences from './sequences';
 import { range } from 'lodash';
@@ -181,7 +181,7 @@ class Engine {
     });
   }
 
-  async harmonize(nHarmonizations = 1) {
+  async harmonize() {
     this.isWorking = true;
 
     // Allow the UX to respond before computing so heavily!
@@ -191,28 +191,38 @@ class Engine {
       this.stop();
     }
 
-    const outputSequences: mm.NoteSequence[] = [];
+    const nHarmonizations = sequences.nSequencesToGenerate;
+    const outputSequences: NoteSequence[] = [];
     for (let i = 0; i < nHarmonizations; i++) {
-      const notesToHarmonize = [...editor.allNotes];
-      const sequence = this.getMagentaNoteSequence(notesToHarmonize);
+      const inputNotes = [...editor.allNotes];
+      const sequence = this.getMagentaNoteSequence(inputNotes);
       const infillMask = this.getInfillMask();
       const results = await this.model.infill(sequence, {
         temperature: 0.99,
         infillMask,
       });
 
-      const outputSequence = mm.sequences.mergeConsecutiveNotes(results);
-      outputSequences.push(outputSequence);
+      const outputSequence = fromMagentaSequence(
+        mm.sequences.mergeConsecutiveNotes(results)
+      );
+
+      // Now, filter the outputSequence by removing the notes that were supplied to the model.
+      const inputNotesSet = new Set<string>();
+      const makeKey = note =>
+        `${note.pitch}:${note.position}:${note.duration}:${note.voice}`;
+      inputNotes.forEach(note => {
+        inputNotesSet.add(makeKey(note));
+      });
+      const filteredSequence = outputSequence.filter(note => {
+        const key = makeKey(note);
+        return !inputNotesSet.has(key);
+      });
+
+      outputSequences.push(filteredSequence);
     }
 
     this.isWorking = false;
     sequences.addSequences(outputSequences);
-
-    if (outputSequences.length === 1) {
-      const result = outputSequences[0];
-      const notes = fromMagentaSequence(result);
-      editor.addAgentNotes(notes);
-    }
   }
 }
 

@@ -24,8 +24,9 @@ export interface SerializedNote {
   position: number;
   duration: number;
   voice: number;
-  isMasked: boolean;
 }
+
+export type NoteSequence = Note[];
 
 export class Note {
   id = generateId();
@@ -83,7 +84,6 @@ export class Note {
       position: this.position,
       duration: this.duration,
       voice: this.voice,
-      isMasked: this.isMasked,
     };
   }
 
@@ -106,7 +106,6 @@ export class Note {
     const { pitch, position, duration, source, voice } = serializedNote;
     const newNote = new Note(pitch, position, duration, source, voice);
     newNote.id = serializedNote.id;
-    newNote.isMasked = serializedNote.isMasked;
     return newNote;
   }
 

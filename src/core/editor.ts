@@ -13,6 +13,7 @@ import {
   MAX_PITCH,
   MIN_PITCH,
 } from './constants';
+import { string } from 'prop-types';
 
 export const enum EditorTool {
   DRAW = 'DRAW',
@@ -35,10 +36,22 @@ export class Mask {
 }
 
 class Editor {
-  @observable notesMap = new Map<string, Note>();
+  @observable private notesMap = new Map<string, Note>();
+  @observable private tempNotesMap = new Map<string, Note>();
+
+  setTempNotes(notes: Note[], clear = true) {
+    if (clear) this.tempNotesMap.clear();
+    notes.forEach(note => {
+      this.tempNotesMap.set(this.makeNoteKey(note.pitch, note.position), note);
+    });
+  }
 
   @computed get allNotes() {
-    return [...this.notesMap.values()];
+    return [...this.notesMap.values(), ...this.tempNotes];
+  }
+
+  @computed get tempNotes() {
+    return [...this.tempNotesMap.values()];
   }
 
   @computed get userNotes() {
@@ -101,8 +114,13 @@ class Editor {
 
   setNotePlaying(pitch: number, position: number) {
     const key = this.makeNoteKey(pitch, position);
+
     const note = this.notesMap.get(key);
     if (note) this.setCurrentlyPlaying(note);
+
+    // Also set temp notes playing
+    const tempNote = this.tempNotesMap.get(key);
+    if (tempNote) this.setCurrentlyPlaying(tempNote);
 
     // Clear all notes that are playing if the playhead has passed them
     for (const playingNote of this.currentlyPlayingNotes.values()) {
