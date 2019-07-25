@@ -60,10 +60,10 @@ export class Grid extends React.Component<Props> {
               stroke="#CCC"
               fill={fillColor}
               strokeWidth={1}
-              onMouseDown={interactions.handleGridMouseDown}
-              onClick={() => {
-                interactions.handleGridClick(scaleIndex, divisionIndex);
-              }}
+              onMouseDown={interactions.handleGridMouseDown(
+                scaleIndex,
+                divisionIndex
+              )}
             />
           );
         })}
@@ -73,12 +73,12 @@ export class Grid extends React.Component<Props> {
 
   render() {
     return (
-      <Group>
+      <g id="editor-grid">
         {editor.scale.map((scaleValue: ScaleValue, index: number) => {
           return this.renderNoteGrid(scaleValue, index);
         })}
         {DIVISIONS.map(division => this.renderDivision(division))}
-      </Group>
+      </g>
     );
   }
 }

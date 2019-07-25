@@ -3,7 +3,7 @@ import { range } from 'lodash';
 import { makeNoteScale } from './tonal-utils';
 import * as _ from 'lodash';
 
-import { Note, NoteSequence, Source } from './note';
+import { Note, NoteSequence, Source, Voice } from './note';
 import undo, { undoable } from './undo';
 
 import {
@@ -12,6 +12,7 @@ import {
   MAX_PITCH,
   MIN_PITCH,
 } from './constants';
+import { MinMaxNorm } from '@tensorflow/tfjs-layers/dist/constraints';
 
 export const enum EditorTool {
   DRAW = 'DRAW',
@@ -34,13 +35,13 @@ export class Mask {
 }
 
 class Editor {
-  @observable private notesMap = new Map<string, Note>();
-  @observable private tempNotesMap = new Map<string, Note>();
+  @observable private notesMap = new Map<number, Note>();
+  @observable private tempNotesMap = new Map<number, Note>();
 
   setTempNotes(notes: Note[], clear = true) {
     if (clear) this.tempNotesMap.clear();
     notes.forEach(note => {
-      this.tempNotesMap.set(this.makeNoteKey(note.pitch, note.position), note);
+      this.tempNotesMap.set(note.id, note);
     });
   }
 
@@ -78,6 +79,7 @@ class Editor {
   }
 
   @observable selectedTool: EditorTool = EditorTool.DRAW;
+  @observable selectedVoice: Voice = Voice.SOPRANO;
 
   // Masks are maintained as an array of masked sixteenth notes, one per voice.
   @observable generationMasks: number[][] = [[], [], [], []];
@@ -110,14 +112,18 @@ class Editor {
     });
   }
 
-  setNotePlaying(pitch: number, position: number) {
-    const key = this.makeNoteKey(pitch, position);
+  private getNoteByPitchPosition(pitch: number, position: number) {
+    return this.allNotes.find(note => {
+      return note.pitch === pitch && note.position === position;
+    });
+  }
 
-    const note = this.notesMap.get(key);
+  setNotePlaying(pitch: number, position: number) {
+    const note = this.getNoteByPitchPosition(pitch, position);
     if (note) this.setCurrentlyPlaying(note);
 
     // Also set temp notes playing
-    const tempNote = this.tempNotesMap.get(key);
+    const tempNote = this.tempNotesMap.get(note.id);
     if (tempNote) this.setCurrentlyPlaying(tempNote);
 
     // Clear all notes that are playing if the playhead has passed them
@@ -129,40 +135,6 @@ class Editor {
     }
   }
 
-  private makeNoteKey(pitch: number, position: number) {
-    return `${pitch}:${position}`;
-  }
-
-  private _addNote(note: Note) {
-    const { position, pitch: pitch } = note;
-    const key = this.makeNoteKey(pitch, position);
-    this.notesMap.set(key, note);
-  }
-
-  @undoable()
-  removeNote(note: Note) {
-    this.removeNote(note);
-  }
-
-  removeCandidateNoteSequence(notes: Note[]) {
-    notes.forEach(note => this._removeNote(note));
-  }
-
-  private _removeNote(note: Note) {
-    const { position, pitch: pitch } = note;
-    const key = this.makeNoteKey(pitch, position);
-    this.notesMap.delete(key);
-  }
-
-  overlapsWithUserNote(pitch: number, position: number) {
-    const key = this.makeNoteKey(pitch, position);
-    return this.notesMap.has(key);
-  }
-
-  getValueFromScaleIndex(scaleIndex: number) {
-    return this.scale[scaleIndex].pitch;
-  }
-
   @undoable()
   addNote(note: Note, shouldSelect = false) {
     this._addNote(note);
@@ -172,14 +144,36 @@ class Editor {
     }
   }
 
+  // The non-undoable internal method
+  private _addNote(note: Note) {
+    this.notesMap.set(note.id, note);
+  }
+
   @undoable()
-  addAgentNotes(notes: Note[], replace = true) {
+  removeNote(note: Note) {
+    this.removeNote(note);
+  }
+
+  // The non-undoable internal method
+  private _removeNote(note: Note) {
+    this.notesMap.delete(note.id);
+  }
+
+  removeCandidateNoteSequence(notes: Note[]) {
+    notes.forEach(note => this._removeNote(note));
+  }
+
+  getValueFromScaleIndex(scaleIndex: number) {
+    return this.scale[scaleIndex].pitch;
+  }
+
+  @undoable()
+  addAgentNotes(sequence: NoteSequence, replace = true) {
     if (replace) {
       this.clearAgentNotes();
     }
-    notes.forEach(note => {
-      const key = this.makeNoteKey(note.pitch, note.position);
-      this.notesMap.set(key, note);
+    sequence.forEach(note => {
+      this._addNote(note);
     });
   }
 
@@ -206,8 +200,7 @@ class Editor {
     for (let other of this.allNotes) {
       if (other === note) continue;
       if (other.position === note.position && other.pitch === note.pitch) {
-        const key = this.makeNoteKey(other.pitch, other.position);
-        this.notesMap.delete(key);
+        this.notesMap.delete(note.id);
       }
     }
     undo.completeUndoable();
@@ -242,6 +235,25 @@ class Editor {
   private replaceNoteWithNotes(note: Note, otherNotes: Note[]) {
     this.removeNote(note);
     otherNotes.forEach(otherNote => this._addNote(otherNote));
+  }
+
+  trimOverlappingVoices(note: Note) {
+    const range = [note.start, note.end];
+    const overlappingNotes = this.allNotes.filter(
+      otherNote =>
+        otherNote !== note &&
+        otherNote.voice === note.voice &&
+        this.overlaps(otherNote, range, [MIN_PITCH, MAX_PITCH])
+    );
+
+    overlappingNotes.forEach(otherNote => {
+      if (otherNote.end > note.end) {
+        otherNote.moveStart(note.end);
+      } else {
+        // otherNote.isPlaying = true;
+        this._removeNote(otherNote);
+      }
+    });
   }
 
   @undoable()
