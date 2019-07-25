@@ -21,6 +21,10 @@ class Layout {
     return this.editorHeight - this.timelineHeight - this.maskLanesHeight;
   }
 
+  @computed get notesWidth() {
+    return this.editorWidth - this.pianoRollWidth;
+  }
+
   @computed get noteHeight() {
     return this.notesHeight / editor.scale.length;
   }

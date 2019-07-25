@@ -3,8 +3,6 @@ import { style } from 'typestyle';
 import Button from '@material-ui/core/Button';
 import FormControl from '@material-ui/core/FormControl';
 import FormHelperText from '@material-ui/core/FormHelperText';
-import Input from '@material-ui/core/Input';
-import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import ToggleButton from '@material-ui/lab/ToggleButton';
@@ -28,7 +26,7 @@ import { Voice } from '../core/note';
 @observer
 export class Controls extends React.Component<{}> {
   render() {
-    const PADDING = 20;
+    const PADDING = 0;
     const width = layout.editorWidth;
 
     const controlsStyle = style({

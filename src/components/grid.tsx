@@ -73,12 +73,12 @@ export class Grid extends React.Component<Props> {
 
   render() {
     return (
-      <Group>
+      <g id="editor-grid">
         {editor.scale.map((scaleValue: ScaleValue, index: number) => {
           return this.renderNoteGrid(scaleValue, index);
         })}
         {DIVISIONS.map(division => this.renderDivision(division))}
-      </Group>
+      </g>
     );
   }
 }

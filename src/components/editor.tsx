@@ -17,23 +17,22 @@ export interface Props {}
 export class Editor extends React.Component<Props> {
   render() {
     const {
-      editorWidth: width,
-      editorHeight: height,
-      maskLanesHeight,
       noteHeight,
       pianoRollWidth,
+      maskLanesHeight,
+      editorWidth,
+      editorHeight,
+      notesWidth,
+      notesHeight,
+      timelineHeight,
     } = layout;
-
-    const { scale } = editor;
-    const notesHeight = scale.length * noteHeight;
-    const notesWidth = width - pianoRollWidth;
 
     const isMaskToolSelected = editor.selectedTool === EditorTool.MASK;
 
     return (
-      <svg width={width} height={height}>
+      <svg width={editorWidth} height={editorHeight}>
         <Group x={pianoRollWidth}>
-          <Timeline width={notesWidth} height={layout.timelineHeight} />
+          <Timeline width={notesWidth} height={timelineHeight} />
         </Group>
         <Group y={layout.maskLanesY}>
           <MaskLanes

@@ -5,14 +5,18 @@ import { EditorTool, editor, engine, layout } from './index';
 import { MAX_PITCH, MIN_PITCH } from './constants';
 import { Note, Source } from './note';
 
-function quantizePosition(position: number, fn = Math.round) {
-  return fn(position / editor.quantizeStep) * editor.quantizeStep;
+/**
+ * @param position position in sixteenths
+ * @param quantizeFn Math.round for nearest, Math.floor for previous
+ */
+function quantizePosition(position: number, quantizeFn = Math.round) {
+  return quantizeFn(position / editor.quantizeStep) * editor.quantizeStep;
 }
 
 function getQuantizedPositionFromX(x: number) {
-  const width = layout.sixteenthWidth * editor.totalSixteenths;
+  const width = layout.notesWidth;
   const position = Math.floor((x / width) * editor.totalSixteenths);
-  return quantizePosition(clampPosition(position));
+  return quantizePosition(clampPosition(position), Math.floor);
 }
 
 function clampPosition(position: number) {
@@ -44,6 +48,8 @@ class Interactions {
     }
   };
 
+  // TODO: Let's make this a more reasonable system - position drag is disabled
+  // for now because of overlapping voice
   private handleNoteDrag = (note: Note) => (e: MouseEvent) => {
     const deltaX = e.clientX - this.noteDragStartX;
     const deltaY = e.clientY - this.noteDragStartY;
@@ -58,17 +64,14 @@ class Interactions {
     const nextValue = clampPitch(this.noteDragStartPitch - deltaPitch);
 
     if (nextPosition !== note.position || nextValue !== note.pitch) {
-      note.position = nextPosition;
+      // Disabled temporarily until we sort out the way to handle note overlaps
+      // note.position = nextPosition;
       note.pitch = nextValue;
       engine.playNote(note);
     }
   };
 
-  private handleEditNoteDrag = (note: Note) => (e: MouseEvent) => {
-    editor.removeNote(note);
-  };
-
-  handleNoteMouseDown = (note: Note) => (e: React.MouseEvent) => {
+  handleStartNoteDrag(note: Note, e: React.MouseEvent) {
     editor.startNoteDrag();
     e.preventDefault();
 
@@ -85,6 +88,14 @@ class Interactions {
     };
     document.addEventListener('mousemove', mouseMove);
     document.addEventListener('mouseup', mouseUp);
+  }
+
+  handleNoteMouseDown = (note: Note) => (e: React.MouseEvent) => {
+    if (editor.selectedTool === EditorTool.ERASE) {
+      editor.removeNote(note);
+    } else if (editor.selectedTool === EditorTool.DRAW) {
+      this.handleStartNoteDrag(note, e);
+    }
   };
 
   private handleLoopStartDrag = (e: MouseEvent) => {
@@ -181,8 +192,7 @@ class Interactions {
   };
 
   private noteBeingDrawn?: Note;
-  private noteDrawStartX = 0;
-  private noteDrawStartPosition = 0;
+  private gridBounds: DOMRect;
 
   private handleDrawMouseDown = (
     scaleIndex: number,
@@ -196,11 +206,13 @@ class Interactions {
 
     const note = new Note(value, position, duration, Source.USER, voice);
     this.noteBeingDrawn = note;
-    this.noteDrawStartX = e.clientX;
-    this.noteDrawStartPosition = note.position;
+    const editorGrid = document.getElementById('editor-grid')!;
+    this.gridBounds = editorGrid.getBoundingClientRect() as DOMRect;
 
     editor.addNote(note);
     engine.playNote(note);
+
+    editor.trimOverlappingVoices(note);
   };
 
   handleDrawMouseMove = (e: MouseEvent) => {
@@ -208,9 +220,16 @@ class Interactions {
     if (!noteBeingDrawn) {
       return;
     }
-    const nextX = e.clientX;
-    const nextPosition = getQuantizedPositionFromX(nextX);
-    console.log(nextX, nextPosition);
+    const gridX = e.clientX - this.gridBounds.x;
+    const gridPosition = getQuantizedPositionFromX(gridX);
+
+    const shouldUpdateDrawn =
+      gridPosition >= noteBeingDrawn.position &&
+      gridPosition + editor.quantizeStep !== noteBeingDrawn.end;
+    if (shouldUpdateDrawn) {
+      noteBeingDrawn.moveEnd(gridPosition + editor.quantizeStep);
+      editor.trimOverlappingVoices(noteBeingDrawn);
+    }
   };
 
   handleGridMouseDown = (scaleIndex: number, divisionIndex: number) => (
