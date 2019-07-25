@@ -151,7 +151,7 @@ class Editor {
 
   @undoable()
   removeNote(note: Note) {
-    this.removeNote(note);
+    this._removeNote(note);
   }
 
   // The non-undoable internal method
