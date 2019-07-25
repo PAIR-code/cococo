@@ -1,10 +1,9 @@
 import { computed, observable } from 'mobx';
 import { range } from 'lodash';
 import { makeNoteScale } from './tonal-utils';
-import * as mm from '@magenta/music';
 import * as _ from 'lodash';
 
-import { Note, Source } from './note';
+import { Note, NoteSequence, Source } from './note';
 import undo, { undoable } from './undo';
 
 import {
@@ -35,10 +34,22 @@ export class Mask {
 }
 
 class Editor {
-  @observable notesMap = new Map<string, Note>();
+  @observable private notesMap = new Map<string, Note>();
+  @observable private tempNotesMap = new Map<string, Note>();
+
+  setTempNotes(notes: Note[], clear = true) {
+    if (clear) this.tempNotesMap.clear();
+    notes.forEach(note => {
+      this.tempNotesMap.set(this.makeNoteKey(note.pitch, note.position), note);
+    });
+  }
 
   @computed get allNotes() {
-    return [...this.notesMap.values()];
+    return [...this.notesMap.values(), ...this.tempNotes];
+  }
+
+  @computed get tempNotes() {
+    return [...this.tempNotesMap.values()];
   }
 
   @computed get userNotes() {
@@ -101,8 +112,13 @@ class Editor {
 
   setNotePlaying(pitch: number, position: number) {
     const key = this.makeNoteKey(pitch, position);
+
     const note = this.notesMap.get(key);
     if (note) this.setCurrentlyPlaying(note);
+
+    // Also set temp notes playing
+    const tempNote = this.tempNotesMap.get(key);
+    if (tempNote) this.setCurrentlyPlaying(tempNote);
 
     // Clear all notes that are playing if the playhead has passed them
     for (const playingNote of this.currentlyPlayingNotes.values()) {
@@ -125,6 +141,14 @@ class Editor {
 
   @undoable()
   removeNote(note: Note) {
+    this.removeNote(note);
+  }
+
+  removeCandidateNoteSequence(notes: Note[]) {
+    notes.forEach(note => this._removeNote(note));
+  }
+
+  private _removeNote(note: Note) {
     const { position, pitch: pitch } = note;
     const key = this.makeNoteKey(pitch, position);
     this.notesMap.delete(key);
@@ -149,22 +173,12 @@ class Editor {
   }
 
   @undoable()
-  addAgentNotes(sequence: mm.NoteSequence.INote[], replace = true) {
+  addAgentNotes(notes: Note[], replace = true) {
     if (replace) {
       this.clearAgentNotes();
     }
-    sequence.forEach(item => {
-      const position = item.quantizedStartStep;
-      const duration = item.quantizedEndStep - item.quantizedStartStep;
-      const voice = item.instrument;
-      const note = new Note(
-        item.pitch,
-        position,
-        duration,
-        Source.AGENT,
-        voice
-      );
-      const key = this.makeNoteKey(item.pitch, position);
+    notes.forEach(note => {
+      const key = this.makeNoteKey(note.pitch, note.position);
       this.notesMap.set(key, note);
     });
   }
@@ -265,10 +279,31 @@ class Editor {
     );
   }
 
+  isNoteMasked(note: Note) {
+    const { voice, start, end } = note;
+    const mask = this.generationMasks[voice];
+
+    for (let maskIndex of mask) {
+      if (maskIndex >= start && maskIndex < end) return true;
+    }
+    return false;
+  }
+
+  getMaskedSequence() {
+    const notes = this.allNotes;
+    const maskedSequence: NoteSequence = [];
+
+    for (const note of notes) {
+      if (this.isNoteMasked(note)) maskedSequence.push(note);
+    }
+
+    return maskedSequence;
+  }
+
   // The following logic is the old, note-based way of applying generation
   // masks. Since we're now using the maskLane approach, we'll
   @undoable()
-  maskNotesLegacy(positionRange: number[], pitchRange: number[]) {
+  private maskNotesLegacy(positionRange: number[], pitchRange: number[]) {
     // If all notes in the mask are already masked, unmask them
     var allNotesAlreadyMasked = true;
     var notesInMask = [];

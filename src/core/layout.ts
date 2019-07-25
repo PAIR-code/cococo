@@ -9,6 +9,8 @@ import {
 
 class Layout {
   @observable editorWidth = 1200;
+  @observable sequencesWidth = 200;
+  @observable sequenceHeight = 80;
   @observable editorHeight = 600;
   @observable timelineHeight = TIMELINE_HEIGHT;
 

@@ -1,10 +1,11 @@
 import * as mm from '@magenta/music';
 import { observable } from 'mobx';
-import { Note } from './note';
+import { Note, NoteSequence } from './note';
 import editor from './editor';
+import sequences from './sequences';
 import { range } from 'lodash';
 import * as Tone from 'tone';
-import { trim } from './magenta-utils';
+import { trim, fromMagentaSequence } from './magenta-utils';
 
 import {
   DEFAULT_BPM,
@@ -15,7 +16,6 @@ import {
   MODEL_URL,
   TOTAL_SIXTEENTHS,
 } from './constants';
-import { Voice } from './note';
 
 interface InfillMask {
   step: number;
@@ -191,19 +191,45 @@ class Engine {
       this.stop();
     }
 
-    const notesToHarmonize = [...editor.allNotes];
-    const sequence = this.getMagentaNoteSequence(notesToHarmonize);
+    const nHarmonizations = sequences.nSequencesToGenerate;
+    const outputSequences: NoteSequence[] = [];
+    for (let i = 0; i < nHarmonizations; i++) {
+      const inputNotes = [...editor.allNotes];
+      const sequence = this.getMagentaNoteSequence(inputNotes);
+      const infillMask = this.getInfillMask();
+      const results = await this.model.infill(sequence, {
+        temperature: 0.99,
+        infillMask,
+      });
 
-    const infillMask = this.getInfillMask();
-    const results = await this.model.infill(sequence, {
-      temperature: 0.99,
-      infillMask,
-    });
+      const outputSequence = fromMagentaSequence(
+        mm.sequences.mergeConsecutiveNotes(results)
+      );
 
-    const output = mm.sequences.mergeConsecutiveNotes(results);
+      // Now, filter the outputSequence by removing the notes that were supplied to the model.
+      const inputNotesSet = new Set<string>();
+      const makeKey = note =>
+        `${note.pitch}:${note.position}:${note.duration}:${note.voice}`;
+      inputNotes.forEach(note => {
+        inputNotesSet.add(makeKey(note));
+      });
+      const filteredSequence = outputSequence.filter(note => {
+        const key = makeKey(note);
+        return !inputNotesSet.has(key);
+      });
+
+      outputSequences.push(filteredSequence);
+    }
+
+    // Now, set the first candidate sequence to be the original, masked sequence
+    const maskedSequence = editor.getMaskedSequence();
+    editor.removeCandidateNoteSequence(maskedSequence);
+    sequences.addCandidateSequences([maskedSequence, ...outputSequences]);
+
+    // Select the first, non-masked sequence
+    sequences.selectCandidateSequence(1);
 
     this.isWorking = false;
-    editor.addAgentNotes(output.notes);
   }
 }
 
