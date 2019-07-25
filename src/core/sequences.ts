@@ -26,13 +26,17 @@ export class Sequences {
   commitSelectedCandidateSequence = () => {
     const index = this.selectedCandidateSequenceIndex;
     editor.setTempNotes([]);
-    editor.addAgentNotes(this.candidateSequences[index]);
+    editor.addAgentNotes(this.candidateSequences[index], /** replace */ false);
     this.candidateSequences = [];
   };
 
   clearCandidateSequences = () => {
-    this.candidateSequences = [];
+    // Add back the original sequence
+    editor.addAgentNotes(this.candidateSequences[0], /** replace */ false);
+
+    // Then, clear the sequences
     this.selectedCandidateSequenceIndex = 0;
+    this.candidateSequences = [];
     editor.setTempNotes([]);
   };
 }

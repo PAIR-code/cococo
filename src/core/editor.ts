@@ -3,7 +3,7 @@ import { range } from 'lodash';
 import { makeNoteScale } from './tonal-utils';
 import * as _ from 'lodash';
 
-import { Note, Source } from './note';
+import { Note, NoteSequence, Source } from './note';
 import undo, { undoable } from './undo';
 
 import {
@@ -280,12 +280,24 @@ class Editor {
   }
 
   isNoteMasked(note: Note) {
-    const { voice, start } = note;
+    const { voice, start, end } = note;
     const mask = this.generationMasks[voice];
+
     for (let maskIndex of mask) {
-      if (maskIndex >= start) return true;
+      if (maskIndex >= start && maskIndex < end) return true;
     }
     return false;
+  }
+
+  getMaskedSequence() {
+    const notes = this.allNotes;
+    const maskedSequence: NoteSequence = [];
+
+    for (const note of notes) {
+      if (this.isNoteMasked(note)) maskedSequence.push(note);
+    }
+
+    return maskedSequence;
   }
 
   // The following logic is the old, note-based way of applying generation

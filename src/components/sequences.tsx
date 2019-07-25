@@ -47,6 +47,7 @@ export interface SequencesProps {}
 export class Sequences extends React.Component<SequencesProps> {
   renderSequences() {
     const noteSequences = sequences.candidateSequences;
+
     const [minPitch, maxPitch] = getPitchRange(noteSequences);
     const [minPosition, maxPosition] = getPositionRange(noteSequences);
 
@@ -103,6 +104,8 @@ export class Sequences extends React.Component<SequencesProps> {
       width: layout.sequencesWidth,
     });
 
+    const showCandidateSequences = sequences.candidateSequences.length > 0;
+
     return (
       <div className={containerStyle}>
         <Button
@@ -132,7 +135,7 @@ export class Sequences extends React.Component<SequencesProps> {
           </Select>
           <FormHelperText style={{ width: 100 }}>n sequences</FormHelperText>
         </FormControl>
-        {sequences.candidateSequences && this.renderSequences()}
+        {showCandidateSequences && this.renderSequences()}
       </div>
     );
   }
