@@ -215,6 +215,9 @@ class Engine {
       const results = await this.model.infill(sequence, {
         temperature: 0.99,
         infillMask,
+        discourageNotes: true,
+        // 1 translates to a 1:3 ratio, 2 translates to a 1:12 ratio
+        nudgeFactor: 2
       });
 
       const outputSequence = fromMagentaSequence(

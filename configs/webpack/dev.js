@@ -23,6 +23,7 @@ module.exports = merge(commonConfig, {
     alias: {
       'react-dom': '@hot-loader/react-dom',
     },
+    symlinks: false, // To use local packages (e.g., @magenta/music), turn off symlink resolution https://github.com/webpack/webpack/issues/811
   },
   entry: [
     'react-hot-loader/patch', // activate HMR for React
