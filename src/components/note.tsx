@@ -19,11 +19,18 @@ import { observer } from 'mobx-react';
 
 import { Note as NoteModel } from '../core/note';
 import { interactions } from '../core';
-import { COLOR_PLAYING, COLOR_SELECTED, VOICE_COLORS } from '../core/theme';
+import {
+  COLOR_PLAYING,
+  COLOR_SELECTED,
+  VOICE_COLORS,
+  MUTED_COLOR,
+} from '../core/theme';
 
-function getFillColor(note: NoteModel) {
+function getFillColor(note: NoteModel, isMuted: boolean) {
   const { isSelected, isPlaying } = note;
-  if (isPlaying) {
+  if (isMuted) {
+    return MUTED_COLOR;
+  } else if (isPlaying) {
     return COLOR_PLAYING;
   } else if (isSelected) {
     return COLOR_SELECTED;
@@ -34,6 +41,7 @@ function getFillColor(note: NoteModel) {
 
 export interface NoteProps {
   note: NoteModel;
+  isMuted: boolean;
   height: number;
   width: number;
   x: number;
@@ -45,8 +53,8 @@ const NOTE_BORDER = 1;
 @observer
 export class Note extends React.Component<NoteProps> {
   render() {
-    const { note, width, height, x, y } = this.props;
-    const fill = getFillColor(note);
+    const { isMuted, note, width, height, x, y } = this.props;
+    const fill = getFillColor(note, isMuted);
 
     const fadeDuration = note.isPlaying ? 0 : 0.5;
 

@@ -157,7 +157,7 @@ class Engine {
         return;
       }
 
-      const sequence = this.getMagentaNoteSequence(editor.allNotes);
+      const sequence = this.getMagentaNoteSequence(editor.unmutedNotes);
       const loopSequence = trim(sequence, this.loopStart, this.loopEnd, true);
 
       // trim can give a note that has quantizedStartStep == quantizedEndStep

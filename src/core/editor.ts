@@ -52,6 +52,7 @@ export class Mask {
 class Editor {
   @observable private notesMap = new Map<number, Note>();
   @observable private tempNotesMap = new Map<number, Note>();
+  @observable private mutedVoices = new Set<number>();
 
   setTempNotes(notes: Note[], clear = true) {
     if (clear) this.tempNotesMap.clear();
@@ -62,6 +63,10 @@ class Editor {
 
   @computed get allNotes() {
     return [...this.notesMap.values(), ...this.tempNotes];
+  }
+
+  @computed get unmutedNotes() {
+    return this.allNotes.filter(note => !this.isVoiceMuted(note.voice));
   }
 
   @computed get tempNotes() {
@@ -325,6 +330,18 @@ class Editor {
     }
 
     return maskedSequence;
+  }
+
+  toggleVoiceMute(voiceIndex: number) {
+    if (this.mutedVoices.has(voiceIndex)) {
+      this.mutedVoices.delete(voiceIndex);
+    } else {
+      this.mutedVoices.add(voiceIndex);
+    }
+  }
+
+  isVoiceMuted(voiceIndex: number) {
+    return this.mutedVoices.has(voiceIndex);
   }
 
   // The following logic is the old, note-based way of applying generation
