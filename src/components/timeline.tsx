@@ -39,7 +39,7 @@ export class Timeline extends React.Component<Props> {
   render() {
     const { width, height } = this.props;
 
-    const startX = (width / editor.totalSixteenths) * engine.loopStart - 1;
+    const startX = (width / editor.totalSixteenths) * engine.loopStart;
     const endX = (width / editor.totalSixteenths) * engine.loopEnd + 1;
     const caretWidth = layout.sixteenthWidth / 2;
 
