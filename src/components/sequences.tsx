@@ -17,6 +17,8 @@ import React from 'react';
 import { style } from 'typestyle';
 import { observer } from 'mobx-react';
 import Button from '@material-ui/core/Button';
+import Typography from '@material-ui/core/Typography';
+import Slider from '@material-ui/core/Slider';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -26,7 +28,7 @@ import { MusicNote } from '@material-ui/icons';
 import { engine, sequences, layout, Note } from '../core';
 
 import { Sequence } from './sequence';
-import { MAX_PITCH, MIN_PITCH, TOTAL_SIXTEENTHS } from '../core/constants';
+import { MAX_PITCH, MIN_PITCH, TOTAL_SIXTEENTHS, RefineOnOriginal } from '../core/constants';
 
 function getPitchRange(noteSequences: Note[][]) {
   let minPitch = MAX_PITCH;
@@ -54,6 +56,31 @@ function getPositionRange(noteSequences: Note[][]) {
   });
 
   return [minPosition, maxPosition];
+}
+
+const refineSliderMarks = [0, 1, 2, 3, 4].map(value => {
+  return {
+    value: value,
+    label: refineSliderTextOptions(value)
+  };
+});
+
+function refineSliderTextOptions(value: number) {
+  if (value === RefineOnOriginal.VerySimilarNotes) {
+    return "Very Similar";
+  }
+  else if (value === RefineOnOriginal.SimilarNotes) {
+    return "Similar";
+  }
+  else if (value === RefineOnOriginal.NoRefinement) {
+    return "No Refinement";
+  }
+  else if (value === RefineOnOriginal.DifferentNotes) {
+    return "Different";
+  }
+  else if (value === RefineOnOriginal.VeryDifferentNotes) {
+    return "Very Different";
+  }
 }
 
 export interface SequencesProps {}
@@ -119,6 +146,11 @@ export class Sequences extends React.Component<SequencesProps> {
       width: layout.sequencesWidth,
     });
 
+    const refineOnOriginalStyle = style({
+      height: 75,
+    });
+
+
     const showCandidateSequences = sequences.candidateSequences.length > 0;
 
     return (
@@ -150,6 +182,23 @@ export class Sequences extends React.Component<SequencesProps> {
           </Select>
           <FormHelperText style={{ width: 100 }}>n sequences</FormHelperText>
         </FormControl>
+        <Typography id="discrete-slider" gutterBottom>
+          Refine On Original
+        </Typography>
+        <div className={refineOnOriginalStyle}>
+          <Slider
+            orientation="vertical"
+            defaultValue={RefineOnOriginal.NoRefinement}
+            valueLabelFormat={refineSliderTextOptions}
+            getAriaValueText={refineSliderTextOptions}
+            aria-labelledby="discrete-slider-restrict"
+            step={1}
+            valueLabelDisplay="auto"
+            marks={refineSliderMarks}
+            min={0}
+            max={4}
+          />
+        </div>
         {showCandidateSequences && this.renderSequences()}
       </div>
     );

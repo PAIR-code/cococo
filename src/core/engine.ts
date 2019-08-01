@@ -30,6 +30,7 @@ import {
   SOUNDFONT_URL,
   MODEL_URL,
   TOTAL_SIXTEENTHS,
+  RefineOnOriginal
 } from './constants';
 
 interface InfillMask {
@@ -207,6 +208,27 @@ class Engine {
     }
 
     const nHarmonizations = sequences.nSequencesToGenerate;
+    let discourageNotes; 
+    let nudgeFactor;
+    if (sequences.refineOnOriginalStrategy === RefineOnOriginal.SimilarNotes) {
+      discourageNotes = false;
+        // 1 translates to a 1:3 ratio
+      nudgeFactor = 1;
+    }
+    else if (sequences.refineOnOriginalStrategy === RefineOnOriginal.VerySimilarNotes) {
+      discourageNotes = false;
+      // 2 translates to a 1:12 ratio
+      nudgeFactor = 2
+    }
+    else if (sequences.refineOnOriginalStrategy === RefineOnOriginal.DifferentNotes) {
+      discourageNotes = true;
+      nudgeFactor = 1;
+    }
+    else if (sequences.refineOnOriginalStrategy === RefineOnOriginal.VeryDifferentNotes) {
+      discourageNotes = true;
+      nudgeFactor = 2;
+    }
+
     const outputSequences: NoteSequence[] = [];
     for (let i = 0; i < nHarmonizations; i++) {
       const inputNotes = [...editor.allNotes];
@@ -215,9 +237,8 @@ class Engine {
       const results = await this.model.infill(sequence, {
         temperature: 0.99,
         infillMask,
-        discourageNotes: true,
-        // 1 translates to a 1:3 ratio, 2 translates to a 1:12 ratio
-        nudgeFactor: 2
+        discourageNotes,
+        nudgeFactor,
       });
 
       const outputSequence = fromMagentaSequence(

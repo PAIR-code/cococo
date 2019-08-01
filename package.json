@@ -47,7 +47,7 @@
     "webpack-merge": "^4.2.1"
   },
   "dependencies": {
-    "@magenta/music": "^1.8.0",
+    "@magenta/music": "file:.yalc/@magenta/music",
     "@material-ui/core": "^4.0.0",
     "@material-ui/icons": "^4.0.0",
     "@material-ui/lab": "^4.0.0-alpha.13",
