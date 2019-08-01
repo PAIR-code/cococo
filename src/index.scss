@@ -20,4 +20,6 @@ body {
 
 .mask-lane-label {
   font-family: Arial, Helvetica, sans-serif;
+  cursor: pointer;
+  user-select: none;
 }

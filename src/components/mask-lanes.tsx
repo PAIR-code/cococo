@@ -18,7 +18,7 @@ import * as _ from 'lodash';
 import { observer } from 'mobx-react';
 
 import { editor, interactions } from '../core';
-import { VOICE_COLORS } from '../core/theme';
+import { VOICE_COLORS, MUTED_COLOR } from '../core/theme';
 
 import { Group } from './group';
 
@@ -38,18 +38,26 @@ export class MaskLanes extends React.Component<Props> {
     return _.range(4).map(voiceIndex => {
       const laneHeight = height / 4;
       const y = voiceIndex * laneHeight;
+      const isMuted = editor.isVoiceMuted(voiceIndex);
+      const color = isMuted ? MUTED_COLOR : VOICE_COLORS[voiceIndex];
       return (
-        <text
-          className="mask-lane-label"
+        <g
           key={`label_${voiceIndex}`}
-          x={4}
-          y={y + 14}
-          height={laneHeight}
-          width={labelWidth}
-          fill={VOICE_COLORS[voiceIndex]}
+          className="mask-lane-label"
+          onClick={(e: React.MouseEvent<SVGGElement>) => {
+            editor.toggleVoiceMute(voiceIndex);
+          }}
         >
-          {VOICE_INITIALS[voiceIndex]}
-        </text>
+          <text
+            x={4}
+            y={y + 14}
+            height={laneHeight}
+            width={labelWidth}
+            fill={color}
+          >
+            {VOICE_INITIALS[voiceIndex]}
+          </text>
+        </g>
       );
     });
   }
@@ -60,6 +68,9 @@ export class MaskLanes extends React.Component<Props> {
 
     return _.range(4).map(voiceIndex => {
       const y = voiceIndex * laneHeight;
+      const isMuted = editor.isVoiceMuted(voiceIndex);
+      const color = isMuted ? MUTED_COLOR : VOICE_COLORS[voiceIndex];
+
       return (
         <rect
           key={`lane_${voiceIndex}`}
@@ -67,7 +78,7 @@ export class MaskLanes extends React.Component<Props> {
           y={y}
           height={laneHeight}
           width={width}
-          fill={VOICE_COLORS[voiceIndex]}
+          fill={color}
           onMouseDown={interactions.handleMaskLaneMouseDown(voiceIndex)}
         />
       );

@@ -44,3 +44,4 @@ export const VOICE_COLORS = [
   COLOR_TENOR,
   COLOR_BASS,
 ];
+export const MUTED_COLOR = '#aaa';

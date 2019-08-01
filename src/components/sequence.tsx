@@ -18,9 +18,10 @@ import { observer } from 'mobx-react';
 import { style } from 'typestyle';
 
 import { layout, Note } from '../core';
-import { VOICE_COLORS, COLOR_SELECTED } from '../core/theme';
+import { MUTED_COLOR, VOICE_COLORS, COLOR_SELECTED } from '../core/theme';
 
 import { Group } from './group';
+import { editor } from '../core';
 
 export interface SequenceProps {
   notes: Note[];
@@ -56,6 +57,8 @@ export class Sequence extends React.Component<SequenceProps> {
           const x = (note.position - minPosition) * sixteenthWidth;
           const y = height - (note.pitch - minPitch) * pitchHeight;
           const offsetY = y;
+          const isMuted = editor.isVoiceMuted(note.voice);
+          const color = isMuted ? MUTED_COLOR : VOICE_COLORS[note.voice];
           return (
             <rect
               key={note.id}
@@ -63,7 +66,7 @@ export class Sequence extends React.Component<SequenceProps> {
               y={offsetY}
               height={pitchHeight}
               width={sixteenthWidth * note.duration}
-              fill={VOICE_COLORS[note.voice]}
+              fill={color}
             />
           );
         })}

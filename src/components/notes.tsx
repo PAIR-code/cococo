@@ -38,7 +38,9 @@ export class Notes extends React.Component<NotesProps> {
     const x = note.position * sixteenthWidth;
     const noteWidth = note.duration * sixteenthWidth;
 
-    return { x, y, height: noteHeight, width: noteWidth };
+    const isMuted = editor.isVoiceMuted(note.voice);
+
+    return { x, y, height: noteHeight, width: noteWidth, isMuted };
   }
 
   render() {
