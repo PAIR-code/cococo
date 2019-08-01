@@ -315,25 +315,28 @@ class Interactions {
   private maskLaneDragStartX = 0;
   private maskLaneDragX = 0;
   private maskLaneDragStartClientX = 0;
+  private hasMaskDragMoved = false;
 
   handleMaskLaneMouseDown = voiceIndex => (
     e: React.MouseEvent<SVGRectElement>
   ) => {
     e.preventDefault();
-    const target = e.target as SVGRectElement;
-    const dim = target.getBoundingClientRect();
+    const editorGrid = document.getElementById('editor-grid')!;
+    const dim = editorGrid.getBoundingClientRect() as DOMRect;
+
     this.maskLaneDragStartX = e.clientX - dim.left;
     this.maskLaneDragX = e.clientX - dim.left;
     this.maskLaneDragStartClientX = e.clientX;
-
-    this.isMaskToolDragging = true;
+    this.hasMaskDragMoved = false;
 
     const mouseMove = (e: MouseEvent) => {
       this.maskLaneDragX =
         e.clientX - this.maskLaneDragStartClientX + this.maskLaneDragStartX;
-    };
+      const deltaX = this.maskLaneDragStartX - this.maskLaneDragX;
+      if (deltaX !== 0) {
+        this.hasMaskDragMoved = true;
+      }
 
-    const mouseUp = () => {
       let aX = this.maskLaneDragStartX;
       const bX = this.maskLaneDragX;
       const startX = aX <= bX ? aX : bX;
@@ -348,7 +351,10 @@ class Interactions {
         positionRange[0],
         positionRange[1]
       );
+    };
 
+    const mouseUp = () => {
+      setTimeout(() => (this.hasMaskDragMoved = false));
       document.removeEventListener('mousemove', mouseMove);
       document.removeEventListener('mouseup', mouseUp);
     };
@@ -357,12 +363,10 @@ class Interactions {
     document.addEventListener('mouseup', mouseUp);
   };
 
-  handleMaskLaneClick = (voiceIndex: number) => () => {
-    editor.addMask(voiceIndex, _.range(0, editor.totalSixteenths));
-  };
-
   handleMaskRectClick = (voiceIndex: number, maskIndices: number[]) => () => {
-    editor.removeMask(voiceIndex, maskIndices);
+    if (!this.hasMaskDragMoved) {
+      editor.removeMask(voiceIndex, maskIndices);
+    }
   };
 }
 
