@@ -208,6 +208,7 @@ class Engine {
     }
 
     const nHarmonizations = sequences.nSequencesToGenerate;
+    const temperature = sequences.temperature;
     let discourageNotes; 
     let nudgeFactor;
     if (sequences.refineOnOriginalStrategy === RefineOnOriginal.SimilarNotes) {
@@ -229,13 +230,14 @@ class Engine {
       nudgeFactor = 2;
     }
 
+    console.log(`generating...\n temperature = ${temperature} | discourageNotes = ${discourageNotes} | nudgeFactor = ${nudgeFactor}`);
     const outputSequences: NoteSequence[] = [];
     for (let i = 0; i < nHarmonizations; i++) {
       const inputNotes = [...editor.allNotes];
       const sequence = this.getMagentaNoteSequence(inputNotes);
       const infillMask = this.getInfillMask();
       const results = await this.model.infill(sequence, {
-        temperature: 0.99,
+        temperature,
         infillMask,
         discourageNotes,
         nudgeFactor,

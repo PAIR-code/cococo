@@ -87,6 +87,7 @@ export interface SequencesProps {}
 
 @observer
 export class Sequences extends React.Component<SequencesProps> {
+
   renderSequences() {
     const noteSequences = sequences.candidateSequences;
 
@@ -147,7 +148,7 @@ export class Sequences extends React.Component<SequencesProps> {
     });
 
     const refineOnOriginalStyle = style({
-      height: 75,
+      height: 100,
     });
 
 
@@ -182,16 +183,42 @@ export class Sequences extends React.Component<SequencesProps> {
           </Select>
           <FormHelperText style={{ width: 100 }}>n sequences</FormHelperText>
         </FormControl>
-        <Typography id="discrete-slider" gutterBottom>
+        <Typography id="temperature-slider" gutterBottom>
+          Temperature
+        </Typography>
+        <div>
+          <Slider
+            value={sequences.temperature}
+            onChange={(e: any, newValue: number | number[]) => {
+              if (newValue !== null) {
+                sequences.temperature = Number(newValue);
+              }
+            }}
+            // valueLabelFormat={refineSliderTextOptions}
+            // getAriaValueText={refineSliderTextOptions}
+            aria-labelledby="temperature-slider-restrict"
+            step={0.01}
+            valueLabelDisplay="auto"
+            // marks={refineSliderMarks}
+            min={0.01}
+            max={0.99}
+          />
+        </div>
+        <Typography id="refine-on-original-slider" gutterBottom>
           Refine On Original
         </Typography>
         <div className={refineOnOriginalStyle}>
           <Slider
             orientation="vertical"
-            defaultValue={RefineOnOriginal.NoRefinement}
+            value={sequences.refineOnOriginalStrategy}
+            onChange={(e: any, newValue: number | number[]) => {
+              if (newValue!== null) {
+                sequences.refineOnOriginalStrategy = Number(newValue);
+              }
+            }}
             valueLabelFormat={refineSliderTextOptions}
             getAriaValueText={refineSliderTextOptions}
-            aria-labelledby="discrete-slider-restrict"
+            aria-labelledby="refine-on-original-slider-restrict"
             step={1}
             valueLabelDisplay="auto"
             marks={refineSliderMarks}
