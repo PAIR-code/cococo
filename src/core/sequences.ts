@@ -14,8 +14,9 @@ limitations under the License.
 ==============================================================================*/
 
 import { observable } from 'mobx';
-import { Note, NoteSequence } from './note';
+import { NoteSequence } from './note';
 import editor from './editor';
+import engine from './engine';
 
 export class Sequences {
   @observable nSequencesToGenerate = 2;
@@ -36,6 +37,12 @@ export class Sequences {
   selectCandidateSequence = (index: number | null) => {
     this.selectedCandidateSequenceIndex = index;
     editor.setTempNotes(this.candidateSequences[index]);
+
+    // Try restarting the player with the new sequence added.
+    if (engine.isPlaying) {
+      engine.stop();
+      engine.start();
+    }
   };
 
   commitSelectedCandidateSequence = () => {
