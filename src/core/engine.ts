@@ -263,7 +263,7 @@ class Engine {
     }
 
     // Now, set the first candidate sequence to be the original, masked sequence
-    const maskedSequence = editor.getMaskedSequence();
+    const maskedSequence = editor.getMaskedSequence;
     editor.removeCandidateNoteSequence(maskedSequence);
     sequences.addCandidateSequences([maskedSequence, ...outputSequences]);
 
