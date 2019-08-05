@@ -44,6 +44,9 @@ export const DEFAULT_NOTES = [
   [76, 8],
 ];
 
+export const DEFAULT_EDITOR_WIDTH = 1200;
+export const DEFAULT_SEQUENCES_WIDTH = 200;
+
 export const PIANO_ROLL_WIDTH = 24;
 export const NOTE_HEIGHT = 12;
 export const MASK_LANE_HEIGHT = 20;

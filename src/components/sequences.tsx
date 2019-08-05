@@ -116,7 +116,6 @@ export class Sequences extends React.Component<SequencesProps> {
       marginTop: 20,
       display: 'flex',
       flexDirection: 'column',
-      width: layout.sequencesWidth,
     });
 
     const showCandidateSequences = sequences.candidateSequences.length > 0;
