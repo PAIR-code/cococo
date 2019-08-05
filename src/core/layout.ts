@@ -17,12 +17,30 @@ import { computed, observable } from 'mobx';
 
 import { editor } from './index';
 import {
+  DEFAULT_EDITOR_WIDTH,
+  DEFAULT_SEQUENCES_WIDTH,
   PIANO_ROLL_WIDTH,
   MASK_LANE_HEIGHT,
   TIMELINE_HEIGHT,
 } from './constants';
 
 class Layout {
+  constructor() {
+    window.onresize = () => this.handleResize();
+    this.handleResize();
+  }
+
+  handleResize() {
+    const { innerWidth, innerHeight } = window;
+    const defaultAppWidth = DEFAULT_EDITOR_WIDTH + DEFAULT_SEQUENCES_WIDTH;
+    const appWidth = Math.min(innerWidth, defaultAppWidth);
+
+    this.sequencesWidth = DEFAULT_SEQUENCES_WIDTH;
+    this.editorWidth = appWidth - this.sequencesWidth;
+
+    console.log({ innerWidth, appWidth, sequencesWidth: this.sequencesWidth });
+  }
+
   @observable editorWidth = 1200;
   @observable sequencesWidth = 200;
   @observable sequenceHeight = 80;
