@@ -17,9 +17,12 @@ import { observable } from 'mobx';
 import { NoteSequence } from './note';
 import editor from './editor';
 import engine from './engine';
+import { RefineOnOriginal } from './constants';
 
 export class Sequences {
   @observable nSequencesToGenerate = 2;
+  @observable temperature = 0.99;
+  @observable refineOnOriginalStrategy = RefineOnOriginal.NoRefinement;
   @observable generatedSequences: NoteSequence[][] = [];
 
   @observable candidateSequences: NoteSequence[] = [];

@@ -51,3 +51,11 @@ export const PIANO_ROLL_WIDTH = 24;
 export const NOTE_HEIGHT = 12;
 export const MASK_LANE_HEIGHT = 20;
 export const TIMELINE_HEIGHT = 20;
+
+export enum RefineOnOriginal {
+  VerySimilarNotes = 0,
+  SimilarNotes,
+  NoRefinement,
+  DifferentNotes,
+  VeryDifferentNotes
+}
