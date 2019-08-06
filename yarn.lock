@@ -870,7 +870,7 @@
     "@types/yargs" "^12.0.9"
 
 "@magenta/music@file:.yalc/@magenta/music":
-  version "1.9.0-65030a8d"
+  version "1.9.0-598675d5"
   dependencies:
     "@tensorflow/tfjs" "^1.1.2"
     fft.js "^4.0.3"
