@@ -9,10 +9,11 @@
     "lib": ["es5", "es6", "dom"],
     "experimentalDecorators": true,
     "downlevelIteration": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "skipLibCheck": true
   },
   "include": ["./src/**/*"],
-  "exclude": ["node_modules/"],
+  "exclude": ["dist", "node_modules"],
   "awesomeTypescriptLoaderOptions": {
     "reportFiles": ["./src/**/*"]
   }
