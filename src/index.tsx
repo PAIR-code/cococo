@@ -13,11 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+import { AppContainer, hot } from 'react-hot-loader';
 import * as React from 'react';
 import { render } from 'react-dom';
-import { AppContainer } from 'react-hot-loader';
 import App from './components/app';
-import './index.scss';
+import './index.css';
 
 const rootEl = document.getElementById('root');
 
@@ -29,10 +29,8 @@ render(
 );
 
 // Hot Module Replacement API
-declare let module: { hot: any };
-
-if (module.hot) {
-  module.hot.accept('./components/app', () => {
+if ((module as any).hot) {
+  (module as any).hot.accept('./components/app', () => {
     const NewApp = require('./components/app').default;
 
     render(
