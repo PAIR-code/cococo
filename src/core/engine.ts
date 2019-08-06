@@ -21,6 +21,7 @@ import sequences from './sequences';
 import { range } from 'lodash';
 import * as Tone from 'tone';
 import { trim, fromMagentaSequence } from './magenta-utils';
+import { Coconet } from './coconet';
 
 import {
   DEFAULT_BPM,
@@ -30,7 +31,7 @@ import {
   SOUNDFONT_URL,
   MODEL_URL,
   TOTAL_SIXTEENTHS,
-  RefineOnOriginal
+  RefineOnOriginal,
 } from './constants';
 
 interface InfillMask {
@@ -82,7 +83,7 @@ class Engine {
     undefined,
     this.playerCallbackObject
   );
-  model = new mm.Coconet(MODEL_URL);
+  model = new Coconet(MODEL_URL);
 
   @observable bpm = DEFAULT_BPM;
 
@@ -209,28 +210,33 @@ class Engine {
 
     const nHarmonizations = sequences.nSequencesToGenerate;
     const temperature = sequences.temperature;
-    let discourageNotes; 
+    let discourageNotes;
     let nudgeFactor;
     if (sequences.refineOnOriginalStrategy === RefineOnOriginal.SimilarNotes) {
       discourageNotes = false;
-        // 1 translates to a 1:3 ratio
+      // 1 translates to a 1:3 ratio
       nudgeFactor = 1;
-    }
-    else if (sequences.refineOnOriginalStrategy === RefineOnOriginal.VerySimilarNotes) {
+    } else if (
+      sequences.refineOnOriginalStrategy === RefineOnOriginal.VerySimilarNotes
+    ) {
       discourageNotes = false;
       // 2 translates to a 1:12 ratio
-      nudgeFactor = 2
-    }
-    else if (sequences.refineOnOriginalStrategy === RefineOnOriginal.DifferentNotes) {
+      nudgeFactor = 2;
+    } else if (
+      sequences.refineOnOriginalStrategy === RefineOnOriginal.DifferentNotes
+    ) {
       discourageNotes = true;
       nudgeFactor = 1;
-    }
-    else if (sequences.refineOnOriginalStrategy === RefineOnOriginal.VeryDifferentNotes) {
+    } else if (
+      sequences.refineOnOriginalStrategy === RefineOnOriginal.VeryDifferentNotes
+    ) {
       discourageNotes = true;
       nudgeFactor = 2;
     }
 
-    console.log(`generating...\n temperature = ${temperature} | discourageNotes = ${discourageNotes} | nudgeFactor = ${nudgeFactor}`);
+    console.log(
+      `generating...\n temperature = ${temperature} | discourageNotes = ${discourageNotes} | nudgeFactor = ${nudgeFactor}`
+    );
     const outputSequences: NoteSequence[] = [];
     for (let i = 0; i < nHarmonizations; i++) {
       const inputNotes = [...editor.allNotes];
