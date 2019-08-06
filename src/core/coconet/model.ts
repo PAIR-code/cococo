@@ -27,9 +27,12 @@ import * as sequences from './magenta/sequences';
 import {
   IS_IOS,
   NUM_PITCHES,
+  MIN_PITCH,
   pianorollToSequence,
   sequenceToPianoroll,
 } from './coconet_utils';
+
+import { makeNoteScaleForKey } from '../tonal-utils';
 
 /**
  * An interface for providing an infilling mask.
@@ -39,6 +42,18 @@ import {
 interface InfillMask {
   step: number;
   voice: number;
+}
+
+/**
+ * An interface for providing the KeyScaleName to condition generation on.
+ * @param key The letter of the musical key e.g., `C` or `Db`
+ * @param mode either `major`, `minor`, `harmonic minor`
+ * @param constrainToKey whether to constrain or nudge towards the keyScale
+ */
+interface KeyScaleName {
+  key: string;
+  mode: string;
+  constrainToKey: boolean;
 }
 
 /**
@@ -59,6 +74,11 @@ interface InfillMask {
  * towards sampling more of the notes. If not provided, sampling remains same.
  * @param nudgeFactor (Optional) multiplier for how much to nudge notes, when
  * discourageNotes is set to true or false
+ * @param keyScaleName (Optional) generation can be conditioned on the keys of a
+ * major, minor, or harmonic minor scale. This parameter is an object with
+ * a `key` ('C') and a `mode` ('major', 'minor', 'harmonic minor')
+ * to indicate the key we'd like to condition on and `constrainToKey` to determine
+ * if the conditioning will be constrained or encouraged towards the keyScale.
  */
 interface CoconetConfig {
   temperature?: number;
@@ -66,6 +86,7 @@ interface CoconetConfig {
   infillMask?: InfillMask[];
   discourageNotes?: boolean;
   nudgeFactor?: number;
+  keyScaleName?: KeyScaleName;
 }
 
 interface LayerSpec {
@@ -566,6 +587,7 @@ class Coconet {
     let outerMasks;
     let discourageNotes;
     let nudgeFactor;
+    let keyScaleName;
     let softPriors;
 
     if (config) {
@@ -583,18 +605,21 @@ class Coconet {
           : discourageNotes;
       nudgeFactor =
         config.nudgeFactor !== undefined ? config.nudgeFactor : nudgeFactor;
-      softPriors = this.priorOverOriginalNotes(
+      keyScaleName = config.keyScaleName || keyScaleName;
+      softPriors = this.computeSoftPrior(
         pianoroll,
         discourageNotes,
-        nudgeFactor
+        nudgeFactor,
+        keyScaleName
       );
     } else {
       outerMasks = this.getCompletionMask(pianoroll);
       numIterations = await this.getNumIterationsFromOuterMasks(outerMasks);
-      softPriors = this.priorOverOriginalNotes(
+      softPriors = this.computeSoftPrior(
         pianoroll,
         discourageNotes,
-        nudgeFactor
+        nudgeFactor,
+        keyScaleName
       );
     }
 
@@ -682,6 +707,23 @@ class Coconet {
     return defaultNumIterations;
   }
 
+  private computeSoftPrior(
+    pianorolls: tf.Tensor4D,
+    discourageNotes: boolean,
+    nudgeFactor: number,
+    keyScaleName: KeyScaleName
+  ): tf.Tensor4D {
+    return tf.tidy(() => {
+      const originalNotePrior = this.priorOverOriginalNotes(
+        pianorolls,
+        discourageNotes,
+        nudgeFactor
+      );
+      const scalePrior = this.getScalePrior(pianorolls, keyScaleName);
+      return tf.mulStrict(originalNotePrior, scalePrior);
+    });
+  }
+
   /**
    * Idea: we don't care about the mask area of notes that will be
    * nudged by the soft prior since the masking code already handles
@@ -721,6 +763,46 @@ class Coconet {
           tf.scalar(nudgeFactor),
           tf.scalar(0.5).add(pianorolls)
         ) as tf.Tensor4D);
+  }
+
+  private getScalePrior(
+    pianorolls: tf.Tensor4D,
+    keyScaleName: KeyScaleName
+  ): tf.Tensor4D {
+    if (keyScaleName === undefined) {
+      return tf.onesLike(pianorolls);
+    }
+    const [nBatch, nQSteps, nPitches, nVoices] = pianorolls.shape;
+    const keyScale = makeNoteScaleForKey(keyScaleName.key, keyScaleName.mode);
+    // Create a buffer to store the input.
+    const pitches = tf.buffer([nPitches]);
+    if (keyScaleName.constrainToKey) {
+      for (let i = 0; i < keyScale.length; i++) {
+        pitches.set(1, keyScale[i].pitch - MIN_PITCH);
+      }
+    } else {
+      const keyPitchSet = new Set<number>(
+        keyScale.map(scaleValue => scaleValue.pitch)
+      );
+      for (let i = 0; i < nPitches; i++) {
+        if (keyPitchSet.has(i + MIN_PITCH)) {
+          pitches.set(1.5, i);
+        } else {
+          pitches.set(0.5, i);
+        }
+      }
+    }
+    // Expand that buffer to the right shape.
+    return tf.tidy(() => {
+      return pitches
+        .toTensor()
+        .expandDims(0)
+        .tile([nQSteps, 1])
+        .expandDims(2)
+        .tile([1, 1, nVoices])
+        .expandDims(0)
+        .tile([nBatch, 1, 1, 1]) as tf.Tensor4D;
+    });
   }
 
   /*

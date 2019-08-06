@@ -219,6 +219,11 @@ class Engine {
     const temperature = this.computeTemperature(
       sequences.conventionalSurprising
     );
+    const keyScaleName = {
+      key: editor.key,
+      mode: editor.mode,
+      constrainToKey: editor.constrainToKey,
+    };
     let discourageNotes;
     let nudgeFactor;
     if (sequences.refineOnOriginalStrategy === RefineOnOriginal.SimilarNotes) {
@@ -243,9 +248,6 @@ class Engine {
       nudgeFactor = 2;
     }
 
-    console.log(
-      `generating...\n temperature = ${temperature} | discourageNotes = ${discourageNotes} | nudgeFactor = ${nudgeFactor}`
-    );
     const outputSequences: NoteSequence[] = [];
     for (let i = 0; i < nHarmonizations; i++) {
       const inputNotes = [...editor.allNotes];
@@ -256,6 +258,7 @@ class Engine {
         infillMask,
         discourageNotes,
         nudgeFactor,
+        keyScaleName,
       });
 
       const outputSequence = fromMagentaSequence(
