@@ -37,8 +37,6 @@ class Layout {
 
     this.sequencesWidth = DEFAULT_SEQUENCES_WIDTH;
     this.editorWidth = appWidth - this.sequencesWidth;
-
-    console.log({ innerWidth, appWidth, sequencesWidth: this.sequencesWidth });
   }
 
   @observable editorWidth = 1200;

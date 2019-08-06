@@ -1,9 +1,0 @@
-{
-  "version": "v1",
-  "packages": {
-    "@magenta/music": {
-      "signature": "65030a8d1c3335005da0d3b90103f856",
-      "file": true
-    }
-  }
-}
