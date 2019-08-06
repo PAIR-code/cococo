@@ -65,12 +65,24 @@ const horizontalSliderStyle = style({
 
 const surprisingSliderMarks = [
   {
-    value: 0.01,
-    label: "Ordinary"
+    value: 0.125
   },
   {
-    value: 0.99,
-    label: "Surprising"
+    value: 0.25,
+    label: "Conservative"
+  },
+  {
+    value: 0.5
+  },
+  {
+    value: 1
+  },
+  {
+    value: 1.5
+  },
+  {
+    value: 2,
+    label: "Diverse"
   }
 ];
 
@@ -226,11 +238,12 @@ export class Sequences extends React.Component<SequencesProps> {
               }
             }}
             aria-labelledby="temperature-slider-restrict"
-            step={0.01}
+            // step={0.01}
+            step={null}
             valueLabelDisplay="auto"
             marks={surprisingSliderMarks}
             min={0.01}
-            max={0.99}
+            max={2}
           />
         </div>
         {showRefineOnOriginal && this.renderRefineOnOriginal()}

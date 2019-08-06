@@ -34,10 +34,12 @@ export const COLOR_PRIMARY = primary[500];
 export const COLOR_PLAYING = secondary[500];
 export const COLOR_SELECTED = secondary[500];
 
-export const COLOR_SOPRANO = COLOR_PRIMARY;
-export const COLOR_ALTO = primary[700];
-export const COLOR_TENOR = primary[800];
-export const COLOR_BASS = primary[900];
+// colorblind palette found using
+// http://colorbrewer2.org/#type=sequential&scheme=YlGnBu&n=5
+export const COLOR_SOPRANO = "#a1dab4";
+export const COLOR_ALTO = "#41b6c4";
+export const COLOR_TENOR = "#2c7fb8";
+export const COLOR_BASS = "#253494";
 export const VOICE_COLORS = [
   COLOR_SOPRANO,
   COLOR_ALTO,
