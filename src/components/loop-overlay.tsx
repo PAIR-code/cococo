@@ -19,7 +19,6 @@ import { observer } from 'mobx-react';
 import { engine, editor } from '../core';
 
 import { Group } from './group';
-import { COLOR_PLAYING } from '../core/theme';
 
 export interface Props {
   width: number;

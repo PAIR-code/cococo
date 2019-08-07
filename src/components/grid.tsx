@@ -20,6 +20,7 @@ import { range } from 'lodash';
 import { editor, interactions } from '../core';
 import { DIVISIONS } from '../core/constants';
 import { ScaleValue } from '../core/editor';
+import { COLOR_PRIMARY, COLOR_SECONDARY } from '../core/theme';
 
 import { Group } from './group';
 
@@ -51,7 +52,7 @@ export class Grid extends React.Component<Props> {
     );
   }
 
-  renderNoteGrid(item: ScaleValue, scaleIndex: number) {
+  renderNoteGrid(scaleValue: ScaleValue, scaleIndex: number) {
     const divisions = range(editor.nDivisions);
     const { width, noteHeight } = this.props;
     const y = noteHeight * scaleIndex;
@@ -62,8 +63,15 @@ export class Grid extends React.Component<Props> {
         {divisions.map(divisionIndex => {
           const x = (this.props.width / editor.nDivisions) * divisionIndex;
 
-          const isAccidental = item.name.includes('b');
-          const fillColor = isAccidental ? '#EEE' : '#FFF';
+          const isInScale = editor.isPitchInScale(scaleValue.pitch);
+          const isRoot = editor.key === scaleValue.name;
+          const fillColor = isInScale
+            ? isRoot
+              ? COLOR_SECONDARY
+              : COLOR_PRIMARY
+            : '#fff';
+          const fillOpacity = isRoot ? 0.25 : 0.12;
+          const strokeColor = isInScale ? fillColor : '#ccc';
 
           return (
             <rect
@@ -72,13 +80,17 @@ export class Grid extends React.Component<Props> {
               y={0}
               width={gridWidth}
               height={noteHeight}
-              stroke="#CCC"
+              stroke={strokeColor}
+              opacity={fillOpacity}
               fill={fillColor}
               strokeWidth={1}
               onMouseDown={interactions.handleGridMouseDown(
                 scaleIndex,
                 divisionIndex
               )}
+              onMouseEnter={() => {
+                editor.setNoteHoverName(scaleValue);
+              }}
             />
           );
         })}

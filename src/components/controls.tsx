@@ -16,14 +16,19 @@ limitations under the License.
 import React from 'react';
 import { style } from 'typestyle';
 import Button from '@material-ui/core/Button';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogTitle from '@material-ui/core/DialogTitle';
 import FormControl from '@material-ui/core/FormControl';
 import FormHelperText from '@material-ui/core/FormHelperText';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
+import Switch from '@material-ui/core/Switch';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import {
-  MusicNote,
   PlayArrow,
   Stop,
   Delete,
@@ -37,9 +42,18 @@ import { observer } from 'mobx-react';
 import { engine, layout, editor, EditorTool, undo } from '../core';
 import * as theme from '../core/theme';
 import { Voice } from '../core/note';
+import { KEY_NAMES, MODE_NAMES } from '../core/constants';
+
+interface State {
+  keyDialogOpen: boolean;
+}
 
 @observer
-export class Controls extends React.Component<{}> {
+export class Controls extends React.Component<{}, State> {
+  state = {
+    keyDialogOpen: false,
+  };
+
   render() {
     const PADDING = 0;
     const width = layout.editorWidth;
@@ -175,13 +189,86 @@ export class Controls extends React.Component<{}> {
         </div>
         <div>
           <Button
-            disabled={!canClear}
+            onClick={() => this.setState({ keyDialogOpen: true })}
             variant="outlined"
             color="primary"
-            onClick={() => editor.clearAllNotes()}
           >
-            Clear
+            {editor.key} {editor.mode}
           </Button>
+          <Dialog
+            disableBackdropClick
+            disableEscapeKeyDown
+            open={this.state.keyDialogOpen}
+            onClose={() => this.setState({ keyDialogOpen: false })}
+          >
+            <DialogTitle>Edit Key</DialogTitle>
+            <DialogContent>
+              <form>
+                <FormControl>
+                  <Select
+                    value={editor.key}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      const value = e.target.value;
+                      if (value) editor.key = value;
+                    }}
+                    autoWidth
+                  >
+                    {KEY_NAMES.map(key => {
+                      return (
+                        <MenuItem key={key} value={key}>
+                          {key}
+                        </MenuItem>
+                      );
+                    })}
+                  </Select>
+                  <FormHelperText style={{ width: 60 }}>Key</FormHelperText>
+                </FormControl>
+                <Spacer width={10} />
+                <FormControl>
+                  <Select
+                    value={editor.mode}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      const value = e.target.value;
+                      if (value) editor.mode = value;
+                    }}
+                    autoWidth
+                  >
+                    {MODE_NAMES.map(mode => {
+                      return (
+                        <MenuItem key={mode} value={mode}>
+                          {mode}
+                        </MenuItem>
+                      );
+                    })}
+                  </Select>
+                  <FormHelperText style={{ width: 100 }}>Mode</FormHelperText>
+                </FormControl>
+              </form>
+              <div>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={editor.constrainToKey}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        (editor.constrainToKey = e.target.checked)
+                      }
+                      value={editor.constrainToKey}
+                      color="primary"
+                    />
+                  }
+                  label="Constrain notes to key"
+                />
+              </div>
+            </DialogContent>
+            <DialogActions>
+              <Button
+                onClick={() => this.setState({ keyDialogOpen: false })}
+                color="primary"
+              >
+                Ok
+              </Button>
+            </DialogActions>
+          </Dialog>
         </div>
       </div>
     );

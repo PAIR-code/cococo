@@ -19,12 +19,18 @@ export interface GroupProps {
   x?: number;
   y?: number;
   children?: React.ReactNode;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
 export function Group(props: GroupProps) {
-  const { x, y, children } = props;
+  const { x, y, children, ...restProps } = props;
   const transform = `translate(${x},${y})`;
-  return <g transform={transform}>{children}</g>;
+  return (
+    <g transform={transform} {...restProps}>
+      {children}
+    </g>
+  );
 }
 
 Group.defaultProps = {
