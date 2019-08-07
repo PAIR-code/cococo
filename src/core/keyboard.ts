@@ -14,7 +14,9 @@ limitations under the License.
 ==============================================================================*/
 
 import engine from './engine';
+import editor, { EditorTool } from './editor';
 import undo from './undo';
+import { Voice } from './note';
 
 class KeyboardManager {
   constructor() {
@@ -33,6 +35,18 @@ class KeyboardManager {
   handleKeyPress = (e: KeyboardEvent) => {
     if (e.key === ' ') {
       engine.togglePlay();
+    } else if (e.key === 's') {
+      editor.selectedVoice = Voice.SOPRANO;
+      editor.selectedTool = EditorTool.DRAW; // selecting voices means only you want to draw
+    } else if (e.key === 'a') {
+      editor.selectedVoice = Voice.ALTO;
+      editor.selectedTool = EditorTool.DRAW; // selecting voices means only you want to draw
+    } else if (e.key === 't') {
+      editor.selectedVoice = Voice.TENOR;
+      editor.selectedTool = EditorTool.DRAW; // selecting voices means only you want to draw
+    } else if (e.key === 'b') {
+      editor.selectedVoice = Voice.BASS;
+      editor.selectedTool = EditorTool.DRAW; // selecting voices means only you want to draw
     }
   };
 }

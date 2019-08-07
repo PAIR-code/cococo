@@ -119,6 +119,8 @@ export class Controls extends React.Component<{}> {
                 const value = e.target.value;
                 if (value !== null) {
                   editor.selectedVoice = Number(value);
+                  // If user changes voices, user very likely wants to start editing
+                  editor.selectedTool = EditorTool.DRAW;
                 }
               }}
               autoWidth
@@ -152,6 +154,13 @@ export class Controls extends React.Component<{}> {
                 const value = e.target.value;
                 if (value !== null) {
                   editor.quantizeStep = Number(value);
+                  // If user changes step size
+                  // and they are in erase mode, user very likely wants to start editing
+                  if (editor.selectedTool === EditorTool.ERASE) {
+                    editor.selectedTool = EditorTool.DRAW;
+                  }
+                  // if they are in mask mode, they might want a more refined mask size
+                  // in which case don't change it automatically
                 }
               }}
               autoWidth
