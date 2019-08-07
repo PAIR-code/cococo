@@ -163,12 +163,18 @@ class Editor {
     });
   }
 
+  private getTempNoteByPitchPosition(pitch: number, position: number) {
+    return this.tempNotes.find(note => {
+      return note.pitch === pitch && note.position === position;
+    });
+  }
+
   setNotePlaying(pitch: number, position: number) {
     const note = this.getNoteByPitchPosition(pitch, position);
     if (note) this.setCurrentlyPlaying(note);
 
     // Also set temp notes playing
-    const tempNote = this.tempNotesMap.get(note.id);
+    const tempNote = this.getTempNoteByPitchPosition(pitch, position);
     if (tempNote) this.setCurrentlyPlaying(tempNote);
 
     // Clear all notes that are playing if the playhead has passed them
