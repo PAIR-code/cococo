@@ -60,6 +60,8 @@ export function makeNoteScaleForKey(key: string, mode: string): ScaleValue[] {
   return scale.filter(note => {
     const { pitch } = note;
     const { accidental, letter } = getNoteDetails(pitch);
-    return scaleNotes.has(`${letter}${accidental}`);
+    const name = `${letter}${accidental}`;
+    const alternate = tonal.Note.enharmonic(name);
+    return scaleNotes.has(name) || scaleNotes.has(alternate);
   });
 }
