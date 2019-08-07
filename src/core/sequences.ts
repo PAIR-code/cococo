@@ -21,7 +21,7 @@ import { RefineOnOriginal } from './constants';
 
 export class Sequences {
   @observable nSequencesToGenerate = 2;
-  @observable temperature = 0.99;
+  @observable conventionalSurprising = -1;
   @observable refineOnOriginalStrategy = RefineOnOriginal.NoRefinement;
   @observable generatedSequences: NoteSequence[][] = [];
 
