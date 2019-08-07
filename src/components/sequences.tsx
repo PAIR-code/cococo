@@ -28,7 +28,12 @@ import { MusicNote } from '@material-ui/icons';
 import { editor, engine, sequences, layout, Note } from '../core';
 
 import { Sequence } from './sequence';
-import { MAX_PITCH, MIN_PITCH, TOTAL_SIXTEENTHS, RefineOnOriginal } from '../core/constants';
+import {
+  MAX_PITCH,
+  MIN_PITCH,
+  TOTAL_SIXTEENTHS,
+  RefineOnOriginal,
+} from '../core/constants';
 
 function getPitchRange(noteSequences: Note[][]) {
   let minPitch = MAX_PITCH;
@@ -63,47 +68,47 @@ const horizontalSliderStyle = style({
   marginRight: 20,
 });
 
-const surprisingSliderMarks = [
+const conventionalSurprisingMarks = [
   {
-    value: 0.125
+    value: -3,
   },
   {
-    value: 0.25,
-    label: "Conservative"
+    value: -2.5,
+    label: 'conventional',
   },
   {
-    value: 0.5
+    value: -2,
   },
   {
-    value: 1
+    value: -1,
   },
   {
-    value: 1.5
+    value: 0,
   },
   {
-    value: 2,
-    label: "Diverse"
-  }
+    value: 0.5,
+  },
+  {
+    value: 1,
+    label: 'surprising',
+  },
 ];
 
 // limit, middle, end
 const refineSliderMarks = [0, 2, 4].map(value => {
   return {
     value: value,
-    label: refineSliderTextOptions(value)
+    label: refineSliderTextOptions(value),
   };
 });
 
-
 function refineSliderTextOptions(value: number) {
   if (value === RefineOnOriginal.VerySimilarNotes) {
-    return "Similar";
-  }
-  else if (value === RefineOnOriginal.NoRefinement) {
-    return "Independent";
-  }
-  else if (value === RefineOnOriginal.VeryDifferentNotes) {
-    return "Different";
+    return 'Similar';
+  } else if (value === RefineOnOriginal.NoRefinement) {
+    return 'Independent';
+  } else if (value === RefineOnOriginal.VeryDifferentNotes) {
+    return 'Different';
   }
 }
 
@@ -111,7 +116,6 @@ export interface SequencesProps {}
 
 @observer
 export class Sequences extends React.Component<SequencesProps> {
-
   renderSequences() {
     const noteSequences = sequences.candidateSequences;
 
@@ -170,7 +174,7 @@ export class Sequences extends React.Component<SequencesProps> {
           <Slider
             value={sequences.refineOnOriginalStrategy}
             onChange={(e: any, newValue: number | number[]) => {
-              if (newValue!== null) {
+              if (newValue !== null) {
                 sequences.refineOnOriginalStrategy = Number(newValue);
               }
             }}
@@ -231,19 +235,18 @@ export class Sequences extends React.Component<SequencesProps> {
         </FormControl>
         <div className={horizontalSliderStyle}>
           <Slider
-            value={sequences.temperature}
+            value={sequences.conventionalSurprising}
             onChange={(e: any, newValue: number | number[]) => {
               if (newValue !== null) {
-                sequences.temperature = Number(newValue);
+                sequences.conventionalSurprising = Number(newValue);
               }
             }}
             aria-labelledby="temperature-slider-restrict"
-            // step={0.01}
             step={null}
-            valueLabelDisplay="auto"
-            marks={surprisingSliderMarks}
-            min={0.01}
-            max={2}
+            valueLabelDisplay="off"
+            marks={conventionalSurprisingMarks}
+            min={-3}
+            max={1}
           />
         </div>
         {showRefineOnOriginal && this.renderRefineOnOriginal()}

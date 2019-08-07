@@ -198,6 +198,13 @@ class Engine {
     });
   }
 
+  computeTemperature(conventionalSurprising: number) {
+    // 0.5 = 1/2 = 2^(-1) is midpoint
+    // 0.125 = 1/8 = 2^(-3) is min
+    // 2 = 2^(1) is max
+    return 2 ** conventionalSurprising;
+  }
+
   async harmonize() {
     this.isWorking = true;
 
@@ -209,7 +216,9 @@ class Engine {
     }
 
     const nHarmonizations = sequences.nSequencesToGenerate;
-    const temperature = sequences.temperature;
+    const temperature = this.computeTemperature(
+      sequences.conventionalSurprising
+    );
     let discourageNotes;
     let nudgeFactor;
     if (sequences.refineOnOriginalStrategy === RefineOnOriginal.SimilarNotes) {
