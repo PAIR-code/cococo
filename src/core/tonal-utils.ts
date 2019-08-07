@@ -14,16 +14,17 @@ limitations under the License.
 ==============================================================================*/
 
 import * as tonal from 'tonal';
-import { BOTTOM_A } from './constants';
+import { BOTTOM_A, MIN_PITCH, MAX_PITCH } from './constants';
 import { range } from 'lodash';
+import { ScaleValue } from './editor';
 
 export function getNoteDetails(noteValue: number) {
   const noteText = tonal.Note.fromMidi(noteValue);
-  const name = noteText[0];
+  const letter = noteText[0];
   const accidental = noteText.length > 2 ? noteText[1] : '';
   const octave = Number(noteText[noteText.length - 1]);
 
-  return { name, accidental, octave };
+  return { letter, accidental, octave };
 }
 
 const RAW_NOTE_NAMES = 'ABCDEFG';
@@ -42,12 +43,23 @@ export function getNoteDetailsFromLine(lineDivision: number) {
   return { name, octave };
 }
 
-export function makeNoteScale(max = 81, min = 36) {
+export function makeNoteScale(max = MAX_PITCH, min = MIN_PITCH): ScaleValue[] {
   return range(max, min).map(pitch => {
-    const name = tonal.Note.fromMidi(pitch);
+    const { letter, accidental, octave } = getNoteDetails(pitch);
     return {
       pitch,
-      name,
+      name: `${letter}${accidental}`,
+      octave,
     };
+  });
+}
+
+export function makeNoteScaleForKey(key: string, mode: string): ScaleValue[] {
+  const scaleNotes = new Set<string>(tonal.Scale.notes(key, mode));
+  const scale = makeNoteScale(MIN_PITCH, MAX_PITCH);
+  return scale.filter(note => {
+    const { pitch } = note;
+    const { accidental, letter } = getNoteDetails(pitch);
+    return scaleNotes.has(`${letter}${accidental}`);
   });
 }

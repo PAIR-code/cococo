@@ -15,7 +15,7 @@ limitations under the License.
 
 import { computed, observable } from 'mobx';
 import { range } from 'lodash';
-import { makeNoteScale } from './tonal-utils';
+import { makeNoteScale, makeNoteScaleForKey } from './tonal-utils';
 import * as _ from 'lodash';
 
 import { Note, NoteSequence, Source, Voice } from './note';
@@ -27,7 +27,6 @@ import {
   MAX_PITCH,
   MIN_PITCH,
 } from './constants';
-import { MinMaxNorm } from '@tensorflow/tfjs-layers/dist/constraints';
 
 export const enum EditorTool {
   DRAW = 'DRAW',
@@ -38,6 +37,7 @@ export const enum EditorTool {
 export interface ScaleValue {
   pitch: number;
   name: string;
+  octave: number;
 }
 
 export class Mask {
@@ -81,8 +81,37 @@ class Editor {
   }
 
   @observable scale = makeNoteScale(MAX_PITCH, MIN_PITCH);
-  @observable activeNoteValue: number | null = null;
+  @observable key = 'C';
+  @observable mode = 'major';
+  @observable constrainToKey = true;
+  @observable noteHoverName = '';
 
+  setNoteHoverName(scaleValue: ScaleValue | null) {
+    if (scaleValue === null) {
+      this.noteHoverName = '';
+    } else {
+      const { name, octave } = scaleValue;
+      this.noteHoverName = `${name}${octave}`;
+    }
+  }
+
+  @computed get scaleMax() {
+    return this.scale[0].pitch;
+  }
+
+  @computed get keyScale() {
+    return makeNoteScaleForKey(this.key, this.mode);
+  }
+
+  @computed get keyPitchSet() {
+    return new Set<number>(this.keyScale.map(scaleValue => scaleValue.pitch));
+  }
+
+  isPitchInScale(pitch: number) {
+    return this.keyPitchSet.has(pitch);
+  }
+
+  @observable activeNoteValue: number | null = null;
   @observable totalSixteenths = TOTAL_SIXTEENTHS;
   @observable quantizeStep = 2;
 
@@ -92,10 +121,6 @@ class Editor {
   @computed get divisions() {
     const divisions = range(this.nDivisions);
     return divisions;
-  }
-
-  @computed get scaleMax() {
-    return this.scale[0].pitch;
   }
 
   @observable selectedTool: EditorTool = EditorTool.DRAW;
@@ -183,7 +208,7 @@ class Editor {
     notes.forEach(note => this._removeNote(note));
   }
 
-  getValueFromScaleIndex(scaleIndex: number) {
+  getPitchFromScaleIndex(scaleIndex: number) {
     return this.scale[scaleIndex].pitch;
   }
 

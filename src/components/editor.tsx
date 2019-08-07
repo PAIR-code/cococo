@@ -56,7 +56,10 @@ export class Editor extends React.Component<Props> {
             labelWidth={pianoRollWidth}
           />
         </Group>
-        <Group y={layout.notesY}>
+        <Group
+          y={layout.notesY}
+          onMouseLeave={() => editor.setNoteHoverName(null)}
+        >
           <PianoRoll
             width={pianoRollWidth}
             height={notesHeight}
@@ -65,11 +68,13 @@ export class Editor extends React.Component<Props> {
           <Group x={pianoRollWidth}>
             <Grid width={notesWidth} noteHeight={noteHeight} />
             <Notes width={notesWidth} noteHeight={noteHeight} />
-            {isMaskToolSelected && (
-              <Masks width={notesWidth} height={notesHeight} />
-            )}
-            <LoopOverlay width={notesWidth} height={notesHeight} />
           </Group>
+        </Group>
+        <Group y={layout.notesY} x={pianoRollWidth}>
+          {isMaskToolSelected && (
+            <Masks width={notesWidth} height={notesHeight} />
+          )}
+          <LoopOverlay width={notesWidth} height={notesHeight} />
         </Group>
       </svg>
     );

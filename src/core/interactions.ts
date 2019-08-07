@@ -76,12 +76,15 @@ class Interactions {
     const nextPosition = clampPosition(
       this.noteDragStartPosition + deltaQuantized
     );
-    const nextValue = clampPitch(this.noteDragStartPitch - deltaPitch);
+    const nextPitch = clampPitch(this.noteDragStartPitch - deltaPitch);
+    const isInScale = editor.isPitchInScale(nextPitch);
+    const canMoveNote = editor.constrainToKey ? isInScale : true;
 
-    if (nextPosition !== note.position || nextValue !== note.pitch) {
+    if (!canMoveNote) return;
+    if (nextPosition !== note.position || nextPitch !== note.pitch) {
       // Disabled temporarily until we sort out the way to handle note overlaps
       // note.position = nextPosition;
-      note.pitch = nextValue;
+      note.pitch = nextPitch;
       engine.playNote(note);
     }
   };
@@ -178,7 +181,7 @@ class Interactions {
       return;
     }
 
-    const value = editor.getValueFromScaleIndex(scaleIndex);
+    const value = editor.getPitchFromScaleIndex(scaleIndex);
     const position = divisionIndex * editor.quantizeStep;
     const duration = editor.quantizeStep;
     const note = new Note(value, position, duration);
@@ -214,12 +217,16 @@ class Interactions {
     divisionIndex: number,
     e: React.MouseEvent
   ) => {
-    const value = editor.getValueFromScaleIndex(scaleIndex);
+    const pitch = editor.getPitchFromScaleIndex(scaleIndex);
     const voice = editor.selectedVoice;
     const position = divisionIndex * editor.quantizeStep;
     const duration = editor.quantizeStep;
 
-    const note = new Note(value, position, duration, Source.USER, voice);
+    if (editor.constrainToKey) {
+      if (!editor.isPitchInScale(pitch)) return;
+    }
+
+    const note = new Note(pitch, position, duration, Source.USER, voice);
     this.noteBeingDrawn = note;
     const editorGrid = document.getElementById('editor-grid')!;
     this.gridBounds = editorGrid.getBoundingClientRect() as DOMRect;

@@ -19,7 +19,7 @@ import { observer } from 'mobx-react';
 import { Group } from './group';
 
 import { editor, engine, interactions, layout } from '../core';
-import { COLOR_PLAYING, COLOR_PRIMARY } from '../core/theme';
+import { COLOR_SECONDARY } from '../core/theme';
 
 export interface Props {
   width: number;
@@ -63,19 +63,19 @@ export class Timeline extends React.Component<Props> {
           y={0}
           height={height}
           width={endX - startX}
-          fill={COLOR_PLAYING}
+          fill={COLOR_SECONDARY}
           fillOpacity={0.1}
         />
         <polygon
           key="loopStart"
           points={toSVGPoints(startHandleCoordinates)}
-          fill={COLOR_PLAYING}
+          fill={COLOR_SECONDARY}
           onMouseDown={interactions.handleLoopStartMouseDown}
         />
         <polygon
           key="loopEnd"
           points={toSVGPoints(endHandleCoordinates)}
-          fill={COLOR_PLAYING}
+          fill={COLOR_SECONDARY}
           onMouseDown={interactions.handleLoopEndMouseDown}
         />
       </Group>

@@ -33,15 +33,15 @@ export const MODEL_URL =
 export const DIVISIONS = [4, 8, 12, 16, 20, 24, 28];
 
 export const DEFAULT_NOTES = [
-  [76, 4],
-  [77, 2],
-  [79, 2],
-  [77, 6],
-  [76, 2],
-  [74, 4],
-  [72, 2],
+  [72, 4],
   [74, 2],
-  [76, 8],
+  [76, 2],
+  [74, 6],
+  [77, 2],
+  [79, 4],
+  [74, 2],
+  [76, 2],
+  [72, 8],
 ];
 
 export const DEFAULT_EDITOR_WIDTH = 1200;
@@ -57,5 +57,11 @@ export enum RefineOnOriginal {
   SimilarNotes,
   NoRefinement,
   DifferentNotes,
-  VeryDifferentNotes
+  VeryDifferentNotes,
 }
+
+// prettier-ignore
+export const KEY_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+
+// prettier-ignore
+export const MODE_NAMES = ['major', 'minor', 'harmonic minor'];
