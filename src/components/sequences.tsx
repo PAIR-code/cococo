@@ -210,7 +210,12 @@ export class Sequences extends React.Component<SequencesProps> {
           disabled={!harmonizeEnabled}
           variant="outlined"
           color="primary"
-          onClick={() => engine.harmonize()}
+          onClick={() => {
+            if (sequences.candidateSequences.length) {
+              sequences.commitSelectedCandidateSequence();
+            }
+            engine.harmonize();
+          }}
         >
           Generate
           <MusicNote />
