@@ -34,12 +34,8 @@ function getQuantizedPositionFromX(x: number) {
   return quantizePosition(clampPosition(position), Math.floor);
 }
 
-function clampPosition(position: number) {
-  return _.clamp(position, editor.totalSixteenths - 1);
-}
-
-function clampLoopPosition(postion: number) {
-  return _.clamp(postion, 0, editor.totalSixteenths);
+function clampPosition(position: number, endPosition = false) {
+  return _.clamp(position, 0, editor.totalSixteenths - (endPosition ? 0 : 1));
 }
 
 function clampPitch(pitch: number) {
@@ -122,8 +118,9 @@ class Interactions {
     const deltaPosition = Math.floor(deltaX / layout.sixteenthWidth);
 
     const deltaQuantized = quantizePosition(deltaPosition);
-    const nextPosition = clampLoopPosition(
-      this.loopStartDragStartPosition + deltaQuantized
+    const nextPosition = clampPosition(
+      this.loopStartDragStartPosition + deltaQuantized,
+      true
     );
 
     if (nextPosition !== engine.loopStart && nextPosition < engine.loopEnd) {
@@ -137,8 +134,9 @@ class Interactions {
     const deltaPosition = Math.floor(deltaX / layout.sixteenthWidth);
 
     const deltaQuantized = quantizePosition(deltaPosition);
-    const nextPosition = clampLoopPosition(
-      this.loopEndDragStartPosition + deltaQuantized
+    const nextPosition = clampPosition(
+      this.loopEndDragStartPosition + deltaQuantized,
+      true
     );
 
     if (nextPosition !== engine.loopEnd && nextPosition > engine.loopStart) {
@@ -349,19 +347,25 @@ class Interactions {
       const startX = aX <= bX ? aX : bX;
       const endX = aX > bX ? aX : bX;
 
-      const positionRange = [
+      const startPosition = clampPosition(
         quantizePosition(startX / layout.sixteenthWidth, Math.floor),
-        quantizePosition(endX / layout.sixteenthWidth, Math.ceil),
-      ];
-
-      editor.generationMasks[voiceIndex] = _.range(
-        positionRange[0],
-        positionRange[1]
+        true
       );
+      const endPosition = clampPosition(
+        quantizePosition(endX / layout.sixteenthWidth, Math.ceil),
+        true
+      );
+
+      editor.generationMasks[voiceIndex] = _.range(startPosition, endPosition);
     };
 
     const mouseUp = () => {
-      setTimeout(() => (this.hasMaskDragMoved = false));
+      if (!this.hasMaskDragMoved) {
+        const { loopStart, loopEnd } = engine;
+        editor.generationMasks[voiceIndex] = _.range(loopStart, loopEnd);
+      }
+
+      this.hasMaskDragMoved = false;
       document.removeEventListener('mousemove', mouseMove);
       document.removeEventListener('mouseup', mouseUp);
     };
