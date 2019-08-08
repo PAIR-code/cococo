@@ -61,7 +61,7 @@ class Layout {
   }
 
   @computed get sixteenthWidth() {
-    return this.editorWidth / editor.totalSixteenths;
+    return this.notesWidth / editor.totalSixteenths;
   }
 
   @computed get maskLanesY() {
