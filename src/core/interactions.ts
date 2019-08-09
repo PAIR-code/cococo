@@ -192,21 +192,6 @@ class Interactions {
   @observable isEraseToolDragging = false;
   @observable isDrawToolDragging = false;
 
-  private maskToolDragStartClientXY = [0, 0];
-  @observable maskToolDragStartXY = [0, 0];
-  @observable maskToolDragXY = [0, 0];
-
-  handleMaskToolDrag = (e: MouseEvent) => {
-    this.maskToolDragXY = [
-      e.clientX -
-        this.maskToolDragStartClientXY[0] +
-        this.maskToolDragStartXY[0],
-      e.clientY -
-        this.maskToolDragStartClientXY[1] +
-        this.maskToolDragStartXY[1],
-    ];
-  };
-
   private noteBeingDrawn?: Note;
   private gridBounds: DOMRect;
 
@@ -277,8 +262,25 @@ class Interactions {
     document.addEventListener('mouseup', mouseUp);
   };
 
+  private maskToolDragStartClientXY = [0, 0];
+  @observable maskToolDragStartXY = [0, 0];
+  @observable maskToolDragXY = [0, 0];
+  private maskToolShiftDrag = false;
+
+  handleMaskToolDrag = (e: MouseEvent) => {
+    this.maskToolDragXY = [
+      e.clientX -
+        this.maskToolDragStartClientXY[0] +
+        this.maskToolDragStartXY[0],
+      e.clientY -
+        this.maskToolDragStartClientXY[1] +
+        this.maskToolDragStartXY[1],
+    ];
+  };
+
   handleMaskToolMouseDown = (e: React.MouseEvent<SVGRectElement>) => {
     e.preventDefault();
+    this.maskToolShiftDrag = e.shiftKey;
     const target = e.target as SVGRectElement;
     const dim = target.getBoundingClientRect();
     this.maskToolDragStartXY = [e.clientX - dim.left, e.clientY - dim.top];
@@ -304,12 +306,14 @@ class Interactions {
         MAX_PITCH - Math.floor(startY / layout.noteHeight),
       ];
 
-      editor.maskNotes(positionRange, valueRange);
+      const replaceMask = !this.maskToolShiftDrag;
+      editor.maskNotes(positionRange, valueRange, replaceMask);
 
       this.isMaskToolDragging = false;
       this.maskToolDragStartClientXY = [0, 0];
       this.maskToolDragStartXY = [0, 0];
       this.maskToolDragXY = [0, 0];
+      this.maskToolShiftDrag = false;
       document.removeEventListener('mousemove', this.handleMaskToolDrag);
       document.removeEventListener('mouseup', mouseUp);
     };

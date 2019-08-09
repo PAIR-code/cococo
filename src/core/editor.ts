@@ -316,7 +316,7 @@ class Editor {
   }
 
   @undoable()
-  maskNotes(positionRange: number[], pitchRange: number[]) {
+  maskNotes(positionRange: number[], pitchRange: number[], replaceMask = true) {
     const notesInMask: Note[] = [];
     for (const note of this.allNotes) {
       if (this.overlaps(note, positionRange, pitchRange)) {
@@ -324,14 +324,21 @@ class Editor {
       }
     }
 
-    const maskSetsByVoice = _.range(4).map(() => new Set<number>());
     notesInMask.forEach(note => {
       const maskStart = Math.max(positionRange[0], note.start);
       const maskEnd = Math.min(positionRange[1], note.end);
       const maskRange = _.range(maskStart, maskEnd);
 
-      this.addMask(note.voice, maskRange);
+      if (replaceMask) {
+        this.replaceMask(note.voice, maskRange);
+      } else {
+        this.addMask(note.voice, maskRange);
+      }
     });
+  }
+
+  replaceMask(voiceIndex: number, mask: number[]) {
+    this.generationMasks[voiceIndex] = [...mask];
   }
 
   addMask(voiceIndex: number, mask: number[]) {
