@@ -14,7 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 import * as tonal from 'tonal';
-import { BOTTOM_A, MIN_PITCH, MAX_PITCH } from './constants';
+import { BOTTOM_A, MIN_PITCH, MAX_PITCH, MODE_NAMES } from './constants';
 import { range } from 'lodash';
 import { ScaleValue } from './editor';
 
@@ -66,9 +66,26 @@ export function makeNoteScaleForKey(key: string, mode: string): ScaleValue[] {
   });
 }
 
-export function makeNoteChordForKey(key: string, mode: string): ScaleValue[] {
-  const chord = mode.includes('major') ? `${key}maj7` : `${key}m7`;
-  const chordNotes = new Set<string>(tonal.Chord.notes(chord));
+const CHORD_MODES = new Set<string>(['M', 'm', 'dim', 'aug']);
+
+// source:
+// https://en.wikipedia.org/wiki/Roman_numeral_analysis#/media/File:Roman_numeral_analysis_major,_natural_minor,_harmonic_minor,_melodic_minor.png
+const TRIAD_QUALITIES = {
+  major: ['M', 'm', 'm', 'M', 'M', 'm', 'm'],
+  minor: ['m', 'dim', 'M', 'm', 'm', 'M', 'M'],
+  'harmonic minor': ['m', 'dim', 'aug', 'm', 'M', 'M', 'dim'],
+};
+
+export function makeNotesTriadForKey(key: string, mode: string): ScaleValue[] {
+  if (!CHORD_MODES.has(mode)) {
+    console.error(
+      `Violated contract for makeNotesTriadForKey; (mode = ${mode}) is not one of ${JSON.stringify(
+        CHORD_MODES
+      )}`
+    );
+    return;
+  }
+  const chordNotes = new Set<string>(tonal.Chord.notes(key, mode));
   const scale = makeNoteScale(MIN_PITCH, MAX_PITCH);
   return scale.filter(note => {
     const { pitch } = note;
@@ -76,5 +93,49 @@ export function makeNoteChordForKey(key: string, mode: string): ScaleValue[] {
     const name = `${letter}${accidental}`;
     const alternate = tonal.Note.enharmonic(name);
     return chordNotes.has(name) || chordNotes.has(alternate);
+  });
+}
+
+interface TriadValue {
+  key: string;
+  deltaNote: number;
+  notes: string[];
+  quality: string;
+}
+
+export function getTriadsForKey(key: string, mode: string): TriadValue[] {
+  if (!MODE_NAMES.includes(mode)) {
+    console.error(
+      `Violated contract for getTriadsForKey; (mode = ${mode}) is not one of ${JSON.stringify(
+        CHORD_MODES
+      )}`
+    );
+    return;
+  }
+  const scaleNotes = tonal.Scale.notes(key, mode);
+  return scaleNotes.map((noteName, i) => {
+    // zip together note key names and the qualities
+    return {
+      key: noteName,
+      deltaNote: i,
+      // FIXME(rlouie): might not even need to compute notes at this time
+      notes: tonal.Chord.notes(noteName, TRIAD_QUALITIES[mode][i]),
+      quality: TRIAD_QUALITIES[mode][i],
+    };
+  });
+}
+
+export function getHappyTriadsForKey(key: string, mode: string): TriadValue[] {
+  const triads = getTriadsForKey(key, mode);
+  return triads.filter(triad => {
+    return triad.quality === 'M';
+  });
+}
+
+export function getSadTriadsForKey(key: string, mode: string): TriadValue[] {
+  const triads = getTriadsForKey(key, mode);
+  return triads.filter(triad => {
+    // TODO: could semantically separate m, aug, dim
+    return triad.quality !== 'M';
   });
 }

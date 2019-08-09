@@ -18,7 +18,7 @@ import { range } from 'lodash';
 import {
   makeNoteScale,
   makeNoteScaleForKey,
-  makeNoteChordForKey,
+  makeNotesTriadForKey,
 } from './tonal-utils';
 import * as _ from 'lodash';
 
@@ -127,7 +127,7 @@ class Editor {
 
   @computed get keyScale() {
     return this.chordMode
-      ? makeNoteChordForKey(this.key, this.mode)
+      ? makeNotesTriadForKey(this.key, this.mode)
       : makeNoteScaleForKey(this.key, this.mode);
   }
 
