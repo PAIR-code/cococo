@@ -18,7 +18,8 @@ import { style } from 'typestyle';
 import { observer } from 'mobx-react';
 
 import { Note as NoteModel } from '../core/note';
-import { interactions } from '../core';
+import { editor, interactions } from '../core';
+import { VOICES } from '../core/constants';
 import {
   COLOR_PLAYING,
   COLOR_SELECTED,
@@ -66,17 +67,31 @@ export class Note extends React.Component<NoteProps> {
       strokeWidth: 1,
     });
 
+    const VOICE = VOICES[note.voice];
+    const glowFilter = `url(#glow-${VOICE.toLowerCase()})`;
+
+    const isMasked = editor.isNoteMasked(note);
+    const filter = isMasked ? glowFilter : null;
+
+    const sizeProps = {
+      x: x + 1,
+      y: y + NOTE_BORDER,
+      width: width - 2 * NOTE_BORDER,
+      height: height - 2 * NOTE_BORDER,
+    };
+
     return (
-      <rect
-        key={note.id}
-        className={rectStyle}
-        x={x + 1}
-        y={y + NOTE_BORDER}
-        width={width - 2 * NOTE_BORDER}
-        height={height - 2 * NOTE_BORDER}
-        onMouseDown={interactions.handleNoteMouseDown(note)}
-        onMouseMove={interactions.handleNoteHover(note)}
-      />
+      <>
+        <rect key={`${note.id}-glow`} filter={filter} {...sizeProps} />
+        <rect
+          key={note.id}
+          className={rectStyle}
+          {...sizeProps}
+          height={height - 2 * NOTE_BORDER}
+          onMouseDown={interactions.handleNoteMouseDown(note)}
+          onMouseMove={interactions.handleNoteHover(note)}
+        />
+      </>
     );
   }
 }

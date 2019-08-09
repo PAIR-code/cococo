@@ -17,13 +17,13 @@ import { observable } from 'mobx';
 import { NoteSequence } from './note';
 import editor from './editor';
 import engine from './engine';
-import { RefineOnOriginal } from './constants';
+import { SimilarityToOriginal } from './constants';
 
 export class Sequences {
   @observable nSequencesToGenerate = 2;
   @observable conventionalSurprising = -1;
   @observable happySad = 0;
-  @observable refineOnOriginalStrategy = RefineOnOriginal.NoRefinement;
+  @observable similarityToOriginal = SimilarityToOriginal.SomewhatDifferent;
   @observable generatedSequences: NoteSequence[][] = [];
 
   @observable candidateSequences: NoteSequence[] = [];

@@ -23,7 +23,7 @@ import { ThemeProvider } from '@material-ui/styles';
 
 import { Controls } from './controls';
 import { Editor } from './editor';
-import { Sequences } from './sequences';
+import { Generate } from './generate';
 import { Working } from './working';
 
 import { engine, layout } from '../core';
@@ -70,7 +70,7 @@ export default class Main extends React.Component {
             <Controls />
           </div>
           <div className={sequencesContainerStyle}>
-            <Sequences />
+            <Generate />
           </div>
         </div>
         <Working open={engine.isWorking} title="Working..." />

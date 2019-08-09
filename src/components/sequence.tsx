@@ -44,9 +44,9 @@ export class Sequence extends React.Component<SequenceProps> {
     const pitchRange = maxPitch - minPitch;
     const positionRange = maxPosition - minPosition;
     const paddingX = 4;
-    const paddingY = 2;
-    const height = layout.sequenceHeight - 2 * paddingX;
-    const width = layout.sequencesWidth - 2 * paddingY;
+    const paddingY = 4;
+    const height = layout.sequenceHeight - 4 * paddingY;
+    const width = 100; // In percent
 
     const pitchHeight = height / Math.max(pitchRange, MIN_PITCH_RANGE);
     const sixteenthWidth = width / Math.max(positionRange, MIN_POSITION_RANGE);
@@ -62,10 +62,10 @@ export class Sequence extends React.Component<SequenceProps> {
           return (
             <rect
               key={note.id}
-              x={x}
+              x={`${x}%`}
               y={offsetY}
               height={pitchHeight}
-              width={sixteenthWidth * note.duration}
+              width={`${sixteenthWidth * note.duration}%`}
               fill={color}
             />
           );
@@ -89,7 +89,7 @@ export class Sequence extends React.Component<SequenceProps> {
 
     return (
       <svg
-        width={layout.sequencesWidth}
+        width={'100%'}
         height={layout.sequenceHeight}
         style={{ border, marginBottom: 10, boxSizing: 'border-box' }}
         onClick={onSelect}

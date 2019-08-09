@@ -31,7 +31,7 @@ import {
   SOUNDFONT_URL,
   MODEL_URL,
   TOTAL_SIXTEENTHS,
-  RefineOnOriginal,
+  SimilarityToOriginal,
 } from './constants';
 
 interface InfillMask {
@@ -215,10 +215,12 @@ class Engine {
       this.stop();
     }
 
-    const nHarmonizations = sequences.nSequencesToGenerate;
-    const temperature = this.computeTemperature(
-      sequences.conventionalSurprising
-    );
+    const {
+      conventionalSurprising,
+      similarityToOriginal,
+      nSequencesToGenerate,
+    } = sequences;
+    const temperature = this.computeTemperature(conventionalSurprising);
     const keyScaleName = {
       key: editor.key,
       mode: editor.mode,
@@ -227,30 +229,24 @@ class Engine {
     };
     let discourageNotes;
     let nudgeFactor;
-    if (sequences.refineOnOriginalStrategy === RefineOnOriginal.SimilarNotes) {
+    // Check to see if the selected value is less than the cap values for
+    // similarity
+    if (similarityToOriginal < SimilarityToOriginal.Similar) {
       discourageNotes = false;
-      // 1 translates to a 1:3 ratio
-      nudgeFactor = 1;
-    } else if (
-      sequences.refineOnOriginalStrategy === RefineOnOriginal.VerySimilarNotes
-    ) {
+      nudgeFactor = 2; // 2 translates to a 1:12 ratio
+    } else if (similarityToOriginal < SimilarityToOriginal.SomewhatDifferent) {
       discourageNotes = false;
-      // 2 translates to a 1:12 ratio
-      nudgeFactor = 2;
-    } else if (
-      sequences.refineOnOriginalStrategy === RefineOnOriginal.DifferentNotes
-    ) {
+      nudgeFactor = 1; // 1 translates to a 1:3 ratio
+    } else if (similarityToOriginal < SimilarityToOriginal.Different) {
       discourageNotes = true;
       nudgeFactor = 1;
-    } else if (
-      sequences.refineOnOriginalStrategy === RefineOnOriginal.VeryDifferentNotes
-    ) {
+    } else if (similarityToOriginal <= SimilarityToOriginal.VeryDifferent) {
       discourageNotes = true;
       nudgeFactor = 2;
     }
 
     const outputSequences: NoteSequence[] = [];
-    for (let i = 0; i < nHarmonizations; i++) {
+    for (let i = 0; i < nSequencesToGenerate; i++) {
       const inputNotes = [...editor.allNotes];
       const sequence = this.getMagentaNoteSequence(inputNotes);
       const infillMask = this.getInfillMask();
