@@ -94,6 +94,20 @@ const conventionalSurprisingMarks = [
   },
 ];
 
+const happySadMarks = [
+  {
+    value: -1,
+    label: '😢🙁sad',
+  },
+  {
+    value: 0,
+  },
+  {
+    value: 1,
+    label: '😃😊happy',
+  },
+];
+
 // limit, middle, end
 const refineSliderMarks = [0, 2, 4].map(value => {
   return {
@@ -217,7 +231,7 @@ export class Sequences extends React.Component<SequencesProps> {
             engine.harmonize();
           }}
         >
-          Generate
+          🤖 Generate
           <MusicNote />
         </Button>
         <FormControl>
@@ -252,6 +266,27 @@ export class Sequences extends React.Component<SequencesProps> {
             marks={conventionalSurprisingMarks}
             min={-3}
             max={1}
+          />
+        </div>
+        <div className={horizontalSliderStyle}>
+          <Slider
+            value={sequences.happySad}
+            onChange={(e: any, newValue: number | number[]) => {
+              if (newValue !== null) {
+                sequences.happySad = Number(newValue);
+                if (sequences.happySad === 1) {
+                  editor.mode = 'major';
+                } else if (sequences.happySad === -1) {
+                  editor.mode = 'minor';
+                }
+              }
+            }}
+            aria-labelledby="happysad-slider-restrict"
+            step={null}
+            valueLabelDisplay="off"
+            marks={happySadMarks}
+            min={-1.2}
+            max={1.2}
           />
         </div>
         {showRefineOnOriginal && this.renderRefineOnOriginal()}

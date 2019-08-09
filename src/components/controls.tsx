@@ -43,6 +43,7 @@ import { engine, layout, editor, EditorTool, undo } from '../core';
 import * as theme from '../core/theme';
 import { Voice } from '../core/note';
 import { KEY_NAMES, MODE_NAMES } from '../core/constants';
+import sequences from '../core/sequences';
 
 interface State {
   keyDialogOpen: boolean;
@@ -193,7 +194,8 @@ export class Controls extends React.Component<{}, State> {
             variant="outlined"
             color="primary"
           >
-            {editor.key} {editor.mode}
+            {editor.key} {editor.mode}{' '}
+            {editor.mode === 'major' ? '😃😊 happy' : '😢🙁 sad'}
           </Button>
           <Dialog
             disableBackdropClick
@@ -229,7 +231,10 @@ export class Controls extends React.Component<{}, State> {
                     value={editor.mode}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       const value = e.target.value;
-                      if (value) editor.mode = value;
+                      if (value) {
+                        editor.mode = value;
+                        sequences.happySad = value === 'major' ? 1 : -1;
+                      }
                     }}
                     autoWidth
                   >
