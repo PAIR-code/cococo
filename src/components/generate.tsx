@@ -24,22 +24,24 @@ import Slider from '@material-ui/core/Slider';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
-import FormHelperText from '@material-ui/core/FormHelperText';
 import { MusicNote } from '@material-ui/icons';
 
 import { editor, engine, sequences, layout, Note } from '../core';
 
 import { Sequence } from './sequence';
 import {
+  MIN_HAPPY_SAD_FACTOR,
+  MAX_HAPPY_SAD_FACTOR,
   MIN_SURPRISE_FACTOR,
   MAX_SURPRISE_FACTOR,
-  MIN_SIMILARITY_FACTOR,
-  MAX_SIMILARITY_FACTOR,
-  MAX_PITCH,
+  MIN_DIFFERENCE_FACTOR,
+  MAX_DIFFERENCE_FACTOR,
   MIN_PITCH,
+  MAX_PITCH,
   TOTAL_SIXTEENTHS,
-  SimilarityToOriginal,
 } from '../core/constants';
+
+import './generate.css';
 
 function getPitchRange(noteSequences: Note[][]) {
   let minPitch = MAX_PITCH;
@@ -71,20 +73,6 @@ function getPositionRange(noteSequences: Note[][]) {
 
 const horizontalSliderStyle = style({});
 
-const happySadMarks = [
-  {
-    value: -1,
-    label: '😢🙁sad',
-  },
-  {
-    value: 0,
-  },
-  {
-    value: 1,
-    label: '😃😊happy',
-  },
-];
-
 export interface GenerateProps {}
 
 @observer
@@ -95,14 +83,8 @@ export class Generate extends React.Component<GenerateProps> {
     const [minPitch, maxPitch] = getPitchRange(noteSequences);
     const [minPosition, maxPosition] = getPositionRange(noteSequences);
 
-    const sequencesContainerStyle = style({
-      marginTop: 20,
-      display: 'flex',
-      flexDirection: 'column',
-    });
-
     return (
-      <div className={sequencesContainerStyle}>
+      <div className="sequences-container">
         {noteSequences.map((notes, index) => {
           return (
             <Sequence
@@ -138,27 +120,33 @@ export class Generate extends React.Component<GenerateProps> {
   }
 
   renderSimilaritySlider() {
-    const disabled = editor.getMaskedSequence.length === 0;
-    const labelColor = disabled ? 'textSecondary' : 'textPrimary';
+    const maskedSequenceExists = editor.maskedSequence.length > 0;
+    const candidateSequenceSelected =
+      sequences.selectedCandidateSequenceIndex > 0;
+    const enabled = candidateSequenceSelected ? true : maskedSequenceExists;
+    const labelColor = enabled ? 'textPrimary' : 'textSecondary';
     return (
-      <div>
-        <Typography color={labelColor}>
-          {getSimilarityMessage(sequences.similarityToOriginal)}
-        </Typography>
-        <div className={horizontalSliderStyle}>
-          <Slider
-            value={sequences.similarityToOriginal}
-            onChange={(e: any, newValue: number | number[]) => {
-              if (newValue !== null) {
-                sequences.similarityToOriginal = Number(newValue);
-              }
-            }}
-            step={0.1}
-            valueLabelDisplay="off"
-            min={MIN_SIMILARITY_FACTOR}
-            max={MAX_SIMILARITY_FACTOR}
-            disabled={disabled}
-          />
+      <div className="horizontal-slider">
+        <Slider
+          value={sequences.differenceFromOriginal}
+          onChange={(e: any, newValue: number | number[]) => {
+            if (newValue !== null) {
+              sequences.differenceFromOriginal = Number(newValue);
+            }
+          }}
+          step={0.1}
+          valueLabelDisplay="off"
+          min={MIN_DIFFERENCE_FACTOR}
+          max={MAX_DIFFERENCE_FACTOR}
+          disabled={!enabled}
+        />
+        <div className="slider-label">
+          <Typography variant="caption" color={labelColor}>
+            Similar
+          </Typography>
+          <Typography variant="caption" color={labelColor}>
+            Different
+          </Typography>
         </div>
       </div>
     );
@@ -167,25 +155,15 @@ export class Generate extends React.Component<GenerateProps> {
   render() {
     const harmonizeEnabled = engine.isModelLoaded && !engine.isWorking;
 
-    const containerStyle = style({
-      padding: '0 10px',
-      display: 'flex',
-      flexDirection: 'column',
-    });
-
-    const dividerStyle = style({
-      margin: '20px 0 10px',
-    });
-
-    const nSequencesContainerStyle = style({
-      marginTop: 10,
+    const nSequenceContainerStyle = style({
+      margin: '5px 0 15px',
       width: '100%',
     });
 
     const showCandidateSequences = sequences.candidateSequences.length > 0;
 
     return (
-      <div className={containerStyle}>
+      <div className="container">
         <Button
           disabled={!harmonizeEnabled}
           variant="outlined"
@@ -200,8 +178,7 @@ export class Generate extends React.Component<GenerateProps> {
           🤖 Generate
           <MusicNote />
         </Button>
-
-        <FormControl className={nSequencesContainerStyle}>
+        <FormControl classes={{ root: nSequenceContainerStyle }}>
           <Select
             value={sequences.nSequencesToGenerate}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -218,11 +195,7 @@ export class Generate extends React.Component<GenerateProps> {
             <MenuItem value={4}>4 sequences</MenuItem>
           </Select>
         </FormControl>
-        <Divider classes={{ root: dividerStyle }} />
-        <div className={horizontalSliderStyle}>
-          <Typography>
-            {getSurpriseMessage(sequences.conventionalSurprising)}
-          </Typography>
+        <div className="horizontal-slider">
           <Slider
             value={sequences.conventionalSurprising}
             onChange={(e: any, newValue: number | number[]) => {
@@ -235,27 +208,26 @@ export class Generate extends React.Component<GenerateProps> {
             min={MIN_SURPRISE_FACTOR}
             max={MAX_SURPRISE_FACTOR}
           />
+          <div className="slider-label">
+            <Typography variant="caption">Conventional</Typography>
+            <Typography variant="caption">Surprising</Typography>
+          </div>
         </div>
-        <div className={horizontalSliderStyle}>
+        <div className="horizontal-slider">
           <Slider
             value={sequences.happySad}
             onChange={(e: any, newValue: number | number[]) => {
-              if (newValue !== null) {
-                sequences.happySad = Number(newValue);
-                if (sequences.happySad === 1) {
-                  editor.mode = 'major';
-                } else if (sequences.happySad === -1) {
-                  editor.mode = 'minor';
-                }
-              }
+              if (newValue !== null) sequences.happySad = Number(newValue);
             }}
-            aria-labelledby="happysad-slider-restrict"
-            step={null}
+            step={0.1}
             valueLabelDisplay="off"
-            marks={happySadMarks}
-            min={-1.2}
-            max={1.2}
+            min={MIN_HAPPY_SAD_FACTOR}
+            max={MAX_HAPPY_SAD_FACTOR}
           />
+          <div className="slider-label">
+            <Typography variant="caption">😢 Minor</Typography>
+            <Typography variant="caption">Major 😊</Typography>
+          </div>
         </div>
         {this.renderSimilaritySlider()}
         {showCandidateSequences && this.renderSequences()}
@@ -263,51 +235,3 @@ export class Generate extends React.Component<GenerateProps> {
     );
   }
 }
-
-const similarityMessages = [
-  'Very Different',
-  'Different',
-  'Somewhat Different',
-  'Somewhat Similar',
-  'Similar',
-  'Very Similar',
-];
-const surpriseMessages = [
-  'Very Conventional',
-  'Conventional',
-  'Somewhat Conventional',
-  'Somewhat Surprising',
-  'Surprising',
-  'Very Surprising',
-];
-
-const getMessageText = (messages: string[], min: number, max: number) => (
-  value: number
-): string => {
-  // Constructs the ranges non-inclusively
-  const range = _.range(min, max, (max - min) / messages.length);
-  range.push(max);
-
-  for (let i = 0; i < range.length - 1; i++) {
-    if (value >= range[i] && value < range[i + 1]) {
-      return messages[i];
-    }
-  }
-  // If the value is equal to the largest number in the range, select the last
-  // message
-  if (value === range[range.length - 1]) {
-    return messages[messages.length - 1];
-  }
-  return '';
-};
-
-const getSurpriseMessage = getMessageText(
-  surpriseMessages,
-  MIN_SURPRISE_FACTOR,
-  MAX_SURPRISE_FACTOR
-);
-const getSimilarityMessage = getMessageText(
-  similarityMessages,
-  MIN_SIMILARITY_FACTOR,
-  MAX_SIMILARITY_FACTOR
-);

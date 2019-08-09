@@ -360,7 +360,7 @@ class Editor {
     return false;
   }
 
-  @computed get getMaskedSequence() {
+  @computed get maskedSequence() {
     const notes = this.allNotes;
     const maskedSequence: NoteSequence = [];
 

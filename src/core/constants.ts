@@ -50,7 +50,7 @@ export const VOICES = ['SOPRANO', 'ALTO', 'TENOR', 'BASS'];
 export const MIN_SURPRISE_FACTOR = -3;
 export const MAX_SURPRISE_FACTOR = 1;
 
-export enum SimilarityToOriginal {
+export enum DifferenceFromOriginal {
   VerySimilar = 0,
   Similar = 1,
   SomewhatDifferent = 2,
@@ -58,8 +58,11 @@ export enum SimilarityToOriginal {
   VeryDifferent = 4,
 }
 
-export const MIN_SIMILARITY_FACTOR = SimilarityToOriginal.VerySimilar;
-export const MAX_SIMILARITY_FACTOR = SimilarityToOriginal.VeryDifferent;
+export const MIN_DIFFERENCE_FACTOR = DifferenceFromOriginal.VerySimilar;
+export const MAX_DIFFERENCE_FACTOR = DifferenceFromOriginal.VeryDifferent;
+
+export const MIN_HAPPY_SAD_FACTOR = -1.2;
+export const MAX_HAPPY_SAD_FACTOR = 1.2;
 
 // prettier-ignore
 export const KEY_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];

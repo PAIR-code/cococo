@@ -190,30 +190,13 @@ export class Controls extends React.Component<{}, State> {
             <FormHelperText style={{ width: 100 }}>Quantization</FormHelperText>
           </FormControl>
         </div>
-        <Typography component="div">
-          <Grid component="label" container alignItems="center" spacing={1}>
-            <Grid item>Scale</Grid>
-            <Grid item>
-              <Switch
-                checked={editor.chordMode}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  (editor.chordMode = e.target.checked)
-                }
-                value={editor.chordMode}
-                color="primary"
-              />
-            </Grid>
-            <Grid item>Chord</Grid>
-          </Grid>
-        </Typography>
         <div>
           <Button
             onClick={() => this.setState({ keyDialogOpen: true })}
             variant="outlined"
             color="primary"
           >
-            {editor.key} {editor.mode}{' '}
-            {editor.mode === 'major' ? '😃😊 happy' : '😢🙁 sad'}
+            {editor.key} {editor.mode}
           </Button>
           <Dialog
             disableBackdropClick

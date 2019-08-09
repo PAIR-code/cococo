@@ -17,13 +17,13 @@ import { observable } from 'mobx';
 import { NoteSequence } from './note';
 import editor from './editor';
 import engine from './engine';
-import { SimilarityToOriginal } from './constants';
+import { DifferenceFromOriginal } from './constants';
 
 export class Sequences {
   @observable nSequencesToGenerate = 2;
   @observable conventionalSurprising = -1;
   @observable happySad = 0;
-  @observable similarityToOriginal = SimilarityToOriginal.SomewhatDifferent;
+  @observable differenceFromOriginal = DifferenceFromOriginal.SomewhatDifferent;
   @observable generatedSequences: NoteSequence[][] = [];
 
   @observable candidateSequences: NoteSequence[] = [];

@@ -31,7 +31,7 @@ import {
   SOUNDFONT_URL,
   MODEL_URL,
   TOTAL_SIXTEENTHS,
-  SimilarityToOriginal,
+  DifferenceFromOriginal,
 } from './constants';
 
 interface InfillMask {
@@ -217,7 +217,7 @@ class Engine {
 
     const {
       conventionalSurprising,
-      similarityToOriginal,
+      differenceFromOriginal,
       nSequencesToGenerate,
     } = sequences;
     const temperature = this.computeTemperature(conventionalSurprising);
@@ -231,16 +231,18 @@ class Engine {
     let nudgeFactor;
     // Check to see if the selected value is less than the cap values for
     // similarity
-    if (similarityToOriginal < SimilarityToOriginal.Similar) {
+    if (differenceFromOriginal < DifferenceFromOriginal.Similar) {
       discourageNotes = false;
       nudgeFactor = 2; // 2 translates to a 1:12 ratio
-    } else if (similarityToOriginal < SimilarityToOriginal.SomewhatDifferent) {
+    } else if (
+      differenceFromOriginal < DifferenceFromOriginal.SomewhatDifferent
+    ) {
       discourageNotes = false;
       nudgeFactor = 1; // 1 translates to a 1:3 ratio
-    } else if (similarityToOriginal < SimilarityToOriginal.Different) {
+    } else if (differenceFromOriginal < DifferenceFromOriginal.Different) {
       discourageNotes = true;
       nudgeFactor = 1;
-    } else if (similarityToOriginal <= SimilarityToOriginal.VeryDifferent) {
+    } else if (differenceFromOriginal <= DifferenceFromOriginal.VeryDifferent) {
       discourageNotes = true;
       nudgeFactor = 2;
     }
@@ -278,7 +280,7 @@ class Engine {
     }
 
     // Now, set the first candidate sequence to be the original, masked sequence
-    const maskedSequence = editor.getMaskedSequence;
+    const maskedSequence = editor.maskedSequence;
     editor.removeCandidateNoteSequence(maskedSequence);
     sequences.addCandidateSequences([maskedSequence, ...outputSequences]);
 
