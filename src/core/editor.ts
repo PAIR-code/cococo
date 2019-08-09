@@ -63,6 +63,10 @@ class Editor {
     return [...this.mainSequence.notes];
   }
 
+  isTemporaryNote(note: Note) {
+    return this.tempNotesMap.has(note.id) && !this.notesMap.has(note.id);
+  }
+
   @computed get allNotes() {
     return [...this.mainSequence.notes, ...this.candidateNoteSequence.notes];
   }

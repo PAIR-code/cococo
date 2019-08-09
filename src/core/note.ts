@@ -52,9 +52,7 @@ export class Note {
   @observable duration: number;
   @observable voice: number;
 
-  @observable isMasked = false;
   @observable isPlaying = false;
-  @observable isSelected = false;
 
   @computed get name() {
     return tonal.Note.fromMidi(this.pitch);
