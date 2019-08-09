@@ -32,7 +32,7 @@ import {
   sequenceToPianoroll,
 } from './coconet_utils';
 
-import { makeNoteScaleForKey } from '../tonal-utils';
+import { makeNoteChordForKey, makeNoteScaleForKey } from '../tonal-utils';
 
 /**
  * An interface for providing an infilling mask.
@@ -49,11 +49,13 @@ interface InfillMask {
  * @param key The letter of the musical key e.g., `C` or `Db`
  * @param mode either `major`, `minor`, `harmonic minor`
  * @param constrainToKey whether to constrain or nudge towards the keyScale
+ * @param chords whether to constrani to chords or scale of the key/mode
  */
 interface KeyScaleName {
   key: string;
   mode: string;
   constrainToKey: boolean;
+  chords: boolean;
 }
 
 /**
@@ -773,7 +775,9 @@ class Coconet {
       return tf.onesLike(pianorolls);
     }
     const [nBatch, nQSteps, nPitches, nVoices] = pianorolls.shape;
-    const keyScale = makeNoteScaleForKey(keyScaleName.key, keyScaleName.mode);
+    const keyScale = keyScaleName.chords
+      ? makeNoteChordForKey(keyScaleName.key, keyScaleName.mode)
+      : makeNoteScaleForKey(keyScaleName.key, keyScaleName.mode);
     // Create a buffer to store the input.
     const pitches = tf.buffer([nPitches]);
     if (keyScaleName.constrainToKey) {

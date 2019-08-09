@@ -15,7 +15,11 @@ limitations under the License.
 
 import { computed, observable } from 'mobx';
 import { range } from 'lodash';
-import { makeNoteScale, makeNoteScaleForKey } from './tonal-utils';
+import {
+  makeNoteScale,
+  makeNoteScaleForKey,
+  makeNoteChordForKey,
+} from './tonal-utils';
 import * as _ from 'lodash';
 
 import { Note, NoteSequence, Source, Voice } from './note';
@@ -84,6 +88,7 @@ class Editor {
   @observable key = 'C';
   @observable mode = 'major';
   @observable constrainToKey = true;
+  @observable chordMode = false;
   @observable noteHoverName = '';
 
   setNoteHoverName(scaleValue: ScaleValue | null) {
@@ -100,7 +105,9 @@ class Editor {
   }
 
   @computed get keyScale() {
-    return makeNoteScaleForKey(this.key, this.mode);
+    return this.chordMode
+      ? makeNoteChordForKey(this.key, this.mode)
+      : makeNoteScaleForKey(this.key, this.mode);
   }
 
   @computed get keyPitchSet() {

@@ -223,6 +223,7 @@ class Engine {
       key: editor.key,
       mode: editor.mode,
       constrainToKey: editor.constrainToKey,
+      chords: editor.chordMode,
     };
     let discourageNotes;
     let nudgeFactor;
