@@ -23,9 +23,11 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import FormControl from '@material-ui/core/FormControl';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Grid from '@material-ui/core/Grid';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
+import Typography from '@material-ui/core/Typography';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import {
@@ -43,6 +45,7 @@ import { engine, layout, editor, EditorTool, undo } from '../core';
 import * as theme from '../core/theme';
 import { Voice } from '../core/note';
 import { KEY_NAMES, MODE_NAMES } from '../core/constants';
+import sequences from '../core/sequences';
 
 interface State {
   keyDialogOpen: boolean;
@@ -187,13 +190,30 @@ export class Controls extends React.Component<{}, State> {
             <FormHelperText style={{ width: 100 }}>Quantization</FormHelperText>
           </FormControl>
         </div>
+        <Typography component="div">
+          <Grid component="label" container alignItems="center" spacing={1}>
+            <Grid item>Scale</Grid>
+            <Grid item>
+              <Switch
+                checked={editor.chordMode}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  (editor.chordMode = e.target.checked)
+                }
+                value={editor.chordMode}
+                color="primary"
+              />
+            </Grid>
+            <Grid item>Chord</Grid>
+          </Grid>
+        </Typography>
         <div>
           <Button
             onClick={() => this.setState({ keyDialogOpen: true })}
             variant="outlined"
             color="primary"
           >
-            {editor.key} {editor.mode}
+            {editor.key} {editor.mode}{' '}
+            {editor.mode === 'major' ? '😃😊 happy' : '😢🙁 sad'}
           </Button>
           <Dialog
             disableBackdropClick
@@ -229,7 +249,10 @@ export class Controls extends React.Component<{}, State> {
                     value={editor.mode}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       const value = e.target.value;
-                      if (value) editor.mode = value;
+                      if (value) {
+                        editor.mode = value;
+                        sequences.happySad = value === 'major' ? 1 : -1;
+                      }
                     }}
                     autoWidth
                   >

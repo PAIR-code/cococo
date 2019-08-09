@@ -65,3 +65,16 @@ export function makeNoteScaleForKey(key: string, mode: string): ScaleValue[] {
     return scaleNotes.has(name) || scaleNotes.has(alternate);
   });
 }
+
+export function makeNoteChordForKey(key: string, mode: string): ScaleValue[] {
+  const chord = mode.includes('major') ? `${key}maj7` : `${key}m7`;
+  const chordNotes = new Set<string>(tonal.Chord.notes(chord));
+  const scale = makeNoteScale(MIN_PITCH, MAX_PITCH);
+  return scale.filter(note => {
+    const { pitch } = note;
+    const { accidental, letter } = getNoteDetails(pitch);
+    const name = `${letter}${accidental}`;
+    const alternate = tonal.Note.enharmonic(name);
+    return chordNotes.has(name) || chordNotes.has(alternate);
+  });
+}
