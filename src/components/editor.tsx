@@ -18,6 +18,7 @@ import { observer } from 'mobx-react';
 import { editor, layout, EditorTool } from '../core';
 
 import { PianoRoll } from './piano-roll';
+import { Filters } from './filters';
 import { Grid } from './grid';
 import { Group } from './group';
 import { LoopOverlay } from './loop-overlay';
@@ -46,6 +47,7 @@ export class Editor extends React.Component<Props> {
 
     return (
       <svg width={editorWidth} height={editorHeight}>
+        <Filters />
         <Group x={pianoRollWidth}>
           <Timeline width={notesWidth} height={timelineHeight} />
         </Group>

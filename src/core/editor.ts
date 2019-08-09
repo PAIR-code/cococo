@@ -214,6 +214,7 @@ class Editor {
 
   // The non-undoable internal method
   private _removeNote(note: Note) {
+    this.tempNotesMap.delete(note.id);
     this.notesMap.delete(note.id);
   }
 
@@ -359,7 +360,7 @@ class Editor {
     return false;
   }
 
-  @computed get getMaskedSequence() {
+  @computed get maskedSequence() {
     const notes = this.allNotes;
     const maskedSequence: NoteSequence = [];
 

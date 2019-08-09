@@ -32,16 +32,9 @@ export const MODEL_URL =
 
 export const DIVISIONS = [4, 8, 12, 16, 20, 24, 28];
 
+// prettier-ignore
 export const DEFAULT_NOTES = [
-  [72, 4],
-  [74, 2],
-  [76, 2],
-  [74, 6],
-  [77, 2],
-  [79, 4],
-  [74, 2],
-  [76, 2],
-  [72, 8],
+  [72, 4], [74, 2], [76, 2], [74, 6], [77, 2], [79, 4], [74, 2], [76, 2], [72, 8],
 ];
 
 export const DEFAULT_EDITOR_WIDTH = 1200;
@@ -52,13 +45,24 @@ export const NOTE_HEIGHT = 12;
 export const MASK_LANE_HEIGHT = 20;
 export const TIMELINE_HEIGHT = 20;
 
-export enum RefineOnOriginal {
-  VerySimilarNotes = 0,
-  SimilarNotes,
-  NoRefinement,
-  DifferentNotes,
-  VeryDifferentNotes,
+export const VOICES = ['SOPRANO', 'ALTO', 'TENOR', 'BASS'];
+
+export const MIN_SURPRISE_FACTOR = -3;
+export const MAX_SURPRISE_FACTOR = 1;
+
+export enum DifferenceFromOriginal {
+  VerySimilar = 0,
+  Similar = 1,
+  SomewhatDifferent = 2,
+  Different = 3,
+  VeryDifferent = 4,
 }
+
+export const MIN_DIFFERENCE_FACTOR = DifferenceFromOriginal.VerySimilar;
+export const MAX_DIFFERENCE_FACTOR = DifferenceFromOriginal.VeryDifferent;
+
+export const MIN_HAPPY_SAD_FACTOR = -1.2;
+export const MAX_HAPPY_SAD_FACTOR = 1.2;
 
 // prettier-ignore
 export const KEY_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];

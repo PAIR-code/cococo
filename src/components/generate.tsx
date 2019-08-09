@@ -14,26 +14,34 @@ limitations under the License.
 ==============================================================================*/
 
 import React from 'react';
+import _ from 'lodash';
 import { style } from 'typestyle';
 import { observer } from 'mobx-react';
 import Button from '@material-ui/core/Button';
+import Divider from '@material-ui/core/Divider';
 import Typography from '@material-ui/core/Typography';
 import Slider from '@material-ui/core/Slider';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
-import FormHelperText from '@material-ui/core/FormHelperText';
 import { MusicNote } from '@material-ui/icons';
 
 import { editor, engine, sequences, layout, Note } from '../core';
 
 import { Sequence } from './sequence';
 import {
-  MAX_PITCH,
+  MIN_HAPPY_SAD_FACTOR,
+  MAX_HAPPY_SAD_FACTOR,
+  MIN_SURPRISE_FACTOR,
+  MAX_SURPRISE_FACTOR,
+  MIN_DIFFERENCE_FACTOR,
+  MAX_DIFFERENCE_FACTOR,
   MIN_PITCH,
+  MAX_PITCH,
   TOTAL_SIXTEENTHS,
-  RefineOnOriginal,
 } from '../core/constants';
+
+import './generate.css';
 
 function getPitchRange(noteSequences: Note[][]) {
   let minPitch = MAX_PITCH;
@@ -63,87 +71,20 @@ function getPositionRange(noteSequences: Note[][]) {
   return [minPosition, maxPosition];
 }
 
-const horizontalSliderStyle = style({
-  marginLeft: 20,
-  marginRight: 20,
-});
+const horizontalSliderStyle = style({});
 
-const conventionalSurprisingMarks = [
-  {
-    value: -3,
-  },
-  {
-    value: -2.5,
-    label: 'conventional',
-  },
-  {
-    value: -2,
-  },
-  {
-    value: -1,
-  },
-  {
-    value: 0,
-  },
-  {
-    value: 0.5,
-  },
-  {
-    value: 1,
-    label: 'surprising',
-  },
-];
-
-const happySadMarks = [
-  {
-    value: -1,
-    label: '😢🙁sad',
-  },
-  {
-    value: 0,
-  },
-  {
-    value: 1,
-    label: '😃😊happy',
-  },
-];
-
-// limit, middle, end
-const refineSliderMarks = [0, 2, 4].map(value => {
-  return {
-    value: value,
-    label: refineSliderTextOptions(value),
-  };
-});
-
-function refineSliderTextOptions(value: number) {
-  if (value === RefineOnOriginal.VerySimilarNotes) {
-    return 'Similar';
-  } else if (value === RefineOnOriginal.NoRefinement) {
-    return 'Independent';
-  } else if (value === RefineOnOriginal.VeryDifferentNotes) {
-    return 'Different';
-  }
-}
-
-export interface SequencesProps {}
+export interface GenerateProps {}
 
 @observer
-export class Sequences extends React.Component<SequencesProps> {
+export class Generate extends React.Component<GenerateProps> {
   renderSequences() {
     const noteSequences = sequences.candidateSequences;
 
     const [minPitch, maxPitch] = getPitchRange(noteSequences);
     const [minPosition, maxPosition] = getPositionRange(noteSequences);
 
-    const sequencesContainerStyle = style({
-      marginTop: 20,
-      display: 'flex',
-      flexDirection: 'column',
-    });
-
     return (
-      <div className={sequencesContainerStyle}>
+      <div className="sequences-container">
         {noteSequences.map((notes, index) => {
           return (
             <Sequence
@@ -178,28 +119,34 @@ export class Sequences extends React.Component<SequencesProps> {
     );
   }
 
-  renderRefineOnOriginal() {
+  renderSimilaritySlider() {
+    const maskedSequenceExists = editor.maskedSequence.length > 0;
+    const candidateSequenceSelected =
+      sequences.selectedCandidateSequenceIndex > 0;
+    const enabled = candidateSequenceSelected ? true : maskedSequenceExists;
+    const labelColor = enabled ? 'textPrimary' : 'textSecondary';
     return (
-      <div>
-        <Typography variant="overline" align="center">
-          get _____ to <MusicNote /> in mask
-        </Typography>
-        <div className={horizontalSliderStyle}>
-          <Slider
-            value={sequences.refineOnOriginalStrategy}
-            onChange={(e: any, newValue: number | number[]) => {
-              if (newValue !== null) {
-                sequences.refineOnOriginalStrategy = Number(newValue);
-              }
-            }}
-            getAriaValueText={refineSliderTextOptions}
-            aria-labelledby="refine-on-original-slider-restrict"
-            step={1}
-            valueLabelDisplay="off"
-            marks={refineSliderMarks}
-            min={0}
-            max={4}
-          />
+      <div className="horizontal-slider">
+        <Slider
+          value={sequences.differenceFromOriginal}
+          onChange={(e: any, newValue: number | number[]) => {
+            if (newValue !== null) {
+              sequences.differenceFromOriginal = Number(newValue);
+            }
+          }}
+          step={0.1}
+          valueLabelDisplay="off"
+          min={MIN_DIFFERENCE_FACTOR}
+          max={MAX_DIFFERENCE_FACTOR}
+          disabled={!enabled}
+        />
+        <div className="slider-label">
+          <Typography variant="caption" color={labelColor}>
+            Similar
+          </Typography>
+          <Typography variant="caption" color={labelColor}>
+            Different
+          </Typography>
         </div>
       </div>
     );
@@ -208,18 +155,15 @@ export class Sequences extends React.Component<SequencesProps> {
   render() {
     const harmonizeEnabled = engine.isModelLoaded && !engine.isWorking;
 
-    const containerStyle = style({
-      margin: 10,
-      marginTop: 20,
-      display: 'flex',
-      flexDirection: 'column',
+    const nSequenceContainerStyle = style({
+      margin: '5px 0 15px',
+      width: '100%',
     });
 
     const showCandidateSequences = sequences.candidateSequences.length > 0;
-    const showRefineOnOriginal = editor.getMaskedSequence.length > 0;
 
     return (
-      <div className={containerStyle}>
+      <div className="container">
         <Button
           disabled={!harmonizeEnabled}
           variant="outlined"
@@ -234,7 +178,7 @@ export class Sequences extends React.Component<SequencesProps> {
           🤖 Generate
           <MusicNote />
         </Button>
-        <FormControl>
+        <FormControl classes={{ root: nSequenceContainerStyle }}>
           <Select
             value={sequences.nSequencesToGenerate}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -245,14 +189,13 @@ export class Sequences extends React.Component<SequencesProps> {
             }}
             autoWidth
           >
-            <MenuItem value={1}>1</MenuItem>
-            <MenuItem value={2}>2</MenuItem>
-            <MenuItem value={3}>3</MenuItem>
-            <MenuItem value={4}>4</MenuItem>
+            <MenuItem value={1}>1 sequence</MenuItem>
+            <MenuItem value={2}>2 sequences</MenuItem>
+            <MenuItem value={3}>3 sequences</MenuItem>
+            <MenuItem value={4}>4 sequences</MenuItem>
           </Select>
-          <FormHelperText style={{ width: 100 }}>n sequences</FormHelperText>
         </FormControl>
-        <div className={horizontalSliderStyle}>
+        <div className="horizontal-slider">
           <Slider
             value={sequences.conventionalSurprising}
             onChange={(e: any, newValue: number | number[]) => {
@@ -261,35 +204,32 @@ export class Sequences extends React.Component<SequencesProps> {
               }
             }}
             aria-labelledby="temperature-slider-restrict"
-            step={null}
-            valueLabelDisplay="off"
-            marks={conventionalSurprisingMarks}
-            min={-3}
-            max={1}
+            step={0.1}
+            min={MIN_SURPRISE_FACTOR}
+            max={MAX_SURPRISE_FACTOR}
           />
+          <div className="slider-label">
+            <Typography variant="caption">Conventional</Typography>
+            <Typography variant="caption">Surprising</Typography>
+          </div>
         </div>
-        <div className={horizontalSliderStyle}>
+        <div className="horizontal-slider">
           <Slider
             value={sequences.happySad}
             onChange={(e: any, newValue: number | number[]) => {
-              if (newValue !== null) {
-                sequences.happySad = Number(newValue);
-                if (sequences.happySad === 1) {
-                  editor.mode = 'major';
-                } else if (sequences.happySad === -1) {
-                  editor.mode = 'minor';
-                }
-              }
+              if (newValue !== null) sequences.happySad = Number(newValue);
             }}
-            aria-labelledby="happysad-slider-restrict"
-            step={null}
+            step={0.1}
             valueLabelDisplay="off"
-            marks={happySadMarks}
-            min={-1.2}
-            max={1.2}
+            min={MIN_HAPPY_SAD_FACTOR}
+            max={MAX_HAPPY_SAD_FACTOR}
           />
+          <div className="slider-label">
+            <Typography variant="caption">😢 Minor</Typography>
+            <Typography variant="caption">Major 😊</Typography>
+          </div>
         </div>
-        {showRefineOnOriginal && this.renderRefineOnOriginal()}
+        {this.renderSimilaritySlider()}
         {showCandidateSequences && this.renderSequences()}
       </div>
     );

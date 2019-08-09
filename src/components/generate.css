@@ -1,0 +1,22 @@
+.container {
+  padding: 0 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.slider-label {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: -12px;
+}
+
+.sequences-container {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.horizontal-slider {
+  margin-bottom: 3px;
+}
