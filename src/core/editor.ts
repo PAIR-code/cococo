@@ -378,6 +378,10 @@ class Editor {
     return maskedSequence;
   }
 
+  @computed get doMasksExist() {
+    return _.some(this.generationMasks, mask => mask.length > 0);
+  }
+
   toggleVoiceMute(voiceIndex: number) {
     if (this.mutedVoices.has(voiceIndex)) {
       this.mutedVoices.delete(voiceIndex);
