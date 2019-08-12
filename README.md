@@ -1,18 +1,12 @@
-# CoCoCo
+# 𝄡 Bach CoCoCo
 
 #### Collaborative Convolutional Counterpoint
+
+Bach CoCoCo is an experimental user interface to collaboratively compose counterpoint with an AI agent trained on the chorale canon of the eminent JS Bach. The repo uses a modified tensorflow.js implementation of [Coconet](https://magenta.tensorflow.org/coconet) by Huang et. al, with a soft-prior-based strategy for tuning the output of the neural network.
 
 ```bash
 yarn install
 yarn dev
 ```
 
-To make calls to an API server:
-
-create a .env file that contais the following line:
-
-```bash
-API_SERVER="<FULL URL OF API SERVER>"
-```
-
-Now, `src/api.ts` will work and make calls to a gLinux api server.
+**This is not an officially supported Google product**
