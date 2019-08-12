@@ -15,7 +15,8 @@ limitations under the License.
 
 import * as mm from '@magenta/music';
 import { observable } from 'mobx';
-import { Note, NoteSequence } from './note';
+import { Note } from './note';
+import { NoteSequence } from './note-sequence';
 import editor from './editor';
 import sequences from './sequences';
 import { range } from 'lodash';
@@ -247,7 +248,7 @@ class Engine {
       nudgeFactor = 2;
     }
 
-    const outputSequences: NoteSequence[] = [];
+    const outputNotes: Note[][] = [];
     for (let i = 0; i < nSequencesToGenerate; i++) {
       const inputNotes = [...editor.allNotes];
       const sequence = this.getMagentaNoteSequence(inputNotes);
@@ -260,30 +261,33 @@ class Engine {
         keyScaleName,
       });
 
-      const outputSequence = fromMagentaSequence(
+      const output = fromMagentaSequence(
         mm.sequences.mergeConsecutiveNotes(results)
       );
 
-      // Now, filter the outputSequence by removing the notes that were supplied to the model.
+      // Now, filter the output by removing the notes that were supplied to the model.
       const inputNotesSet = new Set<string>();
       const makeKey = note =>
         `${note.pitch}:${note.position}:${note.duration}:${note.voice}`;
       inputNotes.forEach(note => {
         inputNotesSet.add(makeKey(note));
       });
-      const filteredSequence = outputSequence.filter(note => {
+      const filtered = output.filter(note => {
         const key = makeKey(note);
         return !inputNotesSet.has(key);
       });
 
-      outputSequences.push(filteredSequence);
+      outputNotes.push(filtered);
     }
 
     // Now, set the first candidate sequence to be the original, masked sequence
-    const maskedSequence = editor.maskedSequence;
-    editor.removeCandidateNoteSequence(maskedSequence);
-    sequences.addCandidateSequences([maskedSequence, ...outputSequences]);
+    const maskedNotes = editor.maskedNotes;
+    editor.removeNotes(maskedNotes);
+    const noteSequences = [maskedNotes, ...outputNotes].map(notes => {
+      return new NoteSequence(notes);
+    });
 
+    sequences.addCandidateSequences(noteSequences);
     // Select the first, non-masked sequence
     sequences.selectCandidateSequence(1);
 

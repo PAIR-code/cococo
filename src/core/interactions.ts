@@ -192,7 +192,6 @@ class Interactions {
   @observable isEraseToolDragging = false;
   @observable isDrawToolDragging = false;
 
-  private noteBeingDrawn?: Note;
   private gridBounds: DOMRect;
 
   private handleDrawMouseDown = (
@@ -210,18 +209,16 @@ class Interactions {
     }
 
     const note = new Note(pitch, position, duration, Source.USER, voice);
-    this.noteBeingDrawn = note;
     const editorGrid = document.getElementById('editor-grid')!;
     this.gridBounds = editorGrid.getBoundingClientRect() as DOMRect;
 
-    editor.addNote(note);
+    editor.beginDrawingNote(note);
+    // editor.addNote(note);
     engine.playNote(note);
-
-    editor.trimOverlappingVoices(note);
   };
 
   handleDrawMouseMove = (e: MouseEvent) => {
-    const noteBeingDrawn = this.noteBeingDrawn;
+    const noteBeingDrawn = editor.noteBeingDrawn;
     if (!noteBeingDrawn) {
       return;
     }
@@ -233,28 +230,31 @@ class Interactions {
       gridPosition + editor.quantizeStep !== noteBeingDrawn.end;
     if (shouldUpdateDrawn) {
       noteBeingDrawn.moveEnd(gridPosition + editor.quantizeStep);
-      editor.trimOverlappingVoices(noteBeingDrawn);
+      editor.trimNoteBeingDrawnSequence(); // Trims overlapping notes in the sequence
     }
   };
 
   handleGridMouseDown = (scaleIndex: number, divisionIndex: number) => (
     e: React.MouseEvent
   ) => {
-    let resetTool: () => void = () => {};
+    let toolMouseUp: () => void = () => {};
     let mouseMove: (e: MouseEvent) => void = () => {};
 
     if (editor.selectedTool === EditorTool.ERASE) {
       this.isEraseToolDragging = true;
-      resetTool = () => (this.isEraseToolDragging = false);
+      toolMouseUp = () => (this.isEraseToolDragging = false);
     } else if (editor.selectedTool === EditorTool.DRAW) {
       this.isDrawToolDragging = true;
-      resetTool = () => (this.isDrawToolDragging = false);
+      toolMouseUp = () => {
+        this.isDrawToolDragging = false;
+        editor.endDrawingNote();
+      };
       this.handleDrawMouseDown(scaleIndex, divisionIndex, e);
       mouseMove = this.handleDrawMouseMove;
     }
 
     const mouseUp = () => {
-      resetTool();
+      toolMouseUp();
       document.removeEventListener('mousemove', mouseMove);
       document.removeEventListener('mouseup', mouseUp);
     };

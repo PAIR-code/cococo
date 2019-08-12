@@ -12,9 +12,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
+import { computed, observable } from 'mobx';
 
-import { observable } from 'mobx';
-import { NoteSequence } from './note';
+import { Note } from './note';
+import { NoteSequence } from './note-sequence';
 import editor from './editor';
 import engine from './engine';
 import { DifferenceFromOriginal } from './constants';
@@ -24,13 +25,35 @@ export class Sequences {
   @observable conventionalSurprising = -1;
   @observable happySad = 0;
   @observable differenceFromOriginal = DifferenceFromOriginal.SomewhatDifferent;
-  @observable generatedSequences: NoteSequence[][] = [];
 
   @observable candidateSequences: NoteSequence[] = [];
-  @observable selectedCandidateSequenceIndex = 0;
+  @observable selectedCandidateSequenceIndex: number | null = 0;
+
+  @computed get selectedCandidateSequence(): NoteSequence | null {
+    const index = this.selectedCandidateSequenceIndex;
+    return this.candidateSequences[index] || null;
+  }
+
+  addNoteToSelected(note: Note) {
+    const sequence = this.selectedCandidateSequence;
+    if (sequence) {
+      sequence.addNote(note);
+    }
+  }
+
+  removeNoteFromSelected(note: Note) {
+    const sequence = this.selectedCandidateSequence;
+    if (sequence) {
+      sequence.removeNote(note);
+    }
+  }
+
+  setSelectedCandidateSequence(sequence: NoteSequence) {
+    const index = this.selectedCandidateSequenceIndex;
+    this.candidateSequences[index] = sequence;
+  }
 
   addCandidateSequences = (sequences: NoteSequence[]) => {
-    this.generatedSequences.push(sequences);
     this.candidateSequences = sequences;
   };
 
@@ -40,7 +63,6 @@ export class Sequences {
 
   selectCandidateSequence = (index: number | null) => {
     this.selectedCandidateSequenceIndex = index;
-    editor.setTempNotes(this.candidateSequences[index]);
 
     // Try restarting the player with the new sequence added.
     if (engine.isPlaying) {
@@ -51,7 +73,6 @@ export class Sequences {
 
   commitSelectedCandidateSequence = () => {
     const index = this.selectedCandidateSequenceIndex;
-    editor.setTempNotes([]);
     editor.addAgentNotes(this.candidateSequences[index], /** replace */ false);
     this.candidateSequences = [];
   };
@@ -63,7 +84,6 @@ export class Sequences {
     // Then, clear the sequences
     this.selectedCandidateSequenceIndex = 0;
     this.candidateSequences = [];
-    editor.setTempNotes([]);
   };
 }
 

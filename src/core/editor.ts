@@ -22,7 +22,9 @@ import {
 } from './tonal-utils';
 import * as _ from 'lodash';
 
-import { Note, NoteSequence, Source, Voice } from './note';
+import { Note, Source, Voice } from './note';
+import { NoteSequence } from './note-sequence';
+import sequences from './sequences';
 import undo, { undoable } from './undo';
 
 import {
@@ -54,27 +56,20 @@ export class Mask {
 }
 
 class Editor {
-  @observable private notesMap = new Map<number, Note>();
-  @observable private tempNotesMap = new Map<number, Note>();
+  @observable private noteSequence = new NoteSequence();
   @observable private mutedVoices = new Set<number>();
 
-  setTempNotes(notes: Note[], clear = true) {
-    if (clear) this.tempNotesMap.clear();
-    notes.forEach(note => {
-      this.tempNotesMap.set(note.id, note);
-    });
+  @computed get allNotes() {
+    return [...this.noteSequence.notes, ...this.tempNoteSequence.notes];
   }
 
-  @computed get allNotes() {
-    return [...this.notesMap.values(), ...this.tempNotes];
+  @computed get tempNoteSequence() {
+    const selectedSequence = sequences.selectedCandidateSequence;
+    return selectedSequence ? selectedSequence : NoteSequence.empty();
   }
 
   @computed get unmutedNotes() {
     return this.allNotes.filter(note => !this.isVoiceMuted(note.voice));
-  }
-
-  @computed get tempNotes() {
-    return [...this.tempNotesMap.values()];
   }
 
   @computed get userNotes() {
@@ -82,6 +77,19 @@ class Editor {
   }
   @computed get agentNotes() {
     return this.allNotes.filter(note => note.source === Source.AGENT);
+  }
+
+  @observable noteBeingDrawn: Note | null = null;
+  beginDrawingNote(note: Note) {
+    this.noteBeingDrawn = note;
+  }
+  trimNoteBeingDrawnSequence() {
+    if (this.tempNoteSequence && this.noteBeingDrawn) {
+      this.tempNoteSequence.trimOverlappingVoices(this.noteBeingDrawn);
+    }
+  }
+  endDrawingNote() {
+    this.noteBeingDrawn = null;
   }
 
   @observable scale = makeNoteScale(MAX_PITCH, MIN_PITCH);
@@ -171,7 +179,7 @@ class Editor {
   }
 
   private getTempNoteByPitchPosition(pitch: number, position: number) {
-    return this.tempNotes.find(note => {
+    return this.tempNoteSequence.notes.find(note => {
       return note.pitch === pitch && note.position === position;
     });
   }
@@ -204,7 +212,17 @@ class Editor {
 
   // The non-undoable internal method
   private _addNote(note: Note) {
-    this.notesMap.set(note.id, note);
+    // We need to potentially add the note to a candidate sequence
+    const isMasked = this.isNoteMasked(note);
+    const isCandidateSequenceSelected =
+      sequences.selectedCandidateSequenceIndex !== null;
+    if (isMasked && isCandidateSequenceSelected) {
+      sequences.addNoteToSelected(note);
+    }
+    // Otherwise, just add to the main note sequence
+    else {
+      this.noteSequence.addNote(note);
+    }
   }
 
   @undoable()
@@ -214,11 +232,12 @@ class Editor {
 
   // The non-undoable internal method
   private _removeNote(note: Note) {
-    this.tempNotesMap.delete(note.id);
-    this.notesMap.delete(note.id);
+    // We need to remove the note from the candidate sequence
+    sequences.removeNoteFromSelected(note);
+    this.noteSequence.removeNote(note);
   }
 
-  removeCandidateNoteSequence(notes: Note[]) {
+  removeNotes(notes: Note[]) {
     notes.forEach(note => this._removeNote(note));
   }
 
@@ -231,23 +250,22 @@ class Editor {
     if (replace) {
       this.clearAgentNotes();
     }
-    sequence.forEach(note => {
+    sequence.notes.forEach(note => {
       this._addNote(note);
     });
   }
 
   @undoable()
   clearAgentNotes() {
-    for (const [key, note] of this.notesMap.entries()) {
-      if (note.source === Source.AGENT) {
-        this.notesMap.delete(key);
-      }
-    }
+    const filtered = this.noteSequence.notes.filter(
+      note => note.source !== Source.AGENT
+    );
+    this.noteSequence.setNotes(filtered);
   }
 
   @undoable()
   clearAllNotes() {
-    this.notesMap.clear();
+    this.noteSequence.clearNotes();
   }
 
   startNoteDrag() {
@@ -259,7 +277,7 @@ class Editor {
     for (let other of this.allNotes) {
       if (other === note) continue;
       if (other.position === note.position && other.pitch === note.pitch) {
-        this.notesMap.delete(note.id);
+        this.noteSequence.removeNote(note);
       }
     }
     undo.completeUndoable();
@@ -267,28 +285,10 @@ class Editor {
 
   // Not an undoable function because this is what is used by the undo manager.
   replaceAllNotes(notes: Note[]) {
-    this.notesMap.clear();
+    this.noteSequence.clearNotes();
     for (const note of notes) {
       this._addNote(note);
     }
-  }
-
-  private overlaps(note: Note, positionRange: number[], pitchRange: number[]) {
-    const { pitch: pitch, position, duration } = note;
-    const [startPosition, endPosition] = positionRange;
-    const [startValue, endValue] = pitchRange;
-    if (pitch < startValue || pitch > endValue) {
-      return false;
-    } else if (position >= startPosition && position < endPosition) {
-      return true;
-    } else if (
-      position < startPosition &&
-      position + duration > startPosition
-    ) {
-      return true;
-    }
-
-    return false;
   }
 
   private replaceNoteWithNotes(note: Note, otherNotes: Note[]) {
@@ -296,30 +296,11 @@ class Editor {
     otherNotes.forEach(otherNote => this._addNote(otherNote));
   }
 
-  trimOverlappingVoices(note: Note) {
-    const range = [note.start, note.end];
-    const overlappingNotes = this.allNotes.filter(
-      otherNote =>
-        otherNote !== note &&
-        otherNote.voice === note.voice &&
-        this.overlaps(otherNote, range, [MIN_PITCH, MAX_PITCH])
-    );
-
-    overlappingNotes.forEach(otherNote => {
-      if (otherNote.end > note.end) {
-        otherNote.moveStart(note.end);
-      } else {
-        // otherNote.isPlaying = true;
-        this._removeNote(otherNote);
-      }
-    });
-  }
-
   @undoable()
   maskNotes(positionRange: number[], pitchRange: number[], replaceMask = true) {
     const notesInMask: Note[] = [];
     for (const note of this.allNotes) {
-      if (this.overlaps(note, positionRange, pitchRange)) {
+      if (NoteSequence.overlaps(note, positionRange, pitchRange)) {
         notesInMask.push(note);
       }
     }
@@ -367,15 +348,15 @@ class Editor {
     return false;
   }
 
-  @computed get maskedSequence() {
+  @computed get maskedNotes() {
     const notes = this.allNotes;
-    const maskedSequence: NoteSequence = [];
+    const maskedNotes: Note[] = [];
 
     for (const note of notes) {
-      if (this.isNoteMasked(note)) maskedSequence.push(note);
+      if (this.isNoteMasked(note)) maskedNotes.push(note);
     }
 
-    return maskedSequence;
+    return maskedNotes;
   }
 
   @computed get doMasksExist() {
@@ -392,69 +373,6 @@ class Editor {
 
   isVoiceMuted(voiceIndex: number) {
     return this.mutedVoices.has(voiceIndex);
-  }
-
-  // The following logic is the old, note-based way of applying generation
-  // masks. Since we're now using the maskLane approach, we'll
-  @undoable()
-  private maskNotesLegacy(positionRange: number[], pitchRange: number[]) {
-    // If all notes in the mask are already masked, unmask them
-    var allNotesAlreadyMasked = true;
-    var notesInMask = [];
-    for (const note of this.allNotes) {
-      if (this.overlaps(note, positionRange, pitchRange)) {
-        const [maskStart, maskEnd] = positionRange;
-        const noteStart = note.position;
-        const noteEnd = note.end;
-
-        // Mask doesn't cover full note
-        if (noteStart < maskStart || noteEnd > maskEnd) {
-          allNotesAlreadyMasked = false;
-        } else if (!note.isMasked) {
-          allNotesAlreadyMasked = false;
-        }
-        notesInMask.push(note);
-      }
-    }
-    if (allNotesAlreadyMasked) {
-      notesInMask.map(function(note) {
-        note.isMasked = false;
-      });
-      return;
-    }
-
-    // If not all notes are already masked, do the usual masking
-    for (const note of this.allNotes) {
-      if (this.overlaps(note, positionRange, pitchRange)) {
-        // Split any notes that overlap the range, then set the overlapping portion to be masked.
-        const [maskStart, maskEnd] = positionRange;
-        const noteStart = note.position;
-        const noteEnd = note.end;
-
-        // Mask covers all of note
-        if (noteStart >= maskStart && noteEnd <= maskEnd) {
-          note.isMasked = true;
-        } else if (noteStart >= maskStart && noteEnd > maskEnd) {
-          const a = Note.fromNote(note).moveEnd(maskEnd);
-          const b = Note.fromNote(note).moveStart(maskEnd);
-          a.isMasked = true;
-          this.replaceNoteWithNotes(note, [a, b]);
-        } else if (noteStart < maskStart && noteEnd <= maskEnd) {
-          const a = Note.fromNote(note).moveEnd(maskStart);
-          const b = Note.fromNote(note).moveStart(maskStart);
-          b.isMasked = true;
-          this.replaceNoteWithNotes(note, [a, b]);
-        } else if (noteStart < maskStart && noteEnd > maskEnd) {
-          const a = Note.fromNote(note).moveEnd(maskStart);
-          const b = Note.fromNote(note)
-            .moveStart(maskStart)
-            .moveEnd(maskEnd);
-          const c = Note.fromNote(note).moveStart(maskEnd);
-          b.isMasked = true;
-          this.replaceNoteWithNotes(note, [a, b, c]);
-        }
-      }
-    }
   }
 }
 

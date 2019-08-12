@@ -18,7 +18,6 @@ import _ from 'lodash';
 import { style } from 'typestyle';
 import { observer } from 'mobx-react';
 import Button from '@material-ui/core/Button';
-import Divider from '@material-ui/core/Divider';
 import Typography from '@material-ui/core/Typography';
 import Slider from '@material-ui/core/Slider';
 import FormControl from '@material-ui/core/FormControl';
@@ -26,7 +25,8 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import { MusicNote } from '@material-ui/icons';
 
-import { editor, engine, sequences, layout, Note } from '../core';
+import { editor, engine, sequences, Note } from '../core';
+import { NoteSequence } from '../core/note-sequence';
 
 import { Sequence } from './sequence';
 import {
@@ -43,12 +43,12 @@ import {
 
 import './generate.css';
 
-function getPitchRange(noteSequences: Note[][]) {
+function getPitchRange(noteSequences: NoteSequence[]) {
   let minPitch = MAX_PITCH;
   let maxPitch = MIN_PITCH;
 
   noteSequences.forEach(noteSequence => {
-    noteSequence.forEach(note => {
+    noteSequence.notes.forEach(note => {
       minPitch = Math.min(note.pitch, minPitch);
       maxPitch = Math.max(note.pitch, maxPitch);
     });
@@ -57,12 +57,12 @@ function getPitchRange(noteSequences: Note[][]) {
   return [minPitch, maxPitch];
 }
 
-function getPositionRange(noteSequences: Note[][]) {
+function getPositionRange(noteSequences: NoteSequence[]) {
   let minPosition = TOTAL_SIXTEENTHS;
   let maxPosition = 0;
 
   noteSequences.forEach(noteSequence => {
-    noteSequence.forEach(note => {
+    noteSequence.notes.forEach(note => {
       minPosition = Math.min(note.start, minPosition);
       maxPosition = Math.max(note.end, maxPosition);
     });
@@ -85,12 +85,12 @@ export class Generate extends React.Component<GenerateProps> {
 
     return (
       <div className="sequences-container">
-        {noteSequences.map((notes, index) => {
+        {noteSequences.map((noteSequence, index) => {
           return (
             <Sequence
               key={index}
               title={index === 0 ? 'original' : ''}
-              notes={notes}
+              notes={noteSequence.notes}
               maxPitch={maxPitch}
               minPitch={minPitch}
               maxPosition={maxPosition}
@@ -120,7 +120,7 @@ export class Generate extends React.Component<GenerateProps> {
   }
 
   renderSimilaritySlider() {
-    const maskedSequenceExists = editor.maskedSequence.length > 0;
+    const maskedSequenceExists = editor.maskedNotes.length > 0;
     const candidateSequenceSelected =
       sequences.selectedCandidateSequenceIndex > 0;
     const enabled = candidateSequenceSelected ? true : maskedSequenceExists;
