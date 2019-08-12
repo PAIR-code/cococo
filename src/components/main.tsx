@@ -26,7 +26,7 @@ import { Editor } from './editor';
 import { Generate } from './generate';
 import { Working } from './working';
 
-import { engine, layout } from '../core';
+import { generator, layout, player } from '../core';
 import { theme } from '../core/theme';
 
 @observer
@@ -73,7 +73,7 @@ export default class Main extends React.Component {
             <Generate />
           </div>
         </div>
-        <Working open={engine.isWorking} title="Working..." />
+        <Working open={generator.isWorking} title="Working..." />
       </ThemeProvider>
     );
   }

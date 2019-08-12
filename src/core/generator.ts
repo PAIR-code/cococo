@@ -12,98 +12,42 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-
+import { computed, observable } from 'mobx';
 import * as mm from '@magenta/music';
-import { observable } from 'mobx';
+
 import { Note } from './note';
 import { NoteSequence } from './note-sequence';
-import editor from './editor';
-import sequences from './sequences';
-import { range } from 'lodash';
-import * as Tone from 'tone';
-import { trim, fromMagentaSequence } from './magenta-utils';
+import { editor, player } from '../core';
 import { Coconet } from './coconet';
-
-import {
-  DEFAULT_BPM,
-  MIN_PITCH,
-  MAX_PITCH,
-  NOTE_VELOCITY,
-  SOUNDFONT_URL,
-  MODEL_URL,
-  TOTAL_SIXTEENTHS,
-  DifferenceFromOriginal,
-} from './constants';
+import { fromMagentaSequence, getMagentaNoteSequence } from './magenta-utils';
+import { MODEL_URL, DifferenceFromOriginal } from './constants';
 
 interface InfillMask {
   step: number;
   voice: number;
 }
 
-export class CallbackObject extends mm.BasePlayerCallback {
-  constructor(private engine: Engine) {
-    super();
-  }
-
-  run(note: mm.NoteSequence.INote, t: number) {
-    const { pitch, quantizedStartStep } = note;
-
-    // this offsets the position by loopStart, so that the notes correspond to the notes in the notesMap
-    // which allows the notes to be highlighted red for playing
-    editor.setNotePlaying(pitch, quantizedStartStep + this.engine.loopStart);
-  }
-  stop() {
-    if (this.engine.shouldLoop) {
-      this.engine.loop();
-    } else {
-      this.engine.stop();
-    }
-  }
-}
-
-function delay(ms = 1) {
-  return new Promise(resolve => setTimeout(() => resolve(), ms));
-}
-
-class Engine {
-  playerCallbackObject = new CallbackObject(this);
-  @observable isPlayerLoaded = false;
-  @observable isModelLoaded = false;
-  @observable isPlaying = false;
-  @observable isWorking = false;
-
-  @observable shouldLoop = true;
-
-  @observable loopStart = 0;
-  @observable loopEnd = TOTAL_SIXTEENTHS;
-
-  player = new mm.SoundFontPlayer(
-    SOUNDFONT_URL,
-    Tone.master,
-    undefined,
-    undefined,
-    this.playerCallbackObject
-  );
+export class Generate {
   model = new Coconet(MODEL_URL);
+  @observable isWorking = false;
+  @observable isModelLoaded = true;
 
-  @observable bpm = DEFAULT_BPM;
+  @observable nSequencesToGenerate = 2;
+  @observable conventionalSurprising = -1;
+  @observable happySad = 0;
+  @observable differenceFromOriginal = DifferenceFromOriginal.SomewhatDifferent;
+
+  @observable candidateSequences: NoteSequence[] = [];
+  @observable selectedCandidateSequenceIndex: number | null = 0;
+
+  @computed get selectedCandidateSequence(): NoteSequence | null {
+    const index = this.selectedCandidateSequenceIndex;
+    if (index === null || this.candidateSequences.length === 0) return null;
+    return this.candidateSequences[index] || null;
+  }
 
   constructor() {
-    this.loadPlayer();
     this.loadModel();
-  }
-
-  async loadPlayer() {
-    const allNotes: mm.NoteSequence.INote[] = range(
-      MIN_PITCH,
-      MAX_PITCH + 1
-    ).map(pitch => ({
-      pitch,
-      velocity: NOTE_VELOCITY,
-    }));
-    const allNotesSeq = { notes: allNotes };
-    await this.player.loadSamples(allNotesSeq);
-    this.isPlayerLoaded = true;
   }
 
   async loadModel() {
@@ -111,79 +55,59 @@ class Engine {
     this.isModelLoaded = true;
   }
 
-  togglePlay() {
-    if (this.isPlaying) {
-      this.stop();
-    } else {
-      this.start();
+  addNoteToSelected(note: Note) {
+    const sequence = this.selectedCandidateSequence;
+    if (sequence) {
+      sequence.addNote(note);
     }
   }
 
-  playNote(note: Note) {
-    if (this.isPlayerLoaded) {
-      this.playNoteDown(note);
-      const timePerSixteenth = (((1 / this.bpm) * 60) / 4) * 1000;
-      const delay = note.duration * timePerSixteenth;
-      setTimeout(() => this.playNoteUp(note), delay);
+  removeNoteFromSelected(note: Note) {
+    const sequence = this.selectedCandidateSequence;
+    if (sequence) {
+      sequence.removeNote(note);
     }
   }
 
-  playNoteDown(note: Note) {
-    if (this.isPlayerLoaded) {
-      editor.activeNoteValue = note.pitch;
-      this.player.playNoteDown(note.magentaNote);
+  setSelectedCandidateSequence(sequence: NoteSequence) {
+    const index = this.selectedCandidateSequenceIndex;
+    this.candidateSequences[index] = sequence;
+  }
+
+  addCandidateSequences = (sequences: NoteSequence[]) => {
+    this.candidateSequences = sequences;
+  };
+
+  getEmptySequence = () => {
+    return [];
+  };
+
+  selectCandidateSequence = (index: number | null) => {
+    this.selectedCandidateSequenceIndex = index;
+
+    // Try restarting the player with the new sequence added.
+    if (player.isPlaying) {
+      player.stop();
+      player.start();
     }
-  }
+  };
 
-  playNoteUp(note: Note) {
-    if (this.isPlayerLoaded) {
-      editor.activeNoteValue = null;
-      this.player.playNoteUp(note.magentaNote);
+  commitSelectedCandidateSequence = () => {
+    const sequence = this.selectedCandidateSequence;
+    if (sequence) {
+      editor.addGeneratedSequence(sequence);
     }
-  }
+    this.clearCandidateSequences();
+  };
 
-  getMagentaNoteSequence(notes: Note[], merge = false) {
-    const noteSequence = {
-      notes: notes.map(note => note.magentaNote),
-      tempos: [{ time: 0, qpm: this.bpm }],
-      totalQuantizedSteps: editor.totalSixteenths,
-      quantizationInfo: { stepsPerQuarter: 4 },
-    };
-    return merge
-      ? mm.sequences.mergeConsecutiveNotes(noteSequence)
-      : mm.sequences.clone(noteSequence);
-  }
+  clearCandidateSequences = () => {
+    // Add back the original sequence
+    editor.addGeneratedSequence(this.candidateSequences[0]);
 
-  start() {
-    if (this.isPlayerLoaded) {
-      if (editor.allNotes.length === 0) {
-        return;
-      }
-
-      const sequence = this.getMagentaNoteSequence(editor.unmutedNotes);
-      const loopSequence = trim(sequence, this.loopStart, this.loopEnd, true);
-
-      // trim can give a note that has quantizedStartStep == quantizedEndStep
-      // when on border of trim region.
-      loopSequence.notes = loopSequence.notes.filter(note => {
-        return note.quantizedStartStep !== note.quantizedEndStep;
-      });
-
-      this.player.start(loopSequence);
-      this.isPlaying = true;
-    }
-  }
-
-  loop() {
-    editor.clearPlayingNotes();
-    this.start();
-  }
-
-  stop() {
-    this.player.stop();
-    this.isPlaying = false;
-    editor.clearPlayingNotes();
-  }
+    // Then, clear the sequences
+    this.selectedCandidateSequenceIndex = 0;
+    this.candidateSequences = [];
+  };
 
   getInfillMask(): InfillMask[] | undefined {
     const infillMask = [];
@@ -212,15 +136,15 @@ class Engine {
     // Allow the UX to respond before computing so heavily!
     await delay(200);
 
-    if (this.isPlaying) {
-      this.stop();
+    if (player.isPlaying) {
+      player.stop();
     }
 
     const {
       conventionalSurprising,
       differenceFromOriginal,
       nSequencesToGenerate,
-    } = sequences;
+    } = this;
     const temperature = this.computeTemperature(conventionalSurprising);
     const keyScaleName = {
       key: editor.key,
@@ -251,7 +175,11 @@ class Engine {
     const outputNotes: Note[][] = [];
     for (let i = 0; i < nSequencesToGenerate; i++) {
       const inputNotes = [...editor.allNotes];
-      const sequence = this.getMagentaNoteSequence(inputNotes);
+      const sequence = getMagentaNoteSequence(
+        inputNotes,
+        player.bpm,
+        editor.totalSixteenths
+      );
       const infillMask = this.getInfillMask();
       const results = await this.model.infill(sequence, {
         temperature,
@@ -287,12 +215,16 @@ class Engine {
       return new NoteSequence(notes);
     });
 
-    sequences.addCandidateSequences(noteSequences);
+    this.addCandidateSequences(noteSequences);
     // Select the first, non-masked sequence
-    sequences.selectCandidateSequence(1);
+    this.selectCandidateSequence(1);
 
     this.isWorking = false;
   }
 }
 
-export default new Engine();
+export default new Generate();
+
+function delay(ms = 1) {
+  return new Promise(resolve => setTimeout(() => resolve(), ms));
+}

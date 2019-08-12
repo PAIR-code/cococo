@@ -16,7 +16,7 @@ limitations under the License.
 import React from 'react';
 import _ from 'lodash';
 import { observable } from 'mobx';
-import { EditorTool, editor, engine, layout } from './index';
+import { EditorTool, editor, player, layout } from './index';
 import { MAX_PITCH, MIN_PITCH } from './constants';
 import { Note, Source } from './note';
 
@@ -81,7 +81,7 @@ class Interactions {
       // Disabled temporarily until we sort out the way to handle note overlaps
       // note.position = nextPosition;
       note.pitch = nextPitch;
-      engine.playNote(note);
+      player.playNote(note);
     }
   };
 
@@ -123,8 +123,8 @@ class Interactions {
       true
     );
 
-    if (nextPosition !== engine.loopStart && nextPosition < engine.loopEnd) {
-      engine.loopStart = nextPosition;
+    if (nextPosition !== player.loopStart && nextPosition < player.loopEnd) {
+      player.loopStart = nextPosition;
     }
   };
 
@@ -139,8 +139,8 @@ class Interactions {
       true
     );
 
-    if (nextPosition !== engine.loopEnd && nextPosition > engine.loopStart) {
-      engine.loopEnd = nextPosition;
+    if (nextPosition !== player.loopEnd && nextPosition > player.loopStart) {
+      player.loopEnd = nextPosition;
     }
   };
 
@@ -148,7 +148,7 @@ class Interactions {
     e.preventDefault();
 
     this.loopStartDragStartX = e.clientX;
-    this.loopStartDragStartPosition = engine.loopStart;
+    this.loopStartDragStartPosition = player.loopStart;
 
     const mouseMove = this.handleLoopStartDrag;
     const mouseUp = () => {
@@ -163,7 +163,7 @@ class Interactions {
     e.preventDefault();
 
     this.loopEndDragStartX = e.clientX;
-    this.loopEndDragStartPosition = engine.loopEnd;
+    this.loopEndDragStartPosition = player.loopEnd;
 
     const mouseMove = this.handleLoopEndDrag;
     const mouseUp = () => {
@@ -185,7 +185,7 @@ class Interactions {
     const note = new Note(value, position, duration);
 
     editor.addNote(note);
-    engine.playNote(note);
+    player.playNote(note);
   }
 
   @observable isMaskToolDragging = false;
@@ -214,7 +214,7 @@ class Interactions {
 
     editor.beginDrawingNote(note);
     // editor.addNote(note);
-    engine.playNote(note);
+    player.playNote(note);
   };
 
   handleDrawMouseMove = (e: MouseEvent) => {
@@ -365,7 +365,7 @@ class Interactions {
 
     const mouseUp = () => {
       if (!this.hasMaskDragMoved) {
-        const { loopStart, loopEnd } = engine;
+        const { loopStart, loopEnd } = player;
         editor.generationMasks[voiceIndex] = _.range(loopStart, loopEnd);
       }
 

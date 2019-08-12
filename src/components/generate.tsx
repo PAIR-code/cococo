@@ -25,7 +25,7 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import { MusicNote } from '@material-ui/icons';
 
-import { editor, engine, sequences, Note } from '../core';
+import { editor, generator } from '../core';
 import { NoteSequence } from '../core/note-sequence';
 
 import { Sequence } from './sequence';
@@ -78,7 +78,7 @@ export interface GenerateProps {}
 @observer
 export class Generate extends React.Component<GenerateProps> {
   renderSequences() {
-    const noteSequences = sequences.candidateSequences;
+    const noteSequences = generator.candidateSequences;
 
     const [minPitch, maxPitch] = getPitchRange(noteSequences);
     const [minPosition, maxPosition] = getPositionRange(noteSequences);
@@ -95,15 +95,15 @@ export class Generate extends React.Component<GenerateProps> {
               minPitch={minPitch}
               maxPosition={maxPosition}
               minPosition={minPosition}
-              isSelected={sequences.selectedCandidateSequenceIndex === index}
-              onSelect={() => sequences.selectCandidateSequence(index)}
+              isSelected={generator.selectedCandidateSequenceIndex === index}
+              onSelect={() => generator.selectCandidateSequence(index)}
             />
           );
         })}
         <Button
           variant="outlined"
           color="primary"
-          onClick={() => sequences.commitSelectedCandidateSequence()}
+          onClick={() => generator.commitSelectedCandidateSequence()}
         >
           Choose
         </Button>
@@ -111,7 +111,7 @@ export class Generate extends React.Component<GenerateProps> {
         <Button
           variant="outlined"
           color="primary"
-          onClick={() => sequences.clearCandidateSequences()}
+          onClick={() => generator.clearCandidateSequences()}
         >
           Clear
         </Button>
@@ -122,16 +122,16 @@ export class Generate extends React.Component<GenerateProps> {
   renderSimilaritySlider() {
     const maskedSequenceExists = editor.maskedNotes.length > 0;
     const candidateSequenceSelected =
-      sequences.selectedCandidateSequenceIndex > 0;
+      generator.selectedCandidateSequenceIndex > 0;
     const enabled = candidateSequenceSelected ? true : maskedSequenceExists;
     const labelColor = enabled ? 'textPrimary' : 'textSecondary';
     return (
       <div className="horizontal-slider">
         <Slider
-          value={sequences.differenceFromOriginal}
+          value={generator.differenceFromOriginal}
           onChange={(e: any, newValue: number | number[]) => {
             if (newValue !== null) {
-              sequences.differenceFromOriginal = Number(newValue);
+              generator.differenceFromOriginal = Number(newValue);
             }
           }}
           step={0.1}
@@ -153,15 +153,15 @@ export class Generate extends React.Component<GenerateProps> {
   }
 
   render() {
-    const isEngineBusy = !engine.isModelLoaded || engine.isWorking;
-    const isGenerateButtonDisabled = !editor.doMasksExist || isEngineBusy;
+    const isModelBusy = !generator.isModelLoaded || generator.isWorking;
+    const isGenerateButtonDisabled = !editor.doMasksExist || isModelBusy;
 
     const nSequenceContainerStyle = style({
       margin: '5px 0 15px',
       width: '100%',
     });
 
-    const showCandidateSequences = sequences.candidateSequences.length > 0;
+    const showCandidateSequences = generator.candidateSequences.length > 0;
 
     return (
       <div className="container">
@@ -170,10 +170,10 @@ export class Generate extends React.Component<GenerateProps> {
           variant="outlined"
           color="primary"
           onClick={() => {
-            if (sequences.candidateSequences.length) {
-              sequences.commitSelectedCandidateSequence();
+            if (generator.candidateSequences.length) {
+              generator.commitSelectedCandidateSequence();
             }
-            engine.harmonize();
+            generator.harmonize();
           }}
         >
           🤖 Generate
@@ -181,11 +181,11 @@ export class Generate extends React.Component<GenerateProps> {
         </Button>
         <FormControl classes={{ root: nSequenceContainerStyle }}>
           <Select
-            value={sequences.nSequencesToGenerate}
+            value={generator.nSequencesToGenerate}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               const value = e.target.value;
               if (value !== null) {
-                sequences.nSequencesToGenerate = Number(value);
+                generator.nSequencesToGenerate = Number(value);
               }
             }}
             autoWidth
@@ -198,10 +198,10 @@ export class Generate extends React.Component<GenerateProps> {
         </FormControl>
         <div className="horizontal-slider">
           <Slider
-            value={sequences.conventionalSurprising}
+            value={generator.conventionalSurprising}
             onChange={(e: any, newValue: number | number[]) => {
               if (newValue !== null) {
-                sequences.conventionalSurprising = Number(newValue);
+                generator.conventionalSurprising = Number(newValue);
               }
             }}
             aria-labelledby="temperature-slider-restrict"
@@ -216,9 +216,9 @@ export class Generate extends React.Component<GenerateProps> {
         </div>
         <div className="horizontal-slider">
           <Slider
-            value={sequences.happySad}
+            value={generator.happySad}
             onChange={(e: any, newValue: number | number[]) => {
-              if (newValue !== null) sequences.happySad = Number(newValue);
+              if (newValue !== null) generator.happySad = Number(newValue);
             }}
             step={0.1}
             valueLabelDisplay="off"

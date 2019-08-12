@@ -108,3 +108,20 @@ export function fromMagentaSequence(
     return note;
   });
 }
+
+export function getMagentaNoteSequence(
+  notes: Note[],
+  bpm: number,
+  totalSixteenths: number,
+  merge = false
+) {
+  const noteSequence = {
+    notes: notes.map(note => note.magentaNote),
+    tempos: [{ time: 0, qpm: bpm }],
+    totalQuantizedSteps: totalSixteenths,
+    quantizationInfo: { stepsPerQuarter: 4 },
+  };
+  return merge
+    ? mm.sequences.mergeConsecutiveNotes(noteSequence)
+    : mm.sequences.clone(noteSequence);
+}

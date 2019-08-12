@@ -17,7 +17,7 @@ import React from 'react';
 import { style } from 'typestyle';
 import { observer } from 'mobx-react';
 
-import { editor, engine } from '../core';
+import { editor, player } from '../core';
 import { COLOR_PLAYING, COLOR_SECONDARY, COLOR_PRIMARY } from '../core/theme';
 import { ScaleValue } from '../core/editor';
 import { Note } from '../core/note';
@@ -97,10 +97,10 @@ class Key extends React.Component<KeyProps> {
           onMouseDown={e => {
             e.preventDefault();
             const note = new Note(scaleValue.pitch, 0, 0.2);
-            engine.playNoteDown(note);
+            player.playNoteDown(note);
 
             const mouseup = () => {
-              engine.playNoteUp(note);
+              player.playNoteUp(note);
             };
             document.addEventListener('mouseup', mouseup);
           }}

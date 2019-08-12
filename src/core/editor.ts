@@ -22,9 +22,9 @@ import {
 } from './tonal-utils';
 import * as _ from 'lodash';
 
+import generator from './generator';
 import { Note, Source, Voice } from './note';
 import { NoteSequence } from './note-sequence';
-import sequences from './sequences';
 import undo, { undoable } from './undo';
 
 import {
@@ -56,15 +56,15 @@ export class Mask {
 }
 
 class Editor {
-  @observable private noteSequence = new NoteSequence();
+  @observable private mainSequence = new NoteSequence();
   @observable private mutedVoices = new Set<number>();
 
   @computed get allNotes() {
-    return [...this.noteSequence.notes, ...this.tempNoteSequence.notes];
+    return [...this.mainSequence.notes, ...this.tempNoteSequence.notes];
   }
 
   @computed get tempNoteSequence() {
-    const selectedSequence = sequences.selectedCandidateSequence;
+    const selectedSequence = generator.selectedCandidateSequence;
     return selectedSequence ? selectedSequence : NoteSequence.empty();
   }
 
@@ -215,13 +215,13 @@ class Editor {
     // We need to potentially add the note to a candidate sequence
     const isMasked = this.isNoteMasked(note);
     const isCandidateSequenceSelected =
-      sequences.selectedCandidateSequenceIndex !== null;
+      generator.selectedCandidateSequenceIndex !== null;
     if (isMasked && isCandidateSequenceSelected) {
-      sequences.addNoteToSelected(note);
+      generator.addNoteToSelected(note);
     }
     // Otherwise, just add to the main note sequence
     else {
-      this.noteSequence.addNote(note);
+      this.mainSequence.addNote(note);
     }
   }
 
@@ -233,8 +233,8 @@ class Editor {
   // The non-undoable internal method
   private _removeNote(note: Note) {
     // We need to remove the note from the candidate sequence
-    sequences.removeNoteFromSelected(note);
-    this.noteSequence.removeNote(note);
+    generator.removeNoteFromSelected(note);
+    this.mainSequence.removeNote(note);
   }
 
   removeNotes(notes: Note[]) {
@@ -246,26 +246,23 @@ class Editor {
   }
 
   @undoable()
-  addAgentNotes(sequence: NoteSequence, replace = true) {
-    if (replace) {
-      this.clearAgentNotes();
-    }
+  addGeneratedSequence(sequence: NoteSequence) {
     sequence.notes.forEach(note => {
-      this._addNote(note);
+      this.mainSequence.addNote(note);
     });
   }
 
   @undoable()
   clearAgentNotes() {
-    const filtered = this.noteSequence.notes.filter(
+    const filtered = this.mainSequence.notes.filter(
       note => note.source !== Source.AGENT
     );
-    this.noteSequence.setNotes(filtered);
+    this.mainSequence.setNotes(filtered);
   }
 
   @undoable()
   clearAllNotes() {
-    this.noteSequence.clearNotes();
+    this.mainSequence.clearNotes();
   }
 
   startNoteDrag() {
@@ -277,7 +274,7 @@ class Editor {
     for (let other of this.allNotes) {
       if (other === note) continue;
       if (other.position === note.position && other.pitch === note.pitch) {
-        this.noteSequence.removeNote(note);
+        this.mainSequence.removeNote(note);
       }
     }
     undo.completeUndoable();
@@ -285,7 +282,7 @@ class Editor {
 
   // Not an undoable function because this is what is used by the undo manager.
   replaceAllNotes(notes: Note[]) {
-    this.noteSequence.clearNotes();
+    this.mainSequence.clearNotes();
     for (const note of notes) {
       this._addNote(note);
     }

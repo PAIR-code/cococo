@@ -16,7 +16,7 @@ limitations under the License.
 import React from 'react';
 import { observer } from 'mobx-react';
 
-import { engine, editor } from '../core';
+import { player, editor } from '../core';
 
 import { Group } from './group';
 
@@ -29,8 +29,8 @@ export interface Props {
 export class LoopOverlay extends React.Component<Props> {
   render() {
     const { width, height } = this.props;
-    const startX = (width / editor.totalSixteenths) * engine.loopStart - 1;
-    const endX = (width / editor.totalSixteenths) * engine.loopEnd - 1;
+    const startX = (width / editor.totalSixteenths) * player.loopStart - 1;
+    const endX = (width / editor.totalSixteenths) * player.loopEnd - 1;
 
     return (
       <Group>

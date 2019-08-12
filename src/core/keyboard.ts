@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-import engine from './engine';
+import player from './player';
 import editor, { EditorTool } from './editor';
 import undo from './undo';
 import { Voice } from './note';
@@ -34,7 +34,7 @@ class KeyboardManager {
 
   handleKeyPress = (e: KeyboardEvent) => {
     if (e.key === ' ') {
-      engine.togglePlay();
+      player.togglePlay();
     } else if (e.key === 's') {
       editor.selectedVoice = Voice.SOPRANO;
       editor.selectedTool = EditorTool.DRAW; // selecting voices means only you want to draw
