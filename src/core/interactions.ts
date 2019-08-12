@@ -213,7 +213,6 @@ class Interactions {
     this.gridBounds = editorGrid.getBoundingClientRect() as DOMRect;
 
     editor.beginDrawingNote(note);
-    // editor.addNote(note);
     player.playNote(note);
   };
 

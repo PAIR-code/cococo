@@ -27,7 +27,7 @@ interface InfillMask {
   voice: number;
 }
 
-export class Generate {
+export class Generator {
   model = new Coconet(MODEL_URL);
   @observable isWorking = false;
   @observable isModelLoaded = true;
@@ -74,7 +74,7 @@ export class Generate {
     this.candidateSequences[index] = sequence;
   }
 
-  addCandidateSequences = (sequences: NoteSequence[]) => {
+  setCandidateSequences = (sequences: NoteSequence[]) => {
     this.candidateSequences = sequences;
   };
 
@@ -215,7 +215,7 @@ export class Generate {
       return new NoteSequence(notes);
     });
 
-    this.addCandidateSequences(noteSequences);
+    this.setCandidateSequences(noteSequences);
     // Select the first, non-masked sequence
     this.selectCandidateSequence(1);
 
@@ -223,7 +223,7 @@ export class Generate {
   }
 }
 
-export default new Generate();
+export default new Generator();
 
 function delay(ms = 1) {
   return new Promise(resolve => setTimeout(() => resolve(), ms));

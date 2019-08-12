@@ -59,11 +59,15 @@ class Editor {
   @observable private mainSequence = new NoteSequence();
   @observable private mutedVoices = new Set<number>();
 
-  @computed get allNotes() {
-    return [...this.mainSequence.notes, ...this.tempNoteSequence.notes];
+  @computed get mainNotes() {
+    return [...this.mainSequence.notes];
   }
 
-  @computed get tempNoteSequence() {
+  @computed get allNotes() {
+    return [...this.mainSequence.notes, ...this.candidateNoteSequence.notes];
+  }
+
+  @computed get candidateNoteSequence() {
     const selectedSequence = generator.selectedCandidateSequence;
     return selectedSequence ? selectedSequence : NoteSequence.empty();
   }
@@ -81,15 +85,18 @@ class Editor {
 
   @observable noteBeingDrawn: Note | null = null;
   beginDrawingNote(note: Note) {
+    undo.beginUndoable();
     this.noteBeingDrawn = note;
+    this._addNote(note);
   }
   trimNoteBeingDrawnSequence() {
-    if (this.tempNoteSequence && this.noteBeingDrawn) {
-      this.tempNoteSequence.trimOverlappingVoices(this.noteBeingDrawn);
+    if (this.candidateNoteSequence && this.noteBeingDrawn) {
+      this.candidateNoteSequence.trimOverlappingVoices(this.noteBeingDrawn);
     }
   }
   endDrawingNote() {
     this.noteBeingDrawn = null;
+    undo.completeUndoable();
   }
 
   @observable scale = makeNoteScale(MAX_PITCH, MIN_PITCH);
@@ -179,7 +186,7 @@ class Editor {
   }
 
   private getTempNoteByPitchPosition(pitch: number, position: number) {
-    return this.tempNoteSequence.notes.find(note => {
+    return this.candidateNoteSequence.notes.find(note => {
       return note.pitch === pitch && note.position === position;
     });
   }

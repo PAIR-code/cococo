@@ -1,5 +1,5 @@
 import { computed, observable } from 'mobx';
-import { Note } from './note';
+import { Note, SerializedNote } from './note';
 import { MIN_PITCH, MAX_PITCH } from './constants';
 
 export class NoteSequence {
@@ -70,4 +70,8 @@ export class NoteSequence {
   static empty() {
     return new NoteSequence();
   }
+}
+
+export interface SerializedNoteSequence {
+  notes: SerializedNote[];
 }
