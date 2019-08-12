@@ -153,7 +153,8 @@ export class Generate extends React.Component<GenerateProps> {
   }
 
   render() {
-    const harmonizeEnabled = engine.isModelLoaded && !engine.isWorking;
+    const isEngineBusy = !engine.isModelLoaded || engine.isWorking;
+    const isGenerateButtonDisabled = !editor.doMasksExist || isEngineBusy;
 
     const nSequenceContainerStyle = style({
       margin: '5px 0 15px',
@@ -165,7 +166,7 @@ export class Generate extends React.Component<GenerateProps> {
     return (
       <div className="container">
         <Button
-          disabled={!harmonizeEnabled}
+          disabled={isGenerateButtonDisabled}
           variant="outlined"
           color="primary"
           onClick={() => {
