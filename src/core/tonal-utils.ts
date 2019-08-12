@@ -44,7 +44,7 @@ export function getNoteDetailsFromLine(lineDivision: number) {
 }
 
 export function makeNoteScale(max = MAX_PITCH, min = MIN_PITCH): ScaleValue[] {
-  return range(max, min).map(pitch => {
+  return range(max, min - 1 /* inclusive */).map(pitch => {
     const { letter, accidental, octave } = getNoteDetails(pitch);
     return {
       pitch,
