@@ -63,6 +63,16 @@ export const MAX_DIFFERENCE_FACTOR = DifferenceFromOriginal.VeryDifferent;
 
 export const MIN_HAPPY_SAD_FACTOR = -1.2;
 export const MAX_HAPPY_SAD_FACTOR = 1.2;
+export enum Mood {
+  SAD = -1,
+  NEUTRAL = 0,
+  HAPPY = 1,
+}
+export const HAPPY_SAD_MARKS = [
+  { value: Mood.SAD },
+  { value: Mood.NEUTRAL },
+  { value: Mood.HAPPY },
+];
 
 // prettier-ignore
 export const KEY_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];

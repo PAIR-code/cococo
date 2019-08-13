@@ -32,7 +32,13 @@ import {
   sequenceToPianoroll,
 } from './coconet_utils';
 
-import { makeNoteChordForKey, makeNoteScaleForKey } from '../tonal-utils';
+import {
+  makeNotesTriadForKey,
+  getHappyTriadsForKey,
+  getSadTriadsForKey,
+} from '../tonal-utils';
+
+import { N_NOTE_DIVISIONS } from '../constants';
 
 /**
  * An interface for providing an infilling mask.
@@ -45,17 +51,15 @@ interface InfillMask {
 }
 
 /**
- * An interface for providing the KeyScaleName to condition generation on.
+ *
+ * @interface MoodConfig
  * @param key The letter of the musical key e.g., `C` or `Db`
  * @param mode either `major`, `minor`, `harmonic minor`
- * @param constrainToKey whether to constrain or nudge towards the keyScale
- * @param chords whether to constrani to chords or scale of the key/mode
  */
-interface KeyScaleName {
+interface MoodConfig {
   key: string;
   mode: string;
-  constrainToKey: boolean;
-  chords: boolean;
+  happy: boolean;
 }
 
 /**
@@ -76,11 +80,10 @@ interface KeyScaleName {
  * towards sampling more of the notes. If not provided, sampling remains same.
  * @param nudgeFactor (Optional) multiplier for how much to nudge notes, when
  * discourageNotes is set to true or false
- * @param keyScaleName (Optional) generation can be conditioned on the keys of a
- * major, minor, or harmonic minor scale. This parameter is an object with
- * a `key` ('C') and a `mode` ('major', 'minor', 'harmonic minor')
- * to indicate the key we'd like to condition on and `constrainToKey` to determine
- * if the conditioning will be constrained or encouraged towards the keyScale.
+ * @param moodConfig (Optional) generation can be conditioned on the happy/major triads or
+ * sad/minor/augmented/diminished triads of a major, minor, or harmonic minor scale.
+ * This parameter is an object with a `key` ('C') and a `mode` ('major', 'minor', 'harmonic minor')
+ * to indicate the key the piece is in
  */
 interface CoconetConfig {
   temperature?: number;
@@ -88,7 +91,7 @@ interface CoconetConfig {
   infillMask?: InfillMask[];
   discourageNotes?: boolean;
   nudgeFactor?: number;
-  keyScaleName?: KeyScaleName;
+  moodConfig?: MoodConfig;
 }
 
 interface LayerSpec {
@@ -589,7 +592,7 @@ class Coconet {
     let outerMasks;
     let discourageNotes;
     let nudgeFactor;
-    let keyScaleName;
+    let moodConfig;
     let softPriors;
 
     if (config) {
@@ -601,18 +604,17 @@ class Coconet {
       numIterations =
         config.numIterations ||
         (await this.getNumIterationsFromOuterMasks(outerMasks));
-      discourageNotes =
-        config.discourageNotes !== undefined
-          ? config.discourageNotes
-          : discourageNotes;
-      nudgeFactor =
-        config.nudgeFactor !== undefined ? config.nudgeFactor : nudgeFactor;
-      keyScaleName = config.keyScaleName || keyScaleName;
+      discourageNotes = config.discourageNotes || discourageNotes;
+      nudgeFactor = config.nudgeFactor || nudgeFactor;
+      moodConfig = config.moodConfig || moodConfig;
+      // TODO(rlouie): must allow for the case where the soft prior
+      // is generated based on the probability distribution
       softPriors = this.computeSoftPrior(
         pianoroll,
         discourageNotes,
         nudgeFactor,
-        keyScaleName
+        moodConfig,
+        temperature
       );
     } else {
       outerMasks = this.getCompletionMask(pianoroll);
@@ -621,7 +623,8 @@ class Coconet {
         pianoroll,
         discourageNotes,
         nudgeFactor,
-        keyScaleName
+        moodConfig,
+        temperature
       );
     }
 
@@ -713,7 +716,8 @@ class Coconet {
     pianorolls: tf.Tensor4D,
     discourageNotes: boolean,
     nudgeFactor: number,
-    keyScaleName: KeyScaleName
+    moodConfig: MoodConfig,
+    temperature: number
   ): tf.Tensor4D {
     return tf.tidy(() => {
       const originalNotePrior = this.priorOverOriginalNotes(
@@ -721,8 +725,12 @@ class Coconet {
         discourageNotes,
         nudgeFactor
       );
-      const scalePrior = this.getScalePrior(pianorolls, keyScaleName);
-      return tf.mulStrict(originalNotePrior, scalePrior);
+      const moodPrior = this.getRandomMoodPrior(
+        pianorolls,
+        moodConfig,
+        temperature
+      );
+      return tf.mulStrict(originalNotePrior, moodPrior);
     });
   }
 
@@ -767,6 +775,7 @@ class Coconet {
         ) as tf.Tensor4D);
   }
 
+  /*
   private getScalePrior(
     pianorolls: tf.Tensor4D,
     keyScaleName: KeyScaleName
@@ -776,7 +785,7 @@ class Coconet {
     }
     const [nBatch, nQSteps, nPitches, nVoices] = pianorolls.shape;
     const keyScale = keyScaleName.chords
-      ? makeNoteChordForKey(keyScaleName.key, keyScaleName.mode)
+      ? makeNotesTriadForKey(keyScaleName.key, keyScaleName.mode)
       : makeNoteScaleForKey(keyScaleName.key, keyScaleName.mode);
     // Create a buffer to store the input.
     const pitches = tf.buffer([nPitches]);
@@ -807,6 +816,90 @@ class Coconet {
         .expandDims(0)
         .tile([nBatch, 1, 1, 1]) as tf.Tensor4D;
     });
+  }
+  */
+
+  private getTriadPitchBuffer(
+    pianorolls: tf.Tensor4D,
+    key: string,
+    mode: string,
+    hardPrior: boolean
+  ) {
+    const triadPitches = makeNotesTriadForKey(key, mode);
+    const nPitches = pianorolls.shape[2];
+    const pitches = tf.buffer([nPitches]);
+    if (hardPrior) {
+      for (let i = 0; i < triadPitches.length; i++) {
+        pitches.set(1, triadPitches[i].pitch - MIN_PITCH);
+      }
+    } else {
+      const triadPitchSet = new Set<number>(
+        triadPitches.map(note => note.pitch)
+      );
+      for (let i = 0; i < nPitches; i++) {
+        if (triadPitchSet.has(i + MIN_PITCH)) {
+          pitches.set(1.5, i);
+        } else {
+          pitches.set(0.5, i);
+        }
+      }
+    }
+    return pitches;
+  }
+
+  private mapTemperatureToNHeldSteps(
+    temperature: number,
+    nNoteDivisions: number = N_NOTE_DIVISIONS
+  ): number {
+    if (temperature <= 0.25) {
+      return nNoteDivisions / 2; // progressions are half steps
+    } else if (temperature <= 0.75) {
+      return nNoteDivisions / 4; // progressions are quarter steps
+    } else if (temperature <= 1.5) {
+      return nNoteDivisions / 8; // progressions are eighth steps
+    } else {
+      return nNoteDivisions / 16; // progressions are sixteenth steps
+    }
+  }
+  /* Random happy triads, not taking argmax of predictions (should there be adjusting predictions based on mask?)*/
+  private getRandomMoodPrior(
+    predictions: tf.Tensor4D,
+    moodConfig: MoodConfig,
+    temperature: number
+  ) {
+    if (moodConfig === undefined) {
+      return tf.onesLike(predictions);
+    }
+    const [nBatch, nQSteps, nPitches, nVoices] = predictions.shape;
+    const moodTriads = moodConfig.happy
+      ? getHappyTriadsForKey(moodConfig.key, moodConfig.mode)
+      : getSadTriadsForKey(moodConfig.key, moodConfig.mode);
+    const nHeldQSteps = this.mapTemperatureToNHeldSteps(temperature);
+    const nProgressions = nQSteps / nHeldQSteps;
+    const triadProgressions: tf.Tensor2D[] = [];
+    for (let i = 0; i < nProgressions; i++) {
+      const triadIdx = Math.floor(Math.random() * moodTriads.length);
+      const triad = moodTriads[triadIdx];
+      // triad prior for a single timestep
+      const pitches = this.getTriadPitchBuffer(
+        predictions,
+        triad.key,
+        triad.quality,
+        false
+      );
+      // triad prior for n held steps
+      const pitchPriorIthProgression = pitches
+        .toTensor()
+        .expandDims(0)
+        .tile([nHeldQSteps, 1]) as tf.Tensor2D;
+      triadProgressions.push(pitchPriorIthProgression);
+    }
+    return tf
+      .concat(triadProgressions, 0)
+      .expandDims(2)
+      .tile([1, 1, nVoices])
+      .expandDims(0)
+      .tile([nBatch, 1, 1, 1]) as tf.Tensor4D;
   }
 
   /*

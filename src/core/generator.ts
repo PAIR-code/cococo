@@ -20,7 +20,7 @@ import { NoteSequence } from './note-sequence';
 import { editor, player } from '../core';
 import { Coconet } from './coconet';
 import { fromMagentaSequence, getMagentaNoteSequence } from './magenta-utils';
-import { MODEL_URL, DifferenceFromOriginal } from './constants';
+import { MODEL_URL, DifferenceFromOriginal, Mood } from './constants';
 
 interface InfillMask {
   step: number;
@@ -130,6 +130,16 @@ export class Generator {
     return 2 ** conventionalSurprising;
   }
 
+  binHappySad(happySad: number) {
+    if (happySad < -0.33) {
+      return Mood.SAD;
+    } else if (happySad < 0.33) {
+      return Mood.NEUTRAL;
+    } else {
+      return Mood.HAPPY;
+    }
+  }
+
   async harmonize() {
     this.isWorking = true;
 
@@ -144,14 +154,18 @@ export class Generator {
       conventionalSurprising,
       differenceFromOriginal,
       nSequencesToGenerate,
+      happySad,
     } = this;
     const temperature = this.computeTemperature(conventionalSurprising);
-    const keyScaleName = {
-      key: editor.key,
-      mode: editor.mode,
-      constrainToKey: editor.constrainToKey,
-      chords: editor.chordMode,
-    };
+    const happyNeutralSad = this.binHappySad(happySad);
+    let moodConfig;
+    if (happyNeutralSad !== Mood.NEUTRAL) {
+      moodConfig = {
+        key: editor.key,
+        mode: editor.mode,
+        happy: happyNeutralSad === Mood.HAPPY,
+      };
+    }
     let discourageNotes;
     let nudgeFactor;
     // Check to see if the selected value is less than the cap values for
@@ -186,7 +200,7 @@ export class Generator {
         infillMask,
         discourageNotes,
         nudgeFactor,
-        keyScaleName,
+        moodConfig,
       });
 
       const output = fromMagentaSequence(
