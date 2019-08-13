@@ -111,7 +111,7 @@ export class Generate extends React.Component<GenerateProps> {
         <Button
           variant="outlined"
           color="primary"
-          onClick={() => generator.clearCandidateSequences()}
+          onClick={() => generator.addBackOriginalSequence()}
         >
           Clear
         </Button>

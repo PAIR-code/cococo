@@ -93,18 +93,25 @@ export class Generator {
   };
 
   commitSelectedCandidateSequence = () => {
+    // Add the selected sequence
     const sequence = this.selectedCandidateSequence;
     if (sequence) {
       editor.addGeneratedSequence(sequence);
     }
+
+    // Then, clear the sequences
     this.clearCandidateSequences();
   };
 
-  clearCandidateSequences = () => {
+  addBackOriginalSequence = () => {
     // Add back the original sequence
     editor.addGeneratedSequence(this.candidateSequences[0]);
 
     // Then, clear the sequences
+    this.clearCandidateSequences();
+  };
+
+  clearCandidateSequences = () => {
     this.selectedCandidateSequenceIndex = 0;
     this.candidateSequences = [];
   };
