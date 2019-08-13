@@ -105,7 +105,6 @@ class Editor {
   @observable key = 'C';
   @observable mode = 'major';
   @observable constrainToKey = true;
-  @observable chordMode = false;
   @observable noteHoverName = '';
 
   setNoteHoverName(scaleValue: ScaleValue | null) {
@@ -122,9 +121,7 @@ class Editor {
   }
 
   @computed get keyScale() {
-    return this.chordMode
-      ? makeNotesTriadForKey(this.key, this.mode)
-      : makeNoteScaleForKey(this.key, this.mode);
+    return makeNoteScaleForKey(this.key, this.mode);
   }
 
   @computed get keyPitchSet() {

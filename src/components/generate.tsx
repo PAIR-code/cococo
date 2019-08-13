@@ -38,7 +38,6 @@ import {
   MAX_DIFFERENCE_FACTOR,
   MIN_PITCH,
   MAX_PITCH,
-  HAPPY_SAD_MARKS,
   TOTAL_SIXTEENTHS,
 } from '../core/constants';
 

@@ -130,6 +130,16 @@ export class Generator {
     return 2 ** conventionalSurprising;
   }
 
+  binHappySad(happySad: number) {
+    if (happySad < -0.33) {
+      return Mood.SAD;
+    } else if (happySad < 0.33) {
+      return Mood.NEUTRAL;
+    } else {
+      return Mood.HAPPY;
+    }
+  }
+
   async harmonize() {
     this.isWorking = true;
 
@@ -147,12 +157,13 @@ export class Generator {
       happySad,
     } = this;
     const temperature = this.computeTemperature(conventionalSurprising);
+    const happyNeutralSad = this.binHappySad(happySad);
     let moodConfig;
-    if (happySad !== Mood.NEUTRAL) {
+    if (happyNeutralSad !== Mood.NEUTRAL) {
       moodConfig = {
         key: editor.key,
         mode: editor.mode,
-        happy: happySad === Mood.HAPPY,
+        happy: happyNeutralSad === Mood.HAPPY,
       };
     }
     let discourageNotes;
