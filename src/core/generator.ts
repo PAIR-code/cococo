@@ -20,7 +20,7 @@ import { NoteSequence } from './note-sequence';
 import { editor, player } from '../core';
 import { Coconet } from './coconet';
 import { fromMagentaSequence, getMagentaNoteSequence } from './magenta-utils';
-import { MODEL_URL, DifferenceFromOriginal } from './constants';
+import { MODEL_URL, DifferenceFromOriginal, Mood } from './constants';
 
 interface InfillMask {
   step: number;
@@ -144,14 +144,17 @@ export class Generator {
       conventionalSurprising,
       differenceFromOriginal,
       nSequencesToGenerate,
+      happySad,
     } = this;
     const temperature = this.computeTemperature(conventionalSurprising);
-    const keyScaleName = {
-      key: editor.key,
-      mode: editor.mode,
-      constrainToKey: editor.constrainToKey,
-      chords: editor.chordMode,
-    };
+    let moodConfig;
+    if (happySad !== Mood.NEUTRAL) {
+      moodConfig = {
+        key: editor.key,
+        mode: editor.mode,
+        happy: happySad === Mood.HAPPY,
+      };
+    }
     let discourageNotes;
     let nudgeFactor;
     // Check to see if the selected value is less than the cap values for
@@ -186,7 +189,7 @@ export class Generator {
         infillMask,
         discourageNotes,
         nudgeFactor,
-        keyScaleName,
+        moodConfig,
       });
 
       const output = fromMagentaSequence(

@@ -171,7 +171,6 @@ export class Generate extends React.Component<GenerateProps> {
             <MenuItem value={4}>4 sequences</MenuItem>
           </Select>
         </FormControl>
-<<<<<<< HEAD
         <ParameterSlider
           value={generator.conventionalSurprising}
           onChange={newValue => (generator.conventionalSurprising = newValue)}
@@ -191,44 +190,6 @@ export class Generate extends React.Component<GenerateProps> {
           labels={['Similar', 'Different']}
           disabled={!similaritySliderEnabled}
         />
-=======
-        <div className="horizontal-slider">
-          <Slider
-            value={generator.conventionalSurprising}
-            onChange={(e: any, newValue: number | number[]) => {
-              if (newValue !== null) {
-                generator.conventionalSurprising = Number(newValue);
-              }
-            }}
-            aria-labelledby="temperature-slider-restrict"
-            step={0.1}
-            min={MIN_SURPRISE_FACTOR}
-            max={MAX_SURPRISE_FACTOR}
-          />
-          <div className="slider-label">
-            <Typography variant="caption">Conventional</Typography>
-            <Typography variant="caption">Surprising</Typography>
-          </div>
-        </div>
-        <div className="horizontal-slider">
-          <Slider
-            value={generator.happySad}
-            onChange={(e: any, newValue: number | number[]) => {
-              if (newValue !== null) generator.happySad = Number(newValue);
-            }}
-            step={null}
-            marks={HAPPY_SAD_MARKS}
-            valueLabelDisplay="off"
-            min={MIN_HAPPY_SAD_FACTOR}
-            max={MAX_HAPPY_SAD_FACTOR}
-          />
-          <div className="slider-label">
-            <Typography variant="caption">😢 Minor</Typography>
-            <Typography variant="caption">Major 😊</Typography>
-          </div>
-        </div>
-        {this.renderSimilaritySlider()}
->>>>>>> added random Chord Triad Progression Priors for maj/min
         {showCandidateSequences && this.renderSequences()}
       </div>
     );

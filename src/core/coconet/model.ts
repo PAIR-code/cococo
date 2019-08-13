@@ -38,6 +38,8 @@ import {
   getSadTriadsForKey,
 } from '../tonal-utils';
 
+import { N_NOTE_DIVISIONS } from '../constants';
+
 /**
  * An interface for providing an infilling mask.
  * @param step The quantized time step at which to infill.
@@ -611,7 +613,8 @@ class Coconet {
         pianoroll,
         discourageNotes,
         nudgeFactor,
-        moodConfig
+        moodConfig,
+        temperature
       );
     } else {
       outerMasks = this.getCompletionMask(pianoroll);
@@ -620,7 +623,8 @@ class Coconet {
         pianoroll,
         discourageNotes,
         nudgeFactor,
-        moodConfig
+        moodConfig,
+        temperature
       );
     }
 
@@ -712,7 +716,8 @@ class Coconet {
     pianorolls: tf.Tensor4D,
     discourageNotes: boolean,
     nudgeFactor: number,
-    moodConfig: MoodConfig
+    moodConfig: MoodConfig,
+    temperature: number
   ): tf.Tensor4D {
     return tf.tidy(() => {
       const originalNotePrior = this.priorOverOriginalNotes(
@@ -720,7 +725,11 @@ class Coconet {
         discourageNotes,
         nudgeFactor
       );
-      const moodPrior = this.getRandomMoodPrior(pianorolls, moodConfig);
+      const moodPrior = this.getRandomMoodPrior(
+        pianorolls,
+        moodConfig,
+        temperature
+      );
       return tf.mulStrict(originalNotePrior, moodPrior);
     });
   }
@@ -838,8 +847,26 @@ class Coconet {
     return pitches;
   }
 
+  private mapTemperatureToNHeldSteps(
+    temperature: number,
+    nNoteDivisions: number = N_NOTE_DIVISIONS
+  ): number {
+    if (temperature <= 0.25) {
+      return nNoteDivisions / 2; // progressions are half steps
+    } else if (temperature <= 0.75) {
+      return nNoteDivisions / 4; // progressions are quarter steps
+    } else if (temperature <= 1.5) {
+      return nNoteDivisions / 8; // progressions are eighth steps
+    } else {
+      return nNoteDivisions / 16; // progressions are sixteenth steps
+    }
+  }
   /* Random happy triads, not taking argmax of predictions (should there be adjusting predictions based on mask?)*/
-  private getRandomMoodPrior(predictions: tf.Tensor4D, moodConfig: MoodConfig) {
+  private getRandomMoodPrior(
+    predictions: tf.Tensor4D,
+    moodConfig: MoodConfig,
+    temperature: number
+  ) {
     if (moodConfig === undefined) {
       return tf.onesLike(predictions);
     }
@@ -847,8 +874,7 @@ class Coconet {
     const moodTriads = moodConfig.happy
       ? getHappyTriadsForKey(moodConfig.key, moodConfig.mode)
       : getSadTriadsForKey(moodConfig.key, moodConfig.mode);
-    // could be made smaller number, to make more smooth progressions
-    const nHeldQSteps = 16 / 8; // e.g., from divisions of 16ths to 8ths
+    const nHeldQSteps = this.mapTemperatureToNHeldSteps(temperature);
     const nProgressions = nQSteps / nHeldQSteps;
     const triadProgressions: tf.Tensor2D[] = [];
     for (let i = 0; i < nProgressions; i++) {
