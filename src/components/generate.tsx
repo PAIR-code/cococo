@@ -119,39 +119,6 @@ export class Generate extends React.Component<GenerateProps> {
     );
   }
 
-  renderSimilaritySlider() {
-    const maskedSequenceExists = editor.maskedNotes.length > 0;
-    const candidateSequenceSelected =
-      generator.selectedCandidateSequenceIndex > 0;
-    const enabled = candidateSequenceSelected ? true : maskedSequenceExists;
-    const labelColor = enabled ? 'textPrimary' : 'textSecondary';
-    return (
-      <div className="horizontal-slider">
-        <Slider
-          value={generator.differenceFromOriginal}
-          onChange={(e: any, newValue: number | number[]) => {
-            if (newValue !== null) {
-              generator.differenceFromOriginal = Number(newValue);
-            }
-          }}
-          step={0.1}
-          valueLabelDisplay="off"
-          min={MIN_DIFFERENCE_FACTOR}
-          max={MAX_DIFFERENCE_FACTOR}
-          disabled={!enabled}
-        />
-        <div className="slider-label">
-          <Typography variant="caption" color={labelColor}>
-            Similar
-          </Typography>
-          <Typography variant="caption" color={labelColor}>
-            Different
-          </Typography>
-        </div>
-      </div>
-    );
-  }
-
   render() {
     const isModelBusy = !generator.isModelLoaded || generator.isWorking;
     const isGenerateButtonDisabled = !editor.doMasksExist || isModelBusy;
@@ -162,6 +129,13 @@ export class Generate extends React.Component<GenerateProps> {
     });
 
     const showCandidateSequences = generator.candidateSequences.length > 0;
+
+    const maskedSequenceExists = editor.maskedNotes.length > 0;
+    const candidateSequenceSelected =
+      generator.selectedCandidateSequenceIndex > 0;
+    const similaritySliderEnabled = candidateSequenceSelected
+      ? true
+      : maskedSequenceExists;
 
     return (
       <div className="container">
@@ -196,43 +170,67 @@ export class Generate extends React.Component<GenerateProps> {
             <MenuItem value={4}>4 sequences</MenuItem>
           </Select>
         </FormControl>
-        <div className="horizontal-slider">
-          <Slider
-            value={generator.conventionalSurprising}
-            onChange={(e: any, newValue: number | number[]) => {
-              if (newValue !== null) {
-                generator.conventionalSurprising = Number(newValue);
-              }
-            }}
-            aria-labelledby="temperature-slider-restrict"
-            step={0.1}
-            min={MIN_SURPRISE_FACTOR}
-            max={MAX_SURPRISE_FACTOR}
-          />
-          <div className="slider-label">
-            <Typography variant="caption">Conventional</Typography>
-            <Typography variant="caption">Surprising</Typography>
-          </div>
-        </div>
-        <div className="horizontal-slider">
-          <Slider
-            value={generator.happySad}
-            onChange={(e: any, newValue: number | number[]) => {
-              if (newValue !== null) generator.happySad = Number(newValue);
-            }}
-            step={0.1}
-            valueLabelDisplay="off"
-            min={MIN_HAPPY_SAD_FACTOR}
-            max={MAX_HAPPY_SAD_FACTOR}
-          />
-          <div className="slider-label">
-            <Typography variant="caption">😢 Minor</Typography>
-            <Typography variant="caption">Major 😊</Typography>
-          </div>
-        </div>
-        {this.renderSimilaritySlider()}
+        <ParameterSlider
+          value={generator.conventionalSurprising}
+          onChange={newValue => (generator.conventionalSurprising = newValue)}
+          range={[MIN_SURPRISE_FACTOR, MAX_SURPRISE_FACTOR]}
+          labels={['Conventional', 'Surprising']}
+        />
+        <ParameterSlider
+          value={generator.happySad}
+          onChange={newValue => (generator.happySad = newValue)}
+          range={[MIN_HAPPY_SAD_FACTOR, MAX_HAPPY_SAD_FACTOR]}
+          labels={['😢 Minor', 'Major 😊']}
+        />
+        <ParameterSlider
+          value={generator.differenceFromOriginal}
+          onChange={newValue => (generator.differenceFromOriginal = newValue)}
+          range={[MIN_DIFFERENCE_FACTOR, MAX_DIFFERENCE_FACTOR]}
+          labels={['Similar', 'Different']}
+          disabled={!similaritySliderEnabled}
+        />
         {showCandidateSequences && this.renderSequences()}
       </div>
     );
   }
 }
+
+interface ParameterSliderProps {
+  value: number;
+  onChange: (newValue: number) => void;
+  range: number[];
+  labels: string[];
+  disabled?: boolean;
+}
+
+function ParameterSlider(props: ParameterSliderProps) {
+  const labelColor = props.disabled ? 'textSecondary' : 'textPrimary';
+
+  return (
+    <div className="horizontal-slider">
+      <Slider
+        value={props.value}
+        onChange={(e: any, newValue: number | number[]) => {
+          if (typeof newValue === 'number') props.onChange(newValue);
+        }}
+        step={0.1}
+        valueLabelDisplay="off"
+        min={props.range[0]}
+        max={props.range[1]}
+        disabled={props.disabled}
+      />
+      <div className="slider-label">
+        <Typography variant="caption" color={labelColor}>
+          {props.labels[0]}
+        </Typography>
+        <Typography variant="caption" color={labelColor}>
+          {props.labels[1]}
+        </Typography>
+      </div>
+    </div>
+  );
+}
+
+ParameterSlider.defaultProps = {
+  enabled: true,
+};
