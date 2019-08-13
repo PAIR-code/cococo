@@ -95,8 +95,10 @@ class Editor {
     }
   }
   endDrawingNote() {
-    this.noteBeingDrawn = null;
-    undo.completeUndoable();
+    if (this.noteBeingDrawn) {
+      this.noteBeingDrawn = null;
+      undo.completeUndoable();
+    }
   }
 
   @observable scale = makeNoteScale(MAX_PITCH, MIN_PITCH);
