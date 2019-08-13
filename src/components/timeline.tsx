@@ -18,7 +18,7 @@ import { observer } from 'mobx-react';
 
 import { Group } from './group';
 
-import { editor, engine, interactions, layout } from '../core';
+import { editor, player, interactions, layout } from '../core';
 import { COLOR_SECONDARY } from '../core/theme';
 
 export interface Props {
@@ -39,8 +39,8 @@ export class Timeline extends React.Component<Props> {
   render() {
     const { width, height } = this.props;
 
-    const startX = (width / editor.totalSixteenths) * engine.loopStart;
-    const endX = (width / editor.totalSixteenths) * engine.loopEnd + 1;
+    const startX = (width / editor.totalSixteenths) * player.loopStart;
+    const endX = (width / editor.totalSixteenths) * player.loopEnd + 1;
     const caretWidth = layout.sixteenthWidth / 2;
 
     const startHandleCoordinates: number[][] = [

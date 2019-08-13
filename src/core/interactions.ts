@@ -16,7 +16,7 @@ limitations under the License.
 import React from 'react';
 import _ from 'lodash';
 import { observable } from 'mobx';
-import { EditorTool, editor, engine, layout } from './index';
+import { EditorTool, editor, player, layout } from './index';
 import { MAX_PITCH, MIN_PITCH } from './constants';
 import { Note, Source } from './note';
 
@@ -81,7 +81,7 @@ class Interactions {
       // Disabled temporarily until we sort out the way to handle note overlaps
       // note.position = nextPosition;
       note.pitch = nextPitch;
-      engine.playNote(note);
+      player.playNote(note);
     }
   };
 
@@ -123,8 +123,8 @@ class Interactions {
       true
     );
 
-    if (nextPosition !== engine.loopStart && nextPosition < engine.loopEnd) {
-      engine.loopStart = nextPosition;
+    if (nextPosition !== player.loopStart && nextPosition < player.loopEnd) {
+      player.loopStart = nextPosition;
     }
   };
 
@@ -139,8 +139,8 @@ class Interactions {
       true
     );
 
-    if (nextPosition !== engine.loopEnd && nextPosition > engine.loopStart) {
-      engine.loopEnd = nextPosition;
+    if (nextPosition !== player.loopEnd && nextPosition > player.loopStart) {
+      player.loopEnd = nextPosition;
     }
   };
 
@@ -148,7 +148,7 @@ class Interactions {
     e.preventDefault();
 
     this.loopStartDragStartX = e.clientX;
-    this.loopStartDragStartPosition = engine.loopStart;
+    this.loopStartDragStartPosition = player.loopStart;
 
     const mouseMove = this.handleLoopStartDrag;
     const mouseUp = () => {
@@ -163,7 +163,7 @@ class Interactions {
     e.preventDefault();
 
     this.loopEndDragStartX = e.clientX;
-    this.loopEndDragStartPosition = engine.loopEnd;
+    this.loopEndDragStartPosition = player.loopEnd;
 
     const mouseMove = this.handleLoopEndDrag;
     const mouseUp = () => {
@@ -185,14 +185,13 @@ class Interactions {
     const note = new Note(value, position, duration);
 
     editor.addNote(note);
-    engine.playNote(note);
+    player.playNote(note);
   }
 
   @observable isMaskToolDragging = false;
   @observable isEraseToolDragging = false;
   @observable isDrawToolDragging = false;
 
-  private noteBeingDrawn?: Note;
   private gridBounds: DOMRect;
 
   private handleDrawMouseDown = (
@@ -210,18 +209,15 @@ class Interactions {
     }
 
     const note = new Note(pitch, position, duration, Source.USER, voice);
-    this.noteBeingDrawn = note;
     const editorGrid = document.getElementById('editor-grid')!;
     this.gridBounds = editorGrid.getBoundingClientRect() as DOMRect;
 
-    editor.addNote(note);
-    engine.playNote(note);
-
-    editor.trimOverlappingVoices(note);
+    editor.beginDrawingNote(note);
+    player.playNote(note);
   };
 
   handleDrawMouseMove = (e: MouseEvent) => {
-    const noteBeingDrawn = this.noteBeingDrawn;
+    const noteBeingDrawn = editor.noteBeingDrawn;
     if (!noteBeingDrawn) {
       return;
     }
@@ -233,28 +229,31 @@ class Interactions {
       gridPosition + editor.quantizeStep !== noteBeingDrawn.end;
     if (shouldUpdateDrawn) {
       noteBeingDrawn.moveEnd(gridPosition + editor.quantizeStep);
-      editor.trimOverlappingVoices(noteBeingDrawn);
+      editor.trimNoteBeingDrawnSequence(); // Trims overlapping notes in the sequence
     }
   };
 
   handleGridMouseDown = (scaleIndex: number, divisionIndex: number) => (
     e: React.MouseEvent
   ) => {
-    let resetTool: () => void = () => {};
+    let toolMouseUp: () => void = () => {};
     let mouseMove: (e: MouseEvent) => void = () => {};
 
     if (editor.selectedTool === EditorTool.ERASE) {
       this.isEraseToolDragging = true;
-      resetTool = () => (this.isEraseToolDragging = false);
+      toolMouseUp = () => (this.isEraseToolDragging = false);
     } else if (editor.selectedTool === EditorTool.DRAW) {
       this.isDrawToolDragging = true;
-      resetTool = () => (this.isDrawToolDragging = false);
+      toolMouseUp = () => {
+        this.isDrawToolDragging = false;
+        editor.endDrawingNote();
+      };
       this.handleDrawMouseDown(scaleIndex, divisionIndex, e);
       mouseMove = this.handleDrawMouseMove;
     }
 
     const mouseUp = () => {
-      resetTool();
+      toolMouseUp();
       document.removeEventListener('mousemove', mouseMove);
       document.removeEventListener('mouseup', mouseUp);
     };
@@ -365,7 +364,7 @@ class Interactions {
 
     const mouseUp = () => {
       if (!this.hasMaskDragMoved) {
-        const { loopStart, loopEnd } = engine;
+        const { loopStart, loopEnd } = player;
         editor.generationMasks[voiceIndex] = _.range(loopStart, loopEnd);
       }
 

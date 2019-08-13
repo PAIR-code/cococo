@@ -33,7 +33,7 @@ import {
 } from '@material-ui/icons';
 import { observer } from 'mobx-react';
 
-import { engine, layout, editor, EditorTool, undo } from '../core';
+import { player, layout, editor, EditorTool, undo } from '../core';
 import * as theme from '../core/theme';
 import { Voice } from '../core/note';
 
@@ -64,8 +64,8 @@ export class Controls extends React.Component<{}, State> {
       marginTop: 10,
     });
 
-    const playDisabled = !engine.isPlayerLoaded;
-    const showPlay = !engine.isPlaying;
+    const playDisabled = !player.isPlayerLoaded;
+    const showPlay = !player.isPlaying;
 
     return (
       <div className={controlsStyle}>
@@ -74,7 +74,7 @@ export class Controls extends React.Component<{}, State> {
             disabled={playDisabled}
             variant="outlined"
             color="primary"
-            onClick={() => engine.togglePlay()}
+            onClick={() => player.togglePlay()}
           >
             {showPlay ? <PlayArrow /> : <Stop />}
           </Button>

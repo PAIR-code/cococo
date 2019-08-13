@@ -28,7 +28,7 @@ import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
 
 import { KEY_NAMES, MODE_NAMES } from '../core/constants';
-import { editor, sequences } from '../core';
+import { editor, generator } from '../core';
 
 import { Spacer } from './spacer';
 
@@ -77,7 +77,7 @@ export class KeySignatures extends React.Component<Props, {}> {
                   const value = e.target.value;
                   if (value) {
                     editor.mode = value;
-                    sequences.happySad = value === 'major' ? 1 : -1;
+                    generator.happySad = value === 'major' ? 1 : -1;
                   }
                 }}
                 autoWidth

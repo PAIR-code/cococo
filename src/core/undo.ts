@@ -16,13 +16,19 @@ limitations under the License.
 import { computed, observable } from 'mobx';
 
 import { Note, SerializedNote } from './note';
-import { editor } from './index';
+import { NoteSequence } from './note-sequence';
+import { editor, generator } from './index';
+
+export interface UndoStep {
+  notes: SerializedNote[];
+  candidateNotes: SerializedNote[][];
+}
 
 class Undo {
-  @observable undoStack: SerializedNote[][] = [];
-  @observable redoStack: SerializedNote[][] = [];
+  @observable undoStack: UndoStep[] = [];
+  @observable redoStack: UndoStep[] = [];
 
-  private pendingUndoStep: SerializedNote[] | null = null;
+  private pendingUndoStep: UndoStep | null = null;
   private undoableNesting = 0;
 
   @computed get canUndo() {
@@ -34,7 +40,20 @@ class Undo {
   }
 
   getSerializedNotes() {
-    return editor.allNotes.map(note => note.serialize());
+    return editor.mainNotes.map(note => note.serialize());
+  }
+
+  getSerializedCandidateNotes() {
+    return generator.candidateSequences.map(sequence => {
+      return sequence.notes.map(note => note.serialize());
+    });
+  }
+
+  getUndoStep(): UndoStep {
+    return {
+      notes: this.getSerializedNotes(),
+      candidateNotes: this.getSerializedCandidateNotes(),
+    };
   }
 
   beginUndoable() {
@@ -43,7 +62,7 @@ class Undo {
       console.warn('Pending undo step already present...');
       return;
     }
-    this.pendingUndoStep = this.getSerializedNotes();
+    this.pendingUndoStep = this.getUndoStep();
   }
 
   completeUndoable() {
@@ -63,20 +82,33 @@ class Undo {
 
   undo() {
     if (this.undoStack.length) {
-      this.redoStack.push(this.getSerializedNotes());
+      this.redoStack.push(this.getUndoStep());
       const lastStep = this.undoStack.pop();
-      const deserializedNotes = lastStep.map(note => Note.fromSerialized(note));
-      editor.replaceAllNotes(deserializedNotes);
+      this.rehydrateStep(lastStep);
     }
   }
 
   redo() {
     if (this.redoStack.length) {
-      this.undoStack.push(this.getSerializedNotes());
+      this.undoStack.push(this.getUndoStep());
       const lastStep = this.redoStack.pop();
-      const deserializedNotes = lastStep.map(note => Note.fromSerialized(note));
-      editor.replaceAllNotes(deserializedNotes);
+      this.rehydrateStep(lastStep);
     }
+  }
+
+  private rehydrateStep(step: UndoStep) {
+    const { notes, candidateNotes } = step;
+
+    const deserializedNotes = notes.map(note => Note.fromSerialized(note));
+    editor.replaceAllNotes(deserializedNotes);
+
+    const sequences = candidateNotes.map(serialized => {
+      const sequence = new NoteSequence(
+        serialized.map(note => Note.fromSerialized(note))
+      );
+      return sequence;
+    });
+    generator.setCandidateSequences(sequences);
   }
 }
 

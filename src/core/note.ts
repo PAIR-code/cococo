@@ -41,7 +41,7 @@ export interface SerializedNote {
   voice: number;
 }
 
-export type NoteSequence = Note[];
+export type Notes = Note[];
 
 export class Note {
   id = generateId();
