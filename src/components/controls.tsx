@@ -33,7 +33,7 @@ import {
 } from '@material-ui/icons';
 import { observer } from 'mobx-react';
 
-import { player, layout, editor, EditorTool, undo } from '../core';
+import { generator, player, layout, editor, EditorTool, undo } from '../core';
 import * as theme from '../core/theme';
 import { Voice } from '../core/note';
 
@@ -66,6 +66,7 @@ export class Controls extends React.Component<{}, State> {
 
     const playDisabled = !player.isPlayerLoaded;
     const showPlay = !player.isPlaying;
+    const maskButtonDisabled = generator.candidateSequences.length > 1;
 
     return (
       <div className={controlsStyle}>
@@ -110,7 +111,7 @@ export class Controls extends React.Component<{}, State> {
           <ToggleButton value={EditorTool.DRAW}>
             <Edit />
           </ToggleButton>
-          <ToggleButton value={EditorTool.MASK}>
+          <ToggleButton value={EditorTool.MASK} disabled={maskButtonDisabled}>
             <SelectAll />
           </ToggleButton>
           <ToggleButton value={EditorTool.ERASE}>

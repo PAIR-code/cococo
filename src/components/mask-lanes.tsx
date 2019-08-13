@@ -17,7 +17,7 @@ import React from 'react';
 import * as _ from 'lodash';
 import { observer } from 'mobx-react';
 
-import { editor, interactions } from '../core';
+import { editor, generator, interactions } from '../core';
 import { VOICE_COLORS, MUTED_COLOR } from '../core/theme';
 
 import { Group } from './group';
@@ -71,6 +71,11 @@ export class MaskLanes extends React.Component<Props> {
       const isMuted = editor.isVoiceMuted(voiceIndex);
       const color = isMuted ? MUTED_COLOR : VOICE_COLORS[voiceIndex];
 
+      const candidateSequencesExist = generator.candidateSequences.length > 0;
+      const mouseDownHandler = candidateSequencesExist
+        ? () => {}
+        : interactions.handleMaskLaneMouseDown(voiceIndex);
+
       return (
         <rect
           key={`lane_${voiceIndex}`}
@@ -79,7 +84,9 @@ export class MaskLanes extends React.Component<Props> {
           height={laneHeight}
           width={width}
           fill={color}
-          onMouseDown={interactions.handleMaskLaneMouseDown(voiceIndex)}
+          fillOpacity={candidateSequencesExist ? 0.6 : 1}
+          onMouseDown={mouseDownHandler}
+          cursor={candidateSequencesExist ? 'not-allowed' : 'default'}
         />
       );
     });
@@ -117,23 +124,46 @@ export class MaskLanes extends React.Component<Props> {
 
         const x = (width / editor.totalSixteenths) * bounds.start;
         const rectWidth =
-          (width / editor.totalSixteenths) * (bounds.end - bounds.start + 1) -
-          2 * BORDER;
+          (width / editor.totalSixteenths) * (bounds.end - bounds.start + 1);
         const maskIndices = _.range(bounds.start, bounds.end + 1);
 
+        const candidateSequencesExist = generator.candidateSequences.length > 0;
+        const mouseDownHandler = candidateSequencesExist
+          ? () => {}
+          : interactions.handleMaskLaneMouseDown(voiceIndex);
+        const clickHandler = candidateSequencesExist
+          ? () => {}
+          : interactions.handleMaskRectClick(voiceIndex, maskIndices);
+
+        const isMuted = editor.isVoiceMuted(voiceIndex);
+        const color = isMuted ? MUTED_COLOR : VOICE_COLORS[voiceIndex];
+
         return (
-          <rect
-            key={`lane_${voiceIndex}_mask_${boundsIndex}`}
-            x={x + BORDER}
-            y={y + BORDER}
-            height={laneHeight - 2 * BORDER}
-            width={rectWidth}
-            stroke={'white'}
-            strokeWidth={2}
-            fill={'rgba(0,0,0,0)'}
-            onClick={interactions.handleMaskRectClick(voiceIndex, maskIndices)}
-            onMouseDown={interactions.handleMaskLaneMouseDown(voiceIndex)}
-          />
+          <>
+            {candidateSequencesExist ? (
+              <rect
+                x={x}
+                y={y}
+                height={laneHeight}
+                width={rectWidth}
+                fill={color}
+              />
+            ) : null}
+            <rect
+              key={`lane_${voiceIndex}_mask_${boundsIndex}`}
+              x={x + BORDER}
+              y={y + BORDER}
+              height={laneHeight - 2 * BORDER}
+              width={rectWidth - 2 * BORDER}
+              stroke={'white'}
+              strokeWidth={2}
+              fill={`url(#diagonal-stripe)`}
+              fillOpacity={0.75}
+              onClick={clickHandler}
+              onMouseDown={mouseDownHandler}
+              cursor={candidateSequencesExist ? 'not-allowed' : 'default'}
+            />
+          </>
         );
       });
     });
