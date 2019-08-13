@@ -17,9 +17,8 @@ import { computed, observable } from 'mobx';
 import * as _ from 'lodash';
 
 import editor from './editor';
+import featureFlags from './feature-flags';
 import { Note } from './note';
-import { NoteSequence } from './note-sequence';
-import { undoable } from './undo';
 
 export class EditorMaskRegion {
   constructor(
@@ -33,6 +32,15 @@ export class EditorMaskRegion {
 class Masks {
   // Masks are maintained as an array of masked sixteenth notes, one per voice.
   @observable generationMasks: number[][] = [[], [], [], []];
+
+  constructor() {
+    if (featureFlags.baseline) {
+      // Automatically set full generationMasks when in baseline mode
+      this.generationMasks = _.range(4).map(i => {
+        return i === 0 ? [] : _.range(8);
+      });
+    }
+  }
 
   maskNotes(positionRange: number[], pitchRange: number[], replaceMask = true) {
     const notesInMask = editor.getNotesInRange(positionRange, pitchRange);

@@ -42,6 +42,7 @@ import {
 } from '../core/constants';
 
 import './generate.css';
+import featureFlags from '../core/feature-flags';
 
 function getPitchRange(noteSequences: NoteSequence[]) {
   let minPitch = MAX_PITCH;
@@ -120,6 +121,7 @@ export class Generate extends React.Component<GenerateProps> {
   }
 
   render() {
+    const { baseline } = featureFlags;
     const isModelBusy = !generator.isModelLoaded || generator.isWorking;
     const isGenerateButtonDisabled = !masks.doMasksExist || isModelBusy;
 
@@ -170,25 +172,33 @@ export class Generate extends React.Component<GenerateProps> {
             <MenuItem value={4}>4 sequences</MenuItem>
           </Select>
         </FormControl>
-        <ParameterSlider
-          value={generator.conventionalSurprising}
-          onChange={newValue => (generator.conventionalSurprising = newValue)}
-          range={[MIN_SURPRISE_FACTOR, MAX_SURPRISE_FACTOR]}
-          labels={['Conventional', 'Surprising']}
-        />
-        <ParameterSlider
-          value={generator.happySad}
-          onChange={newValue => (generator.happySad = newValue)}
-          range={[MIN_HAPPY_SAD_FACTOR, MAX_HAPPY_SAD_FACTOR]}
-          labels={['😢 Minor', 'Major 😊']}
-        />
-        <ParameterSlider
-          value={generator.differenceFromOriginal}
-          onChange={newValue => (generator.differenceFromOriginal = newValue)}
-          range={[MIN_DIFFERENCE_FACTOR, MAX_DIFFERENCE_FACTOR]}
-          labels={['Similar', 'Different']}
-          disabled={!similaritySliderEnabled}
-        />
+        {baseline ? null : (
+          <>
+            <ParameterSlider
+              value={generator.conventionalSurprising}
+              onChange={newValue =>
+                (generator.conventionalSurprising = newValue)
+              }
+              range={[MIN_SURPRISE_FACTOR, MAX_SURPRISE_FACTOR]}
+              labels={['Conventional', 'Surprising']}
+            />
+            <ParameterSlider
+              value={generator.happySad}
+              onChange={newValue => (generator.happySad = newValue)}
+              range={[MIN_HAPPY_SAD_FACTOR, MAX_HAPPY_SAD_FACTOR]}
+              labels={['😢 Minor', 'Major 😊']}
+            />
+            <ParameterSlider
+              value={generator.differenceFromOriginal}
+              onChange={newValue =>
+                (generator.differenceFromOriginal = newValue)
+              }
+              range={[MIN_DIFFERENCE_FACTOR, MAX_DIFFERENCE_FACTOR]}
+              labels={['Similar', 'Different']}
+              disabled={!similaritySliderEnabled}
+            />
+          </>
+        )}
         {showCandidateSequences && this.renderSequences()}
       </div>
     );

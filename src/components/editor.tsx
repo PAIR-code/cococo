@@ -26,6 +26,7 @@ import { MaskLanes } from './mask-lanes';
 import { Notes } from './notes';
 import { Timeline } from './timeline';
 import { Masks } from './masks';
+import featureFlags from '../core/feature-flags';
 
 export interface Props {}
 
@@ -51,13 +52,15 @@ export class Editor extends React.Component<Props> {
         <Group x={pianoRollWidth}>
           <Timeline width={notesWidth} height={timelineHeight} />
         </Group>
-        <Group y={layout.maskLanesY}>
-          <MaskLanes
-            width={notesWidth}
-            height={maskLanesHeight}
-            labelWidth={pianoRollWidth}
-          />
-        </Group>
+        {featureFlags.baseline ? null : (
+          <Group y={layout.maskLanesY}>
+            <MaskLanes
+              width={notesWidth}
+              height={maskLanesHeight}
+              labelWidth={pianoRollWidth}
+            />
+          </Group>
+        )}
         <Group
           y={layout.notesY}
           onMouseLeave={() => editor.setNoteHoverName(null)}

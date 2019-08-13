@@ -15,7 +15,8 @@ limitations under the License.
 
 import { computed, observable } from 'mobx';
 
-import { editor } from './index';
+import editor from './editor';
+import featureFlags from './feature-flags';
 import {
   DEFAULT_EDITOR_WIDTH,
   DEFAULT_SEQUENCES_WIDTH,
@@ -45,7 +46,9 @@ class Layout {
   @observable editorHeight = 600;
   @observable timelineHeight = TIMELINE_HEIGHT;
 
-  @observable maskLanesHeight = 4 * MASK_LANE_HEIGHT;
+  @computed get maskLanesHeight() {
+    return featureFlags.baseline ? 0 : 4 * MASK_LANE_HEIGHT;
+  }
   @observable pianoRollWidth = PIANO_ROLL_WIDTH;
 
   @computed get notesHeight() {

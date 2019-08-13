@@ -19,6 +19,7 @@ import { observable } from 'mobx';
 import { EditorTool, editor, masks, player, layout } from './index';
 import { MAX_PITCH, MIN_PITCH } from './constants';
 import { Note, Source } from './note';
+import featureFlags from './feature-flags';
 
 /**
  * @param position position in sixteenths
@@ -43,6 +44,11 @@ function clampPitch(pitch: number) {
 }
 
 class Interactions {
+  constructor() {
+    const { baseline } = featureFlags;
+    this.emptyMaskDeselectsAll = baseline ? true : false;
+  }
+
   /**
    * Note Interactions
    * ===========================================================================
