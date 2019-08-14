@@ -214,11 +214,11 @@ export class Generator {
         mm.sequences.mergeConsecutiveNotes(results)
       );
 
-      // Now, filter the output by removing the notes that were supplied to the model.
+      // Now, filter the output by removing the notes fed to model that were non-masked
       const inputNotesSet = new Set<string>();
       const makeKey = note =>
         `${note.pitch}:${note.position}:${note.duration}:${note.voice}`;
-      inputNotes.forEach(note => {
+      masks.nonMaskedNotes.forEach(note => {
         inputNotesSet.add(makeKey(note));
       });
       const filtered = output.filter(note => {
