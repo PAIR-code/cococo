@@ -18,7 +18,7 @@ import { style } from 'typestyle';
 import { observer } from 'mobx-react';
 
 import { Note as NoteModel } from '../core/note';
-import { editor, interactions } from '../core';
+import { editor, interactions, masks } from '../core';
 import { VOICES } from '../core/constants';
 import { COLOR_PLAYING, VOICE_COLORS, MUTED_COLOR } from '../core/theme';
 
@@ -62,7 +62,7 @@ export class Note extends React.Component<NoteProps> {
     const VOICE = VOICES[note.voice];
     const glowFilter = `url(#glow-${VOICE.toLowerCase()})`;
 
-    const isMasked = editor.isNoteMasked(note);
+    const isMasked = masks.isNoteMasked(note);
     const filter = isMasked ? glowFilter : null;
 
     const sizeProps = {

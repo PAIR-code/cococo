@@ -17,7 +17,7 @@ import * as mm from '@magenta/music';
 
 import { Note } from './note';
 import { NoteSequence } from './note-sequence';
-import { editor, player } from '../core';
+import { editor, masks, player } from '../core';
 import { Coconet } from './coconet';
 import { fromMagentaSequence, getMagentaNoteSequence } from './magenta-utils';
 import { MODEL_URL, DifferenceFromOriginal, Mood } from './constants';
@@ -118,7 +118,7 @@ export class Generator {
 
   getInfillMask(): InfillMask[] | undefined {
     const infillMask = [];
-    editor.generationMasks.forEach((mask, voice) => {
+    masks.generationMasks.forEach((mask, voice) => {
       mask.forEach(maskIndex => {
         infillMask.push({ voice, step: maskIndex });
       });
@@ -230,7 +230,7 @@ export class Generator {
     }
 
     // Now, set the first candidate sequence to be the original, masked sequence
-    const maskedNotes = editor.maskedNotes;
+    const maskedNotes = masks.maskedNotes;
     editor.removeNotes(maskedNotes);
     const noteSequences = [maskedNotes, ...outputNotes].map(notes => {
       return new NoteSequence(notes);

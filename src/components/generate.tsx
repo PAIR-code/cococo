@@ -25,7 +25,7 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import { MusicNote } from '@material-ui/icons';
 
-import { editor, generator } from '../core';
+import { editor, generator, masks } from '../core';
 import { NoteSequence } from '../core/note-sequence';
 
 import { Sequence } from './sequence';
@@ -121,7 +121,7 @@ export class Generate extends React.Component<GenerateProps> {
 
   render() {
     const isModelBusy = !generator.isModelLoaded || generator.isWorking;
-    const isGenerateButtonDisabled = !editor.doMasksExist || isModelBusy;
+    const isGenerateButtonDisabled = !masks.doMasksExist || isModelBusy;
 
     const nSequenceContainerStyle = style({
       margin: '5px 0 15px',
@@ -130,7 +130,7 @@ export class Generate extends React.Component<GenerateProps> {
 
     const showCandidateSequences = generator.candidateSequences.length > 0;
 
-    const maskedSequenceExists = editor.maskedNotes.length > 0;
+    const maskedSequenceExists = masks.maskedNotes.length > 0;
     const candidateSequenceSelected =
       generator.selectedCandidateSequenceIndex > 0;
     const similaritySliderEnabled = candidateSequenceSelected
