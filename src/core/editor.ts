@@ -140,7 +140,7 @@ class Editor {
     DEFAULT_NOTES.forEach(([pitch, duration], i) => {
       const note = new Note(pitch, position, duration);
       position += duration;
-      this._addNote(note);
+      this.mainSequence.addNote(note);
     });
     this.currentlySelectedNotes.clear();
   }

@@ -52,8 +52,9 @@ export class NoteSequence {
   static overlaps(note: Note, positionRange: number[], pitchRange: number[]) {
     const { pitch: pitch, position, duration } = note;
     const [startPosition, endPosition] = positionRange;
-    const [startValue, endValue] = pitchRange;
-    if (pitch < startValue || pitch > endValue) {
+    const [startPitch, endPitch] = pitchRange;
+
+    if (pitch < startPitch || pitch > endPitch) {
       return false;
     } else if (position >= startPosition && position < endPosition) {
       return true;

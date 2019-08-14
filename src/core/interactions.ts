@@ -334,7 +334,7 @@ class Interactions {
         masks.clearMasks();
       } else {
         const replaceMask = !this.maskToolShiftDrag;
-        masks.maskNotes(positionRange, pitchRange, replaceMask);
+        masks.maskNotes(notesInRange, replaceMask);
       }
 
       this.isMaskToolDragging = false;
@@ -392,13 +392,13 @@ class Interactions {
         true
       );
 
-      masks.generationMasks[voiceIndex] = _.range(startPosition, endPosition);
+      masks.setMask(voiceIndex, _.range(startPosition, endPosition));
     };
 
     const mouseUp = () => {
       if (!this.hasMaskDragMoved) {
         const { loopStart, loopEnd } = player;
-        masks.generationMasks[voiceIndex] = _.range(loopStart, loopEnd);
+        masks.setMask(voiceIndex, _.range(loopStart, loopEnd));
       }
 
       this.hasMaskDragMoved = false;

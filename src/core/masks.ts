@@ -19,6 +19,7 @@ import * as _ from 'lodash';
 import editor from './editor';
 import featureFlags from './feature-flags';
 import { Note } from './note';
+import { TOTAL_SIXTEENTHS } from './constants';
 
 export class EditorMaskRegion {
   constructor(
@@ -31,60 +32,82 @@ export class EditorMaskRegion {
 
 class Masks {
   // Masks are maintained as an array of masked sixteenth notes, one per voice.
-  @observable generationMasks: number[][] = [[], [], [], []];
+  @observable private _userMasks = this.emptyMasks();
 
-  constructor() {
+  @computed private get _implicitMasks() {
+    return featureFlags.baseline
+      ? this.computeMasksFromEmptyRegions()
+      : this.emptyMasks();
+  }
+
+  @computed get masks() {
+    // When in baseline mode, we want to infill all voices that are either
+    // masked or empty.
     if (featureFlags.baseline) {
-      // Automatically set full generationMasks when in baseline mode
-      this.generationMasks = _.range(4).map(i => {
-        return i === 0 ? [] : _.range(8);
-      });
+      return this.doUserMasksExist ? this._userMasks : this._implicitMasks;
+    } else {
+      return this._userMasks;
     }
   }
 
-  maskNotes(positionRange: number[], pitchRange: number[], replaceMask = true) {
-    const notesInMask = editor.getNotesInRange(positionRange, pitchRange);
+  emptyMasks(): number[][] {
+    return [[], [], [], []];
+  }
 
-    notesInMask.forEach(note => {
-      const maskStart = Math.min(positionRange[0], note.start);
-      const maskEnd = Math.max(positionRange[1], note.end);
-      const maskRange = _.range(maskStart, maskEnd);
+  private getPositionsPerVoice(notes: Note[]) {
+    const notePositions = _.range(4).map(() => new Set<number>());
+    notes.forEach(note => {
+      const positions = _.range(note.start, note.end);
+      positions.forEach(position => notePositions[note.voice].add(position));
+    });
+    return notePositions;
+  }
 
+  private computeMasksFromEmptyRegions() {
+    const notePositions = this.getPositionsPerVoice(editor.allNotes);
+    const _masks = _.range(4).map(voice => {
+      return _.range(TOTAL_SIXTEENTHS).filter(
+        position => !notePositions[voice].has(position)
+      );
+    });
+    return _masks;
+  }
+
+  maskNotes(notesInMask: Note[], replaceMask = true) {
+    const notePositions = this.getPositionsPerVoice(notesInMask);
+    notePositions.forEach((positions, voice) => {
       if (replaceMask) {
-        this.replaceMask(note.voice, maskRange);
+        this.setMask(voice, [...positions.values()]);
       } else {
-        this.addMask(note.voice, maskRange);
+        this.addMask(voice, [...positions.values()]);
       }
     });
   }
 
-  replaceMask(voiceIndex: number, mask: number[]) {
-    this.generationMasks[voiceIndex] = [...mask];
+  setMask(voiceIndex: number, mask: number[]) {
+    this._userMasks[voiceIndex] = [...mask];
   }
 
   addMask(voiceIndex: number, mask: number[]) {
-    const maskSet = new Set<number>(this.generationMasks[voiceIndex]);
+    const maskSet = new Set<number>(this._userMasks[voiceIndex]);
     mask.forEach(maskIndex => maskSet.add(maskIndex));
-    this.generationMasks[voiceIndex] = [...maskSet.values()].sort(
-      (a, b) => a - b
-    );
+    this._userMasks[voiceIndex] = [...maskSet.values()].sort((a, b) => a - b);
   }
 
   removeMask(voiceIndex: number, mask: number[]) {
-    const maskSet = new Set<number>(this.generationMasks[voiceIndex]);
+    const maskSet = new Set<number>(this._userMasks[voiceIndex]);
     mask.forEach(maskIndex => maskSet.delete(maskIndex));
-    this.generationMasks[voiceIndex] = [...maskSet.values()].sort(
-      (a, b) => a - b
-    );
+    this._userMasks[voiceIndex] = [...maskSet.values()].sort((a, b) => a - b);
   }
 
   clearMasks() {
-    this.generationMasks = this.generationMasks.map(() => []);
+    this._userMasks = this._userMasks.map(() => []);
   }
 
   isNoteMasked(note: Note) {
     const { voice, start, end } = note;
-    const mask = this.generationMasks[voice];
+    const masks = this.masks;
+    const mask = masks[voice];
 
     for (let maskIndex of mask) {
       if (maskIndex >= start && maskIndex < end) return true;
@@ -107,8 +130,28 @@ class Masks {
     return editor.allNotes.filter(note => !this.isNoteMasked(note));
   }
 
-  @computed get doMasksExist() {
-    return _.some(this.generationMasks, mask => mask.length > 0);
+  addImplicitMasksToUserMasks() {
+    this._implicitMasks.forEach((mask, voice) => {
+      this.addMask(voice, mask);
+    });
+  }
+
+  removeImplicitMasksFromUserMasks() {
+    this._implicitMasks.forEach((mask, voice) => {
+      this.removeMask(voice, mask);
+    });
+  }
+
+  @computed get doUserMasksExist() {
+    return _.some(this._userMasks, mask => mask.length > 0);
+  }
+
+  @computed get doImplicitMasksExist() {
+    return _.some(this._implicitMasks, mask => mask.length > 0);
+  }
+
+  @computed get doAnyMasksExist() {
+    return this.doUserMasksExist || this.doImplicitMasksExist;
   }
 }
 

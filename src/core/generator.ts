@@ -97,6 +97,7 @@ export class Generator {
     const sequence = this.selectedCandidateSequence;
     if (sequence) {
       editor.addGeneratedSequence(sequence);
+      masks.clearMasks();
     }
 
     // Then, clear the sequences
@@ -118,7 +119,7 @@ export class Generator {
 
   getInfillMask(): InfillMask[] | undefined {
     const infillMask = [];
-    masks.generationMasks.forEach((mask, voice) => {
+    masks.masks.forEach((mask, voice) => {
       mask.forEach(maskIndex => {
         infillMask.push({ voice, step: maskIndex });
       });
@@ -147,7 +148,21 @@ export class Generator {
     }
   }
 
+  private prepareForHarmonization() {
+    // First, commit any selected candidate sequence before beginning harmpnization
+    if (this.candidateSequences.length) {
+      this.commitSelectedCandidateSequence();
+    }
+
+    // If we're working from an implicit mask, promote that mask to the
+    // _userMasks in order to properly handle note highlighting
+    if (masks.doImplicitMasksExist) {
+      masks.addImplicitMasksToUserMasks();
+    }
+  }
+
   async harmonize() {
+    this.prepareForHarmonization();
     this.isWorking = true;
 
     // Allow the UX to respond before computing so heavily!

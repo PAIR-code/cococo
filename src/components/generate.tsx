@@ -123,7 +123,8 @@ export class Generate extends React.Component<GenerateProps> {
   render() {
     const { baseline } = featureFlags;
     const isModelBusy = !generator.isModelLoaded || generator.isWorking;
-    const isGenerateButtonDisabled = !masks.doMasksExist || isModelBusy;
+    const noMasks = baseline ? !masks.doAnyMasksExist : !masks.doUserMasksExist;
+    const isGenerateButtonDisabled = noMasks || isModelBusy;
 
     const nSequenceContainerStyle = style({
       margin: '5px 0 15px',
@@ -146,9 +147,6 @@ export class Generate extends React.Component<GenerateProps> {
           variant="outlined"
           color="primary"
           onClick={() => {
-            if (generator.candidateSequences.length) {
-              generator.commitSelectedCandidateSequence();
-            }
             generator.harmonize();
           }}
         >
