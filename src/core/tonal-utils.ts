@@ -14,7 +14,13 @@ limitations under the License.
 ==============================================================================*/
 
 import * as tonal from 'tonal';
-import { BOTTOM_A, MIN_PITCH, MAX_PITCH, MODE_NAMES } from './constants';
+import {
+  BOTTOM_A,
+  MIN_PITCH,
+  MAX_PITCH,
+  MODE_NAMES,
+  KEY_NAMES,
+} from './constants';
 import { range } from 'lodash';
 import { ScaleValue } from './editor';
 
@@ -98,8 +104,6 @@ export function makeNotesTriadForKey(key: string, mode: string): ScaleValue[] {
 
 interface TriadValue {
   key: string;
-  deltaNote: number;
-  notes: string[];
   quality: string;
 }
 
@@ -117,9 +121,6 @@ export function getTriadsForKey(key: string, mode: string): TriadValue[] {
     // zip together note key names and the qualities
     return {
       key: noteName,
-      deltaNote: i,
-      // FIXME(rlouie): might not even need to compute notes at this time
-      notes: tonal.Chord.notes(noteName, TRIAD_QUALITIES[mode][i]),
       quality: TRIAD_QUALITIES[mode][i],
     };
   });
@@ -138,4 +139,24 @@ export function getSadTriadsForKey(key: string, mode: string): TriadValue[] {
     // TODO: could semantically separate m, aug, dim
     return triad.quality !== 'M';
   });
+}
+
+export function getAllHappyTriads(): TriadValue[] {
+  return KEY_NAMES.map(keyName => {
+    return {
+      key: keyName,
+      quality: 'M',
+    };
+  });
+}
+
+export function getAllSadTriads(): TriadValue[] {
+  const nonMajorQualities = ['m', 'aug', 'dim'];
+  const triads: TriadValue[] = [];
+  KEY_NAMES.forEach(keyName => {
+    nonMajorQualities.forEach(quality => {
+      triads.push({ key: keyName, quality: quality });
+    });
+  });
+  return triads;
 }
