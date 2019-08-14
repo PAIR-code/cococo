@@ -15,14 +15,11 @@ limitations under the License.
 
 import { computed, observable } from 'mobx';
 import { range } from 'lodash';
-import {
-  makeNoteScale,
-  makeNoteScaleForKey,
-  makeNotesTriadForKey,
-} from './tonal-utils';
+import { makeNoteScale, makeNoteScaleForKey } from './tonal-utils';
 import * as _ from 'lodash';
 
 import generator from './generator';
+import masks from './masks';
 import { Note, Source, Voice } from './note';
 import { NoteSequence } from './note-sequence';
 import undo, { undoable } from './undo';
@@ -44,15 +41,6 @@ export interface ScaleValue {
   pitch: number;
   name: string;
   octave: number;
-}
-
-export class Mask {
-  constructor(
-    public topLeftValue: number,
-    public topLeftPosition: number,
-    public bottomRightValue: number,
-    public bottomRightPosition: number
-  ) {}
 }
 
 class Editor {
@@ -147,9 +135,6 @@ class Editor {
   @observable selectedTool: EditorTool = EditorTool.DRAW;
   @observable selectedVoice: Voice = Voice.SOPRANO;
 
-  // Masks are maintained as an array of masked sixteenth notes, one per voice.
-  @observable generationMasks: number[][] = [[], [], [], []];
-
   constructor() {
     let position = 0;
     DEFAULT_NOTES.forEach(([pitch, duration], i) => {
@@ -219,7 +204,7 @@ class Editor {
   // The non-undoable internal method
   private _addNote(note: Note) {
     // We need to potentially add the note to a candidate sequence
-    const isMasked = this.isNoteMasked(note);
+    const isMasked = masks.isNoteMasked(note);
     const isCandidateSequenceSelected =
       generator.selectedCandidateSequenceIndex !== null;
     if (isMasked && isCandidateSequenceSelected) {
@@ -294,76 +279,14 @@ class Editor {
     }
   }
 
-  private replaceNoteWithNotes(note: Note, otherNotes: Note[]) {
-    this.removeNote(note);
-    otherNotes.forEach(otherNote => this._addNote(otherNote));
-  }
-
-  @undoable()
-  maskNotes(positionRange: number[], pitchRange: number[], replaceMask = true) {
-    const notesInMask: Note[] = [];
+  getNotesInRange(positionRange: number[], pitchRange: number[]) {
+    const notesInRange: Note[] = [];
     for (const note of this.allNotes) {
       if (NoteSequence.overlaps(note, positionRange, pitchRange)) {
-        notesInMask.push(note);
+        notesInRange.push(note);
       }
     }
-
-    notesInMask.forEach(note => {
-      const maskStart = Math.max(positionRange[0], note.start);
-      const maskEnd = Math.min(positionRange[1], note.end);
-      const maskRange = _.range(maskStart, maskEnd);
-
-      if (replaceMask) {
-        this.replaceMask(note.voice, maskRange);
-      } else {
-        this.addMask(note.voice, maskRange);
-      }
-    });
-  }
-
-  replaceMask(voiceIndex: number, mask: number[]) {
-    this.generationMasks[voiceIndex] = [...mask];
-  }
-
-  addMask(voiceIndex: number, mask: number[]) {
-    const maskSet = new Set<number>(this.generationMasks[voiceIndex]);
-    mask.forEach(maskIndex => maskSet.add(maskIndex));
-    this.generationMasks[voiceIndex] = [...maskSet.values()].sort(
-      (a, b) => a - b
-    );
-  }
-
-  removeMask(voiceIndex: number, mask: number[]) {
-    const maskSet = new Set<number>(this.generationMasks[voiceIndex]);
-    mask.forEach(maskIndex => maskSet.delete(maskIndex));
-    this.generationMasks[voiceIndex] = [...maskSet.values()].sort(
-      (a, b) => a - b
-    );
-  }
-
-  isNoteMasked(note: Note) {
-    const { voice, start, end } = note;
-    const mask = this.generationMasks[voice];
-
-    for (let maskIndex of mask) {
-      if (maskIndex >= start && maskIndex < end) return true;
-    }
-    return false;
-  }
-
-  @computed get maskedNotes() {
-    const notes = this.allNotes;
-    const maskedNotes: Note[] = [];
-
-    for (const note of notes) {
-      if (this.isNoteMasked(note)) maskedNotes.push(note);
-    }
-
-    return maskedNotes;
-  }
-
-  @computed get doMasksExist() {
-    return _.some(this.generationMasks, mask => mask.length > 0);
+    return notesInRange;
   }
 
   toggleVoiceMute(voiceIndex: number) {

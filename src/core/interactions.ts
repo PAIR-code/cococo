@@ -16,7 +16,7 @@ limitations under the License.
 import React from 'react';
 import _ from 'lodash';
 import { observable } from 'mobx';
-import { EditorTool, editor, player, layout } from './index';
+import { EditorTool, editor, masks, player, layout } from './index';
 import { MAX_PITCH, MIN_PITCH } from './constants';
 import { Note, Source } from './note';
 
@@ -43,15 +43,14 @@ function clampPitch(pitch: number) {
 }
 
 class Interactions {
+  /**
+   * Note Interactions
+   * ===========================================================================
+   */
   private noteDragStartX = 0;
   private noteDragStartY = 0;
   private noteDragStartPosition = 0;
   private noteDragStartPitch = 0;
-
-  private loopStartDragStartX = 0;
-  private loopEndDragStartX = 0;
-  private loopStartDragStartPosition = 0;
-  private loopEndDragStartPosition = 0;
 
   handleNoteHover = (note: Note) => (e: React.MouseEvent) => {
     if (this.isEraseToolDragging) {
@@ -111,6 +110,15 @@ class Interactions {
       this.handleStartNoteDrag(note, e);
     }
   };
+
+  /**
+   * Loop Interactions
+   * ===========================================================================
+   */
+  private loopStartDragStartX = 0;
+  private loopEndDragStartX = 0;
+  private loopStartDragStartPosition = 0;
+  private loopEndDragStartPosition = 0;
 
   private handleLoopStartDrag = (e: MouseEvent) => {
     const deltaX = e.clientX - this.loopStartDragStartX;
@@ -173,6 +181,11 @@ class Interactions {
     document.addEventListener('mousemove', mouseMove);
     document.addEventListener('mouseup', mouseUp);
   };
+
+  /**
+   * Grid Interactions
+   * ===========================================================================
+   */
 
   handleGridClick(scaleIndex: number, divisionIndex: number) {
     if (editor.selectedTool !== EditorTool.DRAW) {
@@ -261,10 +274,15 @@ class Interactions {
     document.addEventListener('mouseup', mouseUp);
   };
 
+  /**
+   * Mask Tool Interactions
+   * ===========================================================================
+   */
   private maskToolDragStartClientXY = [0, 0];
   @observable maskToolDragStartXY = [0, 0];
   @observable maskToolDragXY = [0, 0];
   private maskToolShiftDrag = false;
+  private emptyMaskDeselectsAll = false; // To be set in baseline mode
 
   handleMaskToolDrag = (e: MouseEvent) => {
     this.maskToolDragXY = [
@@ -300,13 +318,18 @@ class Interactions {
         quantizePosition(startX / layout.sixteenthWidth, Math.floor),
         quantizePosition(endX / layout.sixteenthWidth, Math.ceil),
       ];
-      const valueRange = [
+      const pitchRange = [
         MAX_PITCH - Math.floor(endY / layout.noteHeight),
         MAX_PITCH - Math.floor(startY / layout.noteHeight),
       ];
 
-      const replaceMask = !this.maskToolShiftDrag;
-      editor.maskNotes(positionRange, valueRange, replaceMask);
+      const notesInRange = editor.getNotesInRange(positionRange, pitchRange);
+      if (notesInRange.length === 0 && this.emptyMaskDeselectsAll) {
+        masks.clearMasks();
+      } else {
+        const replaceMask = !this.maskToolShiftDrag;
+        masks.maskNotes(positionRange, pitchRange, replaceMask);
+      }
 
       this.isMaskToolDragging = false;
       this.maskToolDragStartClientXY = [0, 0];
@@ -320,6 +343,10 @@ class Interactions {
     document.addEventListener('mouseup', mouseUp);
   };
 
+  /**
+   * Mask Lane Interactions
+   * ===========================================================================
+   */
   private maskLaneDragStartX = 0;
   private maskLaneDragX = 0;
   private maskLaneDragStartClientX = 0;
@@ -359,13 +386,13 @@ class Interactions {
         true
       );
 
-      editor.generationMasks[voiceIndex] = _.range(startPosition, endPosition);
+      masks.generationMasks[voiceIndex] = _.range(startPosition, endPosition);
     };
 
     const mouseUp = () => {
       if (!this.hasMaskDragMoved) {
         const { loopStart, loopEnd } = player;
-        editor.generationMasks[voiceIndex] = _.range(loopStart, loopEnd);
+        masks.generationMasks[voiceIndex] = _.range(loopStart, loopEnd);
       }
 
       this.hasMaskDragMoved = false;
@@ -379,7 +406,7 @@ class Interactions {
 
   handleMaskRectClick = (voiceIndex: number, maskIndices: number[]) => () => {
     if (!this.hasMaskDragMoved) {
-      editor.removeMask(voiceIndex, maskIndices);
+      masks.removeMask(voiceIndex, maskIndices);
     }
   };
 }

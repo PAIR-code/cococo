@@ -17,7 +17,7 @@ import React from 'react';
 import * as _ from 'lodash';
 import { observer } from 'mobx-react';
 
-import { editor, generator, interactions } from '../core';
+import { editor, generator, interactions, masks } from '../core';
 import { VOICE_COLORS, MUTED_COLOR } from '../core/theme';
 
 import { Group } from './group';
@@ -97,7 +97,7 @@ export class MaskLanes extends React.Component<Props> {
     const laneHeight = height / 4;
 
     return _.range(4).map(voiceIndex => {
-      const mask = editor.generationMasks[voiceIndex];
+      const mask = masks.generationMasks[voiceIndex];
       const y = voiceIndex * laneHeight;
 
       // Merge the mask indices into left/right bounds in order to draw

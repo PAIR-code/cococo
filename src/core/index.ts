@@ -15,11 +15,12 @@ limitations under the License.
 
 import _api from './api';
 import _editor from './editor';
-import _player from './player';
 import _generator from './generator';
 import _interactions from './interactions';
 import _keyboard from './keyboard';
 import _layout from './layout';
+import _masks from './masks';
+import _player from './player';
 import _undo from './undo';
 
 export { EditorTool } from './editor';
@@ -31,5 +32,6 @@ export const generator = _generator;
 export const interactions = _interactions;
 export const keyboard = _keyboard;
 export const layout = _layout;
+export const masks = _masks;
 export const player = _player;
 export const undo = _undo;
