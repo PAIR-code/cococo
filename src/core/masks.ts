@@ -95,6 +95,10 @@ class Masks {
     return maskedNotes;
   }
 
+  @computed get nonMaskedNotes() {
+    return editor.allNotes.filter(note => !this.isNoteMasked(note));
+  }
+
   @computed get doMasksExist() {
     return _.some(this.generationMasks, mask => mask.length > 0);
   }
