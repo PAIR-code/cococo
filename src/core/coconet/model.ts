@@ -36,6 +36,8 @@ import {
   makeNotesTriadForKey,
   getHappyTriadsForKey,
   getSadTriadsForKey,
+  getAllHappyTriads,
+  getAllSadTriads,
 } from '../tonal-utils';
 
 import { N_NOTE_DIVISIONS } from '../constants';
@@ -48,6 +50,19 @@ import { N_NOTE_DIVISIONS } from '../constants';
 interface InfillMask {
   step: number;
   voice: number;
+}
+
+/**
+ * @param discourageNotes (Optional) discourageNotes flag saying whether to
+ * adjust gibbs sampling of notes. If true, the sampling is nudged towards not
+ * sampling notes from the original pianoroll. If false, the sampling is nudged
+ * towards sampling more of the notes. If not provided, sampling remains same.
+ * @param nudgeFactor (Optional) multiplier for how much to nudge notes, when
+ * discourageNotes is set to true or false
+ */
+interface SimilarDifferentConfig {
+  discourageNotes: boolean;
+  nudgeFactor: number;
 }
 
 /**
@@ -74,12 +89,6 @@ interface MoodConfig {
  * `{step: number, voice: number}`, indicating which voice should be
  * infilled for a particular step. If this value isn't provided, then the model
  * will attempt to infill all the "silent" steps in the input sequence.
- * @param discourageNotes (Optional) discourageNotes flag saying whether to
- * adjust gibbs sampling of notes. If true, the sampling is nudged towards not
- * sampling notes from the original pianoroll. If false, the sampling is nudged
- * towards sampling more of the notes. If not provided, sampling remains same.
- * @param nudgeFactor (Optional) multiplier for how much to nudge notes, when
- * discourageNotes is set to true or false
  * @param moodConfig (Optional) generation can be conditioned on the happy/major triads or
  * sad/minor/augmented/diminished triads of a major, minor, or harmonic minor scale.
  * This parameter is an object with a `key` ('C') and a `mode` ('major', 'minor', 'harmonic minor')
@@ -89,8 +98,7 @@ interface CoconetConfig {
   temperature?: number;
   numIterations?: number;
   infillMask?: InfillMask[];
-  discourageNotes?: boolean;
-  nudgeFactor?: number;
+  similarDifferentConfig?: SimilarDifferentConfig;
   moodConfig?: MoodConfig;
 }
 
@@ -590,10 +598,8 @@ class Coconet {
     let temperature = 0.99;
     let numIterations;
     let outerMasks;
-    let discourageNotes;
-    let nudgeFactor;
     let moodConfig;
-    let softPriors;
+    let similarDifferentConfig;
 
     if (config) {
       temperature = config.temperature || temperature;
@@ -604,28 +610,12 @@ class Coconet {
       numIterations =
         config.numIterations ||
         (await this.getNumIterationsFromOuterMasks(outerMasks));
-      discourageNotes = config.discourageNotes || discourageNotes;
-      nudgeFactor = config.nudgeFactor || nudgeFactor;
       moodConfig = config.moodConfig || moodConfig;
-      // TODO(rlouie): must allow for the case where the soft prior
-      // is generated based on the probability distribution
-      softPriors = this.computeSoftPrior(
-        pianoroll,
-        discourageNotes,
-        nudgeFactor,
-        moodConfig,
-        temperature
-      );
+      similarDifferentConfig =
+        config.similarDifferentConfig || similarDifferentConfig;
     } else {
       outerMasks = this.getCompletionMask(pianoroll);
       numIterations = await this.getNumIterationsFromOuterMasks(outerMasks);
-      softPriors = this.computeSoftPrior(
-        pianoroll,
-        discourageNotes,
-        nudgeFactor,
-        moodConfig,
-        temperature
-      );
     }
 
     // Run sampling on the pianoroll.
@@ -634,7 +624,8 @@ class Coconet {
       numIterations,
       temperature,
       outerMasks,
-      softPriors
+      moodConfig,
+      similarDifferentConfig
     );
 
     // Convert the resulting pianoroll to a noteSequence.
@@ -643,7 +634,6 @@ class Coconet {
     pianoroll.dispose();
     samples.dispose();
     outerMasks.dispose();
-    softPriors.dispose();
     return outputSequence;
   }
 
@@ -655,14 +645,16 @@ class Coconet {
     numSteps: number,
     temperature: number,
     outerMasks: tf.Tensor4D,
-    softPriors?: tf.Tensor4D
+    moodConfig: MoodConfig,
+    similarDifferentConfig: SimilarDifferentConfig
   ): Promise<tf.Tensor4D> {
     return this.gibbs(
       pianorolls,
       numSteps,
       temperature,
       outerMasks,
-      softPriors
+      moodConfig,
+      similarDifferentConfig
     );
   }
 
@@ -712,28 +704,6 @@ class Coconet {
     return defaultNumIterations;
   }
 
-  private computeSoftPrior(
-    pianorolls: tf.Tensor4D,
-    discourageNotes: boolean,
-    nudgeFactor: number,
-    moodConfig: MoodConfig,
-    temperature: number
-  ): tf.Tensor4D {
-    return tf.tidy(() => {
-      const originalNotePrior = this.priorOverOriginalNotes(
-        pianorolls,
-        discourageNotes,
-        nudgeFactor
-      );
-      const moodPrior = this.getRandomMoodPrior(
-        pianorolls,
-        moodConfig,
-        temperature
-      );
-      return tf.mulStrict(originalNotePrior, moodPrior);
-    });
-  }
-
   /**
    * Idea: we don't care about the mask area of notes that will be
    * nudged by the soft prior since the masking code already handles
@@ -746,13 +716,16 @@ class Coconet {
    */
   private priorOverOriginalNotes(
     pianorolls: tf.Tensor4D,
-    discourageNotes: boolean,
-    nudgeFactor: number
+    similarDifferentConfig: SimilarDifferentConfig
   ): tf.Tensor4D {
-    if (discourageNotes === undefined && nudgeFactor === undefined) {
+    if (
+      similarDifferentConfig === undefined ||
+      similarDifferentConfig.discourageNotes === undefined ||
+      similarDifferentConfig.nudgeFactor === undefined
+    ) {
       return tf.onesLike(pianorolls);
     }
-    return discourageNotes
+    return similarDifferentConfig.discourageNotes
       ? // nudge * (1.5 - pianorolls)
         // when prior is used, probabilities for...
         // notes in pianoroll (1s) are nudge*0.5 smaller
@@ -760,7 +733,7 @@ class Coconet {
         // Thus, 3^(nudgeFactor) likelihood decrease for
         // notes in pianoroll to be selected
         (tf.mul(
-          tf.scalar(nudgeFactor),
+          tf.scalar(similarDifferentConfig.nudgeFactor),
           tf.scalar(1.5).sub(pianorolls)
         ) as tf.Tensor4D)
       : // nudge * (0.5 + pianorolls)
@@ -770,7 +743,7 @@ class Coconet {
         // Thus, 3^(nudgeFactor) likelihood decrease for
         // notes in pianoroll to be selected
         (tf.mul(
-          tf.scalar(nudgeFactor),
+          tf.scalar(similarDifferentConfig.nudgeFactor),
           tf.scalar(0.5).add(pianorolls)
         ) as tf.Tensor4D);
   }
@@ -861,7 +834,85 @@ class Coconet {
       return nNoteDivisions / 16; // progressions are sixteenth steps
     }
   }
-  /* Random happy triads, not taking argmax of predictions (should there be adjusting predictions based on mask?)*/
+
+  private getMostLikelyMoodPrior(
+    predictions: tf.Tensor4D,
+    moodConfig: MoodConfig,
+    temperature: number
+  ) {
+    if (moodConfig === undefined) {
+      return tf.onesLike(predictions);
+    }
+    const [nBatch, nQSteps, nPitches, nVoices] = predictions.shape;
+
+    // Technique 1: Get Triads of a happy/sad quality only within the current user set key/mode
+    // const moodTriads = moodConfig.happy
+    // ? getHappyTriadsForKey(moodConfig.key, moodConfig.mode)
+    // : getSadTriadsForKey(moodConfig.key, moodConfig.mode);
+
+    // Technique 2: Get triads of a happy/sad quality from all available ones from the 12 tones
+    const moodTriads = moodConfig.happy
+      ? getAllHappyTriads()
+      : getAllSadTriads();
+
+    // FINDING: making nHeldSteps larger based on temperature makes the music more conservative,
+    // even for higher values of surprising. We choose to decide the most likely triad per
+    // quantization step to maintain the expectations of the surprising slider.
+    // const nHeldQSteps = this.mapTemperatureToNHeldSteps(temperature);
+    const nHeldQSteps = 1;
+    const nProgressions = nQSteps / nHeldQSteps;
+
+    const moodTriadPriorCandidatesJs = moodTriads.map(triad => {
+      return tf.tidy(() => {
+        const pitches = this.getTriadPitchBuffer(
+          predictions,
+          triad.key,
+          triad.quality,
+          true // to compute likelihood for each triad, we need a hard prior to use as a
+        );
+        // triad prior for n held steps
+        return pitches
+          .toTensor()
+          .expandDims(0)
+          .tile([nHeldQSteps, 1])
+          .expandDims(2)
+          .tile([1, 1, nVoices])
+          .expandDims(0)
+          .tile([nBatch, 1, 1, 1]) as tf.Tensor4D;
+      });
+    });
+    const moodTriadPriorCandidatesTf = tf.concat(moodTriadPriorCandidatesJs, 0);
+    const nCandidates = moodTriadPriorCandidatesTf.shape[0];
+    const triadProgressions: tf.Tensor4D[] = [];
+    for (let i = 0; i < nProgressions; i++) {
+      // check most likely triad at each progression
+      const predictionOverlap = predictions.slice(
+        [0, i * nHeldQSteps, 0, 0],
+        [nBatch, nHeldQSteps, nPitches, nVoices]
+      );
+      const predsPerCandidate = predictionOverlap.tile([nCandidates, 1, 1, 1]);
+      const triadLHs = tf
+        .mulStrict(predsPerCandidate, moodTriadPriorCandidatesTf)
+        .sum([1, 2, 3]);
+      const bestTriadIdx = tf.argMax(triadLHs);
+      const moodTriadPrior = moodTriadPriorCandidatesTf
+        .gather(bestTriadIdx, 0)
+        .expandDims(0) as tf.Tensor4D;
+      triadProgressions.push(moodTriadPrior);
+      predictionOverlap.dispose();
+      predsPerCandidate.dispose();
+      triadLHs.dispose();
+      bestTriadIdx.dispose();
+    }
+    moodTriadPriorCandidatesJs.forEach(prior => prior.dispose());
+    moodTriadPriorCandidatesTf.dispose();
+    return tf.tidy(() => {
+      const fullTriadProgressionPrior = tf.concat(triadProgressions, 1);
+      triadProgressions.forEach(prior => prior.dispose());
+      return fullTriadProgressionPrior;
+    });
+  }
+
   private getRandomMoodPrior(
     predictions: tf.Tensor4D,
     moodConfig: MoodConfig,
@@ -921,10 +972,20 @@ class Coconet {
     numSteps: number,
     temperature: number,
     outerMasks: tf.Tensor4D,
-    softPriors?: tf.Tensor4D
+    moodConfig: MoodConfig,
+    similarDifferentConfig: SimilarDifferentConfig
   ): Promise<tf.Tensor4D> {
     const numStepsTensor = tf.scalar(numSteps, 'float32');
     let pianoroll = pianorolls.clone();
+    let softPriors;
+    // If not creating a mood prior, we can compute prior once before sampling steps
+    // Otherwise, we must recompute the prior every sampling step
+    if (!moodConfig) {
+      softPriors = this.priorOverOriginalNotes(
+        pianorolls,
+        similarDifferentConfig
+      );
+    }
     for (let s = 0; s < numSteps; s++) {
       const pm = this.yaoSchedule(s, numStepsTensor);
       const innerMasks = this.bernoulliMask(pianoroll.shape, pm, outerMasks);
@@ -933,6 +994,25 @@ class Coconet {
         return this.convnet.predictFromPianoroll(pianoroll, innerMasks);
       }) as tf.Tensor4D;
       await tf.nextFrame();
+      // If we want most likely mood triad progression, we must compute the prior based on prediction
+      if (moodConfig) {
+        softPriors = tf.tidy(() => {
+          const similarDifferentPrior = this.priorOverOriginalNotes(
+            pianorolls,
+            similarDifferentConfig
+          );
+          // FINDING: Our decision to nudged predictions with similar/differnt prior before computing
+          // the most likely mood prior based on predictions allows us to make queries that work like
+          // What would keeping similar notes like the original, but making it minor, look like?
+          const moodPrior = this.getMostLikelyMoodPrior(
+            this.nudgeWithPrior(predictions, similarDifferentPrior),
+            moodConfig,
+            temperature
+          );
+          // nudge goes from logspace back to probability space... and then we go back into log once again. Is there risks here?
+          return this.nudgeWithPrior(similarDifferentPrior, moodPrior);
+        });
+      }
       const newPredictions = softPriors
         ? this.nudgeWithPrior(predictions, softPriors)
         : predictions;
