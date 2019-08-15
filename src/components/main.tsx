@@ -79,6 +79,17 @@ export default class Main extends React.Component {
             <Generate />
           </div>
         </div>
+        <div id="logging">
+          <form
+            action="https://docs.google.com/forms/d/e/1FAIpQLSdbVw9HViwZtTFFmXGTVxRi3uoQrPk1zbbN3kG1tVxR-hq8EQ/formResponse"
+            target="frame"
+            method="POST"
+            id="form"
+          >
+            <textarea id="submitbox" name="entry.1164887905" />
+          </form>
+          <iframe id="frame" name="frame" />
+        </div>
         <Working open={generator.isWorking} title="Working..." />
       </ThemeProvider>
     );
