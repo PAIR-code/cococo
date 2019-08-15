@@ -1,8 +1,10 @@
 import { observable } from 'mobx';
 
 export const enum Events {
+  // Generic Events
+  APP_LOAD = 'APP_LOAD',
   // Note edit events
-  ADD_NOTE = 'ADD_NOTE',
+  DRAW_NOTE = 'DRAW_NOTE',
   DELETE_NOTE = 'DELETE_NOTE',
   MOVE_NOTE = 'MOVE_NOTE',
   // Play pause events
@@ -56,17 +58,44 @@ export class LoggingService {
       timestamp: Date.now(),
       payload,
     };
+    console.log(event, logEvent);
     this.logEvents.push(logEvent);
   }
 
-  @observable isLoggingDialogOpen = false;
-
-  openLoggingDialog() {
-    this.isLoggingDialogOpen = true;
+  private getDateString() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const day = now.getDate();
+    const hour = now.getHours();
+    const minute = now.getMinutes();
+    const second = now.getSeconds();
+    return `${year}-${month}-${day}_${hour}:${minute}:${second}`;
   }
 
-  closeLoggingDialog() {
-    this.isLoggingDialogOpen = false;
+  saveLogsToJSON() {
+    const json = JSON.stringify(this.logEvents);
+    const blob = new Blob([json], { type: 'application/json' });
+    const filename = `cococo_logs_${this.getDateString()}`;
+    this.downloadBlob(blob, filename);
+  }
+
+  private downloadBlob(blob: Blob, filename: string) {
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename || 'download';
+
+    const clickHandler = () => {
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+        a.removeEventListener('click', clickHandler);
+      }, 150);
+    };
+
+    a.addEventListener('click', clickHandler, false);
+    a.click();
   }
 }
 

@@ -79,12 +79,17 @@ class Editor {
     this._addNote(note);
   }
   trimNoteBeingDrawnSequence() {
-    if (this.candidateNoteSequence && this.noteBeingDrawn) {
+    if (!this.noteBeingDrawn) return;
+
+    if (!this.candidateNoteSequence.isEmpty()) {
       this.candidateNoteSequence.trimOverlappingVoices(this.noteBeingDrawn);
+    } else {
+      this.mainSequence.trimOverlappingVoices(this.noteBeingDrawn);
     }
   }
   endDrawingNote() {
     if (this.noteBeingDrawn) {
+      logging.logEvent(Events.DRAW_NOTE);
       this.noteBeingDrawn = null;
       undo.completeUndoable();
     }
@@ -261,7 +266,7 @@ class Editor {
       this.currentlySelectedNotes.clear();
       this.currentlySelectedNotes.add(note);
     }
-    logging.logEvent(Events.ADD_NOTE);
+    logging.logEvent(Events.DRAW_NOTE);
   }
 
   // The non-undoable internal method

@@ -31,7 +31,7 @@ class KeyboardManager {
     } else if (e.key === 'z' && e.metaKey && e.shiftKey) {
       undo.redo();
     } else if (e.key === 'l' && e.metaKey && e.shiftKey) {
-      logging.openLoggingDialog();
+      logging.saveLogsToJSON();
     }
   };
 

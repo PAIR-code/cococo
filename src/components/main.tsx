@@ -26,11 +26,16 @@ import { Editor } from './editor';
 import { Generate } from './generate';
 import { Working } from './working';
 
-import { generator, layout, player } from '../core';
+import logging, { Events } from '../core/logging';
+import { generator, layout } from '../core';
 import { theme } from '../core/theme';
 
 @observer
 export default class Main extends React.Component {
+  componentDidMount() {
+    logging.logEvent(Events.APP_LOAD);
+  }
+
   stageRef: HTMLDivElement;
 
   render() {
