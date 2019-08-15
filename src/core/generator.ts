@@ -82,6 +82,7 @@ export class Generator {
 
   constructor() {
     this.loadModel();
+
   }
 
   async loadModel() {

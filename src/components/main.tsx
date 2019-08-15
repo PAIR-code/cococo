@@ -79,6 +79,17 @@ export default class Main extends React.Component {
             <Generate />
           </div>
         </div>
+        <div id="logging">
+          <form
+            action={process.env.GOOGLE_FORM_LOGGING_URL}
+            target="frame"
+            method="POST"
+            id="form"
+          >
+            <textarea id="submitbox" name={process.env.GOOGLE_FORM_ENTRY_ID} />
+          </form>
+          <iframe id="frame" name="frame" />
+        </div>
         <Working open={generator.isWorking} title="Working..." />
       </ThemeProvider>
     );
