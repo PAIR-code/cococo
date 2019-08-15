@@ -108,14 +108,6 @@ export class Generate extends React.Component<GenerateProps> {
         >
           Choose
         </Button>
-        <div style={{ height: 10 }} />
-        <Button
-          variant="outlined"
-          color="primary"
-          onClick={() => generator.addBackOriginalSequence()}
-        >
-          Clear
-        </Button>
       </div>
     );
   }
