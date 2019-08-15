@@ -15,6 +15,7 @@ limitations under the License.
 import { computed, observable } from 'mobx';
 import * as mm from '@magenta/music';
 
+import featureFlags from './feature-flags';
 import logging, { Events } from './logging';
 import { Note } from './note';
 import { NoteSequence } from './note-sequence';
@@ -125,13 +126,13 @@ export class Generator {
     }
   };
 
-  commitSelectedCandidateSequence = () => {
-    logging.logEvent(Events.CHOOSE_CANDIDATE_SEQUENCE);
+  commitSelectedCandidateSequence = (clearMasks = true, shouldLog = true) => {
+    if (shouldLog) logging.logEvent(Events.CHOOSE_CANDIDATE_SEQUENCE);
     // Add the selected sequence
     const sequence = this.selectedCandidateSequence;
     if (sequence) {
       editor.addGeneratedSequence(sequence);
-      masks.clearMasks();
+      if (clearMasks) masks.clearMasks();
     }
 
     // Then, clear the sequences
@@ -184,14 +185,16 @@ export class Generator {
   }
 
   private prepareForHarmonization() {
-    // First, commit any selected candidate sequence before beginning harmpnization
+    // First, commit any selected candidate sequence before beginning harmonization
     if (this.candidateSequences.length) {
-      this.commitSelectedCandidateSequence();
+      const clearMasks = false;
+      const shouldLog = false;
+      this.commitSelectedCandidateSequence(clearMasks, shouldLog);
     }
 
     // If we're working from an implicit mask, promote that mask to the
     // _userMasks in order to properly handle note highlighting
-    if (masks.doImplicitMasksExist) {
+    if (featureFlags.baseline && masks.doImplicitMasksExist) {
       masks.addImplicitMasksToUserMasks();
     }
   }
