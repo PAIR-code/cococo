@@ -55,7 +55,7 @@ export class KeySignatures extends React.Component<Props, {}> {
                 value={editor.key}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const value = e.target.value;
-                  if (value) editor.key = value;
+                  if (value) editor.selectKey(value);
                 }}
                 autoWidth
               >
@@ -76,8 +76,8 @@ export class KeySignatures extends React.Component<Props, {}> {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const value = e.target.value;
                   if (value) {
-                    editor.mode = value;
-                    generator.happySad = value === 'major' ? 1 : -1;
+                    editor.selectMode(value);
+                    generator.setMajorMinor(value === 'major' ? 1 : -1);
                   }
                 }}
                 autoWidth
@@ -99,7 +99,7 @@ export class KeySignatures extends React.Component<Props, {}> {
                 <Switch
                   checked={editor.constrainToKey}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    (editor.constrainToKey = e.target.checked)
+                    editor.setConstrainToKey(e.target.checked)
                   }
                   value={editor.constrainToKey}
                   color="primary"

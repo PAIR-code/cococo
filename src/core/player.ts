@@ -15,6 +15,7 @@ limitations under the License.
 
 import * as mm from '@magenta/music';
 import { observable } from 'mobx';
+import logging, { Events } from './logging';
 import { Note } from './note';
 import { editor } from './index';
 import { range } from 'lodash';
@@ -107,19 +108,25 @@ class Player {
 
   playNoteDown(note: Note) {
     if (this.isPlayerLoaded) {
-      editor.activeNoteValue = note.pitch;
+      editor.setActiveNoteValue(note.pitch);
       this.player.playNoteDown(note.magentaNote);
     }
   }
 
   playNoteUp(note: Note) {
     if (this.isPlayerLoaded) {
-      editor.activeNoteValue = null;
+      editor.setActiveNoteValue(null);
       this.player.playNoteUp(note.magentaNote);
     }
   }
 
+  // Logged play method
   start() {
+    logging.logEvent(Events.PLAY);
+    this._start();
+  }
+
+  private _start() {
     if (this.isPlayerLoaded) {
       if (editor.allNotes.length === 0) {
         return;
@@ -148,10 +155,21 @@ class Player {
     this.start();
   }
 
+  // Logged stop method
   stop() {
+    logging.logEvent(Events.STOP);
+    this._stop();
+  }
+
+  private _stop() {
     this.player.stop();
     this.isPlaying = false;
     editor.clearPlayingNotes();
+  }
+
+  restart() {
+    this._stop();
+    this._start();
   }
 }
 

@@ -15,6 +15,7 @@ limitations under the License.
 import { computed, observable } from 'mobx';
 import * as mm from '@magenta/music';
 
+import logging, { Events } from './logging';
 import { Note } from './note';
 import { NoteSequence } from './note-sequence';
 import { editor, masks, player } from '../core';
@@ -32,10 +33,42 @@ export class Generator {
   @observable isWorking = false;
   @observable isModelLoaded = true;
 
-  @observable nSequencesToGenerate = 2;
-  @observable conventionalSurprising = -1;
-  @observable happySad = 0;
-  @observable differenceFromOriginal = DifferenceFromOriginal.SomewhatDifferent;
+  @observable private _nSequencesToGenerate = 2;
+  @computed get nSequencesToGenerate() {
+    return this._nSequencesToGenerate;
+  }
+  setNSequencesToGenerate(nSequences: number) {
+    logging.logEvent(Events.SET_N_SAMPLES_TO_GENERATE, nSequences);
+    this._nSequencesToGenerate = nSequences;
+  }
+
+  @observable private _conventionalSurprising = -1;
+  @computed get conventionalSurprising() {
+    return this._conventionalSurprising;
+  }
+  setConventionalSurprising(value: number) {
+    logging.logEvent(Events.SET_CONVENTIONAL_SURPRISING, value);
+    this._conventionalSurprising = value;
+  }
+
+  @observable private _majorMinor = 0;
+  @computed get majorMinor() {
+    return this._majorMinor;
+  }
+  setMajorMinor(value: number) {
+    logging.logEvent(Events.SET_MAJOR_MINOR, value);
+    this._majorMinor = value;
+  }
+
+  @observable private _differenceFromOriginal =
+    DifferenceFromOriginal.SomewhatDifferent;
+  @computed get differenceFromOriginal() {
+    return this._differenceFromOriginal;
+  }
+  setDifferenceFromOriginal(value: number) {
+    logging.logEvent(Events.SET_SIMILAR_DIFFERENT, value);
+    this._differenceFromOriginal = value;
+  }
 
   @observable candidateSequences: NoteSequence[] = [];
   @observable selectedCandidateSequenceIndex: number | null = 0;
@@ -83,16 +116,17 @@ export class Generator {
   };
 
   selectCandidateSequence = (index: number | null) => {
+    logging.logEvent(Events.SELECT_CANDIDATE_SEQUENCE, index);
     this.selectedCandidateSequenceIndex = index;
 
     // Try restarting the player with the new sequence added.
     if (player.isPlaying) {
-      player.stop();
-      player.start();
+      player.restart();
     }
   };
 
   commitSelectedCandidateSequence = () => {
+    logging.logEvent(Events.CHOOSE_CANDIDATE_SEQUENCE);
     // Add the selected sequence
     const sequence = this.selectedCandidateSequence;
     if (sequence) {
@@ -113,6 +147,7 @@ export class Generator {
   };
 
   clearCandidateSequences = () => {
+    logging.logEvent(Events.CLEAR_CANDIDATE_SEQUENCES);
     this.selectedCandidateSequenceIndex = 0;
     this.candidateSequences = [];
   };
@@ -161,7 +196,8 @@ export class Generator {
     }
   }
 
-  async harmonize() {
+  async generate() {
+    logging.logEvent(Events.GENERATE);
     this.prepareForHarmonization();
     this.isWorking = true;
 
@@ -176,7 +212,7 @@ export class Generator {
       conventionalSurprising,
       differenceFromOriginal,
       nSequencesToGenerate,
-      happySad,
+      majorMinor: happySad,
     } = this;
     const temperature = this.computeTemperature(conventionalSurprising);
     const happyNeutralSad = this.binHappySad(happySad);
@@ -251,10 +287,11 @@ export class Generator {
       return new NoteSequence(notes);
     });
 
+    logging.logEvent(Events.GENERATE);
+
     this.setCandidateSequences(noteSequences);
     // Select the first, non-masked sequence
     this.selectCandidateSequence(1);
-
     this.isWorking = false;
   }
 }

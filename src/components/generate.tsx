@@ -25,7 +25,7 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import { MusicNote } from '@material-ui/icons';
 
-import { editor, generator, masks } from '../core';
+import { generator, masks } from '../core';
 import { NoteSequence } from '../core/note-sequence';
 
 import { Sequence } from './sequence';
@@ -101,13 +101,6 @@ export class Generate extends React.Component<GenerateProps> {
             />
           );
         })}
-        <Button
-          variant="outlined"
-          color="primary"
-          onClick={() => generator.commitSelectedCandidateSequence()}
-        >
-          Choose
-        </Button>
       </div>
     );
   }
@@ -139,7 +132,7 @@ export class Generate extends React.Component<GenerateProps> {
           variant="outlined"
           color="primary"
           onClick={() => {
-            generator.harmonize();
+            generator.generate();
           }}
         >
           🤖 Generate
@@ -151,7 +144,7 @@ export class Generate extends React.Component<GenerateProps> {
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               const value = e.target.value;
               if (value !== null) {
-                generator.nSequencesToGenerate = Number(value);
+                generator.setNSequencesToGenerate(Number(value));
               }
             }}
             autoWidth
@@ -167,21 +160,21 @@ export class Generate extends React.Component<GenerateProps> {
             <ParameterSlider
               value={generator.conventionalSurprising}
               onChange={newValue =>
-                (generator.conventionalSurprising = newValue)
+                generator.setConventionalSurprising(newValue)
               }
               range={[MIN_SURPRISE_FACTOR, MAX_SURPRISE_FACTOR]}
               labels={['Conventional', 'Surprising']}
             />
             <ParameterSlider
-              value={generator.happySad}
-              onChange={newValue => (generator.happySad = newValue)}
+              value={generator.majorMinor}
+              onChange={newValue => generator.setMajorMinor(newValue)}
               range={[MIN_HAPPY_SAD_FACTOR, MAX_HAPPY_SAD_FACTOR]}
               labels={['😢 Minor', 'Major 😊']}
             />
             <ParameterSlider
               value={generator.differenceFromOriginal}
               onChange={newValue =>
-                (generator.differenceFromOriginal = newValue)
+                generator.setDifferenceFromOriginal(newValue)
               }
               range={[MIN_DIFFERENCE_FACTOR, MAX_DIFFERENCE_FACTOR]}
               labels={['Similar', 'Different']}
@@ -189,7 +182,18 @@ export class Generate extends React.Component<GenerateProps> {
             />
           </>
         )}
-        {showCandidateSequences && this.renderSequences()}
+        {showCandidateSequences && (
+          <>
+            {this.renderSequences()}
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => generator.commitSelectedCandidateSequence()}
+            >
+              Choose
+            </Button>
+          </>
+        )}
       </div>
     );
   }

@@ -15,6 +15,7 @@ limitations under the License.
 
 import { computed, observable } from 'mobx';
 
+import logging, { Events } from './logging';
 import { Note, SerializedNote } from './note';
 import { NoteSequence } from './note-sequence';
 import { editor, generator } from './index';
@@ -81,6 +82,7 @@ class Undo {
   }
 
   undo() {
+    logging.logEvent(Events.UNDO);
     if (this.undoStack.length) {
       this.redoStack.push(this.getUndoStep());
       const lastStep = this.undoStack.pop();
@@ -89,6 +91,7 @@ class Undo {
   }
 
   redo() {
+    logging.logEvent(Events.REDO);
     if (this.redoStack.length) {
       this.undoStack.push(this.getUndoStep());
       const lastStep = this.redoStack.pop();

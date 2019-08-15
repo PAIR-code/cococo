@@ -104,7 +104,7 @@ export class Controls extends React.Component<{}, State> {
           exclusive
           onChange={(e, value: EditorTool) => {
             if (value !== null) {
-              editor.selectedTool = value;
+              editor.selectTool(value);
             }
           }}
         >
@@ -126,9 +126,9 @@ export class Controls extends React.Component<{}, State> {
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 const value = e.target.value;
                 if (value !== null) {
-                  editor.selectedVoice = Number(value);
+                  editor.selectVoice(Number(value));
                   // If user changes voices, user very likely wants to start editing
-                  editor.selectedTool = EditorTool.DRAW;
+                  editor.selectTool(EditorTool.DRAW, false /** logging */);
                 }
               }}
               autoWidth
@@ -161,11 +161,11 @@ export class Controls extends React.Component<{}, State> {
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 const value = e.target.value;
                 if (value !== null) {
-                  editor.quantizeStep = Number(value);
+                  editor.selectQuantization(Number(value));
                   // If user changes step size
                   // and they are in erase mode, user very likely wants to start editing
                   if (editor.selectedTool === EditorTool.ERASE) {
-                    editor.selectedTool = EditorTool.DRAW;
+                    editor.selectTool(EditorTool.DRAW, false /** logging */);
                   }
                   // if they are in mask mode, they might want a more refined mask size
                   // in which case don't change it automatically
