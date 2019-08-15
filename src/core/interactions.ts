@@ -340,7 +340,7 @@ class Interactions {
         masks.maskNotes(notesInRange, replaceMask);
       }
 
-      logging.logEvent(Events.USE_MASK_TOOL);
+      logging.logEvent(Events.USE_MASK_TOOL, masks.masks);
 
       this.isMaskToolDragging = false;
       this.maskToolDragStartClientXY = [0, 0];
@@ -406,7 +406,7 @@ class Interactions {
         masks.setMask(voiceIndex, _.range(loopStart, loopEnd));
       }
 
-      logging.logEvent(Events.USE_MASK_LANE);
+      logging.logEvent(Events.USE_MASK_LANE, masks.masks);
       this.hasMaskDragMoved = false;
       document.removeEventListener('mousemove', mouseMove);
       document.removeEventListener('mouseup', mouseUp);

@@ -19,7 +19,7 @@ import featureFlags from './feature-flags';
 import logging, { Events } from './logging';
 import { Note } from './note';
 import { NoteSequence } from './note-sequence';
-import { editor, masks, player } from '../core';
+import { editor, masks, player, undo } from '../core';
 import { Coconet } from './coconet';
 import { fromMagentaSequence, getMagentaNoteSequence } from './magenta-utils';
 import { MODEL_URL, DifferenceFromOriginal, Mood } from './constants';
@@ -127,7 +127,8 @@ export class Generator {
   };
 
   commitSelectedCandidateSequence = (clearMasks = true, shouldLog = true) => {
-    if (shouldLog) logging.logEvent(Events.CHOOSE_CANDIDATE_SEQUENCE);
+    if (shouldLog)
+      logging.logEvent(Events.CHOOSE_CANDIDATE_SEQUENCE, undo.getUndoStep());
     // Add the selected sequence
     const sequence = this.selectedCandidateSequence;
     if (sequence) {
@@ -290,7 +291,7 @@ export class Generator {
       return new NoteSequence(notes);
     });
 
-    logging.logEvent(Events.GENERATE);
+    logging.logEvent(Events.GENERATE, undo.getUndoStep());
 
     this.setCandidateSequences(noteSequences);
     // Select the first, non-masked sequence

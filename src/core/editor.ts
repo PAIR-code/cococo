@@ -89,7 +89,7 @@ class Editor {
   }
   endDrawingNote() {
     if (this.noteBeingDrawn) {
-      logging.logEvent(Events.DRAW_NOTE);
+      logging.logEvent(Events.DRAW_NOTE, undo.getUndoStep());
       this.noteBeingDrawn = null;
       undo.completeUndoable();
     }
@@ -266,7 +266,6 @@ class Editor {
       this.currentlySelectedNotes.clear();
       this.currentlySelectedNotes.add(note);
     }
-    logging.logEvent(Events.DRAW_NOTE);
   }
 
   // The non-undoable internal method
@@ -287,7 +286,7 @@ class Editor {
   @undoable()
   removeNote(note: Note) {
     this._removeNote(note);
-    logging.logEvent(Events.DELETE_NOTE);
+    logging.logEvent(Events.DELETE_NOTE, undo.getUndoStep());
   }
 
   // The non-undoable internal method
@@ -325,7 +324,7 @@ class Editor {
       }
     }
     undo.completeUndoable();
-    logging.logEvent(Events.MOVE_NOTE);
+    logging.logEvent(Events.MOVE_NOTE, undo.getUndoStep());
   }
 
   // Not an undoable function because this is what is used by the undo manager.
