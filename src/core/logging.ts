@@ -1,4 +1,20 @@
-import { observable } from 'mobx';
+/* Copyright 2019 Google LLC. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================*/
+
+import api from './api';
+import featureFlags from './feature-flags';
 
 export const enum Events {
   // Generic Events
@@ -46,32 +62,43 @@ export const enum Events {
 export interface LogEvent {
   event: Events;
   timestamp: number;
-  payload: any;
+  payload?: any;
 }
 
 export class LoggingService {
   private logEvents: LogEvent[] = [];
+  private sessionId = this.getDateString();
 
   logEvent(event: Events, payload: any = undefined) {
-    const logEvent = {
+    const logEvent: LogEvent = {
       event,
       timestamp: Date.now(),
-      payload,
     };
-    console.log(event, logEvent);
 
-    this.logToGoogleForm(logEvent);
+    if (payload !== undefined) {
+      logEvent.payload = payload;
+    }
+
+    console.log(event, logEvent);
     this.logEvents.push(logEvent);
+
+    if (featureFlags.firebaseLogging) {
+      api.writeLogEvent(this.sessionId, logEvent);
+    }
+    if (featureFlags.sheetsLogging) {
+      this.logToGoogleForm(logEvent);
+    }
   }
 
   private logToGoogleForm(logEvent) {
     (<HTMLTextAreaElement>(
       document.getElementById('submitbox')
     )).value = JSON.stringify(logEvent);
-    var form = <HTMLFormElement>document.getElementById('form');
+    const form = <HTMLFormElement>document.getElementById('form');
     form.submit();
     console.log('logged to googleform');
   }
+
   private getDateString() {
     const now = new Date();
     const year = now.getFullYear();

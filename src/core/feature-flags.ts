@@ -14,22 +14,34 @@ limitations under the License.
 ==============================================================================*/
 
 import queryString from 'query-string';
-import { observable, computed } from 'mobx';
+import { computed, observable } from 'mobx';
 
 export type Variant = 'a' | 'b';
 
+export type Logging = 'console' | 'firebase' | 'sheets';
+
 export class FeatureFlags {
   @observable readonly variant: Variant = 'a';
-
   @computed get baseline() {
     return this.variant === 'b';
   }
 
+  @observable readonly logging: Logging = 'console';
+  @computed get firebaseLogging() {
+    return this.logging === 'firebase';
+  }
+  @computed get sheetsLogging() {
+    return this.logging === 'sheets';
+  }
+
   constructor() {
     const parsed = queryString.parse(window.location.search);
-    const { variant } = parsed;
+    const { variant, logging } = parsed;
     if (variant === 'b') {
       this.variant = variant;
+    }
+    if (logging === 'firebase' || logging === 'sheets') {
+      this.logging = logging;
     }
   }
 }

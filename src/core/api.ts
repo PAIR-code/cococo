@@ -13,24 +13,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-import axios from 'axios';
+import * as firebase from 'firebase';
+import { LogEvent } from './logging';
 
-export interface HelloResponseData {
-  hello: string;
-}
+const firebaseConfig = {
+  apiKey: process.env.FIREBASE_API_KEY,
+  databaseURL: process.env.FIREBASE_DATA_URL,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  messagingSenderId: process.env.FIREBASE_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID,
+};
 
 class APIManager {
-  api = axios.create({
-    baseURL: process.env.API_SERVER,
-    // Critical for the CORS request to a gLinux-based inference server
-    withCredentials: true,
-  });
+  app = firebase.initializeApp(firebaseConfig);
 
-  // Dummy API request to the experimental inference server
-  async getHello(name = 'world') {
-    const params = { name };
-    const response = await this.api.get('/hello', { params });
-    return response.data as HelloResponseData;
+  writeLogEvent(sessionId: string, logEvent: LogEvent) {
+    firebase
+      .database()
+      .ref(`logs/${sessionId}/${logEvent.timestamp}`)
+      .set(logEvent);
   }
 }
 
