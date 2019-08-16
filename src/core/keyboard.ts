@@ -15,6 +15,7 @@ limitations under the License.
 
 import player from './player';
 import editor, { EditorTool } from './editor';
+import logging, { Events } from './logging';
 import undo from './undo';
 import { Voice } from './note';
 
@@ -29,6 +30,8 @@ class KeyboardManager {
       undo.undo();
     } else if (e.key === 'z' && e.metaKey && e.shiftKey) {
       undo.redo();
+    } else if (e.key === 'l' && e.metaKey && e.shiftKey) {
+      logging.saveLogsToJSON();
     }
   };
 
@@ -36,17 +39,17 @@ class KeyboardManager {
     if (e.key === ' ') {
       player.togglePlay();
     } else if (e.key === 's') {
-      editor.selectedVoice = Voice.SOPRANO;
-      editor.selectedTool = EditorTool.DRAW; // selecting voices means only you want to draw
+      editor.selectVoice(Voice.SOPRANO);
+      editor.selectTool(EditorTool.DRAW, false /** logging */);
     } else if (e.key === 'a') {
-      editor.selectedVoice = Voice.ALTO;
-      editor.selectedTool = EditorTool.DRAW; // selecting voices means only you want to draw
+      editor.selectVoice(Voice.ALTO);
+      editor.selectTool(EditorTool.DRAW, false /** logging */);
     } else if (e.key === 't') {
-      editor.selectedVoice = Voice.TENOR;
-      editor.selectedTool = EditorTool.DRAW; // selecting voices means only you want to draw
+      editor.selectVoice(Voice.TENOR);
+      editor.selectTool(EditorTool.DRAW, false /** logging */);
     } else if (e.key === 'b') {
-      editor.selectedVoice = Voice.BASS;
-      editor.selectedTool = EditorTool.DRAW; // selecting voices means only you want to draw
+      editor.selectVoice(Voice.BASS);
+      editor.selectTool(EditorTool.DRAW, false /** logging */);
     }
   };
 }

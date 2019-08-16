@@ -19,6 +19,7 @@ import { makeNoteScale, makeNoteScaleForKey } from './tonal-utils';
 import * as _ from 'lodash';
 
 import generator from './generator';
+import logging, { Events } from './logging';
 import masks from './masks';
 import { Note, Source, Voice } from './note';
 import { NoteSequence } from './note-sequence';
@@ -78,29 +79,65 @@ class Editor {
     this._addNote(note);
   }
   trimNoteBeingDrawnSequence() {
-    if (this.candidateNoteSequence && this.noteBeingDrawn) {
+    if (!this.noteBeingDrawn) return;
+
+    if (!this.candidateNoteSequence.isEmpty()) {
       this.candidateNoteSequence.trimOverlappingVoices(this.noteBeingDrawn);
+    } else {
+      this.mainSequence.trimOverlappingVoices(this.noteBeingDrawn);
     }
   }
   endDrawingNote() {
     if (this.noteBeingDrawn) {
+      logging.logEvent(Events.DRAW_NOTE, undo.getUndoStep());
       this.noteBeingDrawn = null;
       undo.completeUndoable();
     }
   }
 
-  @observable scale = makeNoteScale(MAX_PITCH, MIN_PITCH);
-  @observable key = 'C';
-  @observable mode = 'major';
-  @observable constrainToKey = true;
-  @observable noteHoverName = '';
+  @observable private _scale = makeNoteScale(MAX_PITCH, MIN_PITCH);
+  @computed get scale() {
+    return this._scale;
+  }
+
+  @observable private _key = 'C';
+  @computed get key() {
+    return this._key;
+  }
+  selectKey(key: string) {
+    logging.logEvent(Events.SELECT_KEY, key);
+    this._key = key;
+  }
+
+  @observable _mode = 'major';
+  @computed get mode() {
+    return this._mode;
+  }
+  selectMode(mode: string) {
+    logging.logEvent(Events.SELECT_MODE, mode);
+    this._mode = mode;
+  }
+
+  @observable private _constrainToKey = true;
+  @computed get constrainToKey() {
+    return this._constrainToKey;
+  }
+  setConstrainToKey(constrainToKey: boolean) {
+    logging.logEvent(Events.SET_CONSTRAIN_TO_KEY, constrainToKey);
+    this._constrainToKey = constrainToKey;
+  }
+
+  @observable private _noteHoverName = '';
+  @computed get noteHoverName() {
+    return this._noteHoverName;
+  }
 
   setNoteHoverName(scaleValue: ScaleValue | null) {
     if (scaleValue === null) {
-      this.noteHoverName = '';
+      this._noteHoverName = '';
     } else {
       const { name, octave } = scaleValue;
-      this.noteHoverName = `${name}${octave}`;
+      this._noteHoverName = `${name}${octave}`;
     }
   }
 
@@ -120,9 +157,24 @@ class Editor {
     return this.keyPitchSet.has(pitch);
   }
 
-  @observable activeNoteValue: number | null = null;
-  @observable totalSixteenths = TOTAL_SIXTEENTHS;
-  @observable quantizeStep = 2;
+  @observable private _activeNoteValue: number | null = null;
+  @computed get activeNoteValue() {
+    return this._activeNoteValue;
+  }
+  setActiveNoteValue(noteValue: number | null) {
+    this._activeNoteValue = noteValue;
+  }
+
+  @observable readonly totalSixteenths = TOTAL_SIXTEENTHS;
+
+  @observable private _quantizeStep = 2;
+  @computed get quantizeStep() {
+    return this._quantizeStep;
+  }
+  selectQuantization(quantizeStep: number) {
+    logging.logEvent(Events.SELECT_QUANTIZATION, quantizeStep);
+    this._quantizeStep = quantizeStep;
+  }
 
   @computed get nDivisions() {
     return this.totalSixteenths / this.quantizeStep;
@@ -132,8 +184,23 @@ class Editor {
     return divisions;
   }
 
-  @observable selectedTool: EditorTool = EditorTool.DRAW;
-  @observable selectedVoice: Voice = Voice.SOPRANO;
+  @observable private _selectedTool: EditorTool = EditorTool.DRAW;
+  @computed get selectedTool() {
+    return this._selectedTool;
+  }
+  selectTool(tool: EditorTool, shouldLog = true) {
+    shouldLog ? logging.logEvent(Events.SELECT_TOOL, tool) : null;
+    this._selectedTool = tool;
+  }
+
+  @observable private _selectedVoice: Voice = Voice.SOPRANO;
+  @computed get selectedVoice() {
+    return this._selectedVoice;
+  }
+  selectVoice(voice: number) {
+    logging.logEvent(Events.SELECT_VOICE, voice);
+    this._selectedVoice = voice;
+  }
 
   constructor() {
     let position = 0;
@@ -219,6 +286,7 @@ class Editor {
   @undoable()
   removeNote(note: Note) {
     this._removeNote(note);
+    logging.logEvent(Events.DELETE_NOTE, undo.getUndoStep());
   }
 
   // The non-undoable internal method
@@ -243,19 +311,6 @@ class Editor {
     });
   }
 
-  @undoable()
-  clearAgentNotes() {
-    const filtered = this.mainSequence.notes.filter(
-      note => note.source !== Source.AGENT
-    );
-    this.mainSequence.setNotes(filtered);
-  }
-
-  @undoable()
-  clearAllNotes() {
-    this.mainSequence.clearNotes();
-  }
-
   startNoteDrag() {
     undo.beginUndoable();
   }
@@ -269,6 +324,7 @@ class Editor {
       }
     }
     undo.completeUndoable();
+    logging.logEvent(Events.MOVE_NOTE, undo.getUndoStep());
   }
 
   // Not an undoable function because this is what is used by the undo manager.
@@ -291,8 +347,10 @@ class Editor {
 
   toggleVoiceMute(voiceIndex: number) {
     if (this.mutedVoices.has(voiceIndex)) {
+      logging.logEvent(Events.UNMUTE_VOICE, voiceIndex);
       this.mutedVoices.delete(voiceIndex);
     } else {
+      logging.logEvent(Events.MUTE_VOICE, voiceIndex);
       this.mutedVoices.add(voiceIndex);
     }
   }

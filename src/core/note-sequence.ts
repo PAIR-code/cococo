@@ -49,6 +49,10 @@ export class NoteSequence {
     });
   }
 
+  isEmpty() {
+    return this.notes.length === 0;
+  }
+
   static overlaps(note: Note, positionRange: number[], pitchRange: number[]) {
     const { pitch: pitch, position, duration } = note;
     const [startPosition, endPosition] = positionRange;

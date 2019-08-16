@@ -18,6 +18,7 @@ import _ from 'lodash';
 import { observable } from 'mobx';
 import { EditorTool, editor, masks, player, layout } from './index';
 import { MAX_PITCH, MIN_PITCH } from './constants';
+import logging, { Events } from './logging';
 import { Note, Source } from './note';
 import featureFlags from './feature-flags';
 
@@ -156,6 +157,8 @@ class Interactions {
     if (nextPosition !== player.loopEnd && nextPosition > player.loopStart) {
       player.loopEnd = nextPosition;
     }
+
+    logging.logEvent(Events.CHANGE_LOOP, [player.loopStart, player.loopEnd]);
   };
 
   handleLoopStartMouseDown = (e: React.MouseEvent) => {
@@ -337,6 +340,8 @@ class Interactions {
         masks.maskNotes(notesInRange, replaceMask);
       }
 
+      logging.logEvent(Events.USE_MASK_TOOL, masks.masks);
+
       this.isMaskToolDragging = false;
       this.maskToolDragStartClientXY = [0, 0];
       this.maskToolDragStartXY = [0, 0];
@@ -401,6 +406,7 @@ class Interactions {
         masks.setMask(voiceIndex, _.range(loopStart, loopEnd));
       }
 
+      logging.logEvent(Events.USE_MASK_LANE, masks.masks);
       this.hasMaskDragMoved = false;
       document.removeEventListener('mousemove', mouseMove);
       document.removeEventListener('mouseup', mouseUp);

@@ -26,11 +26,17 @@ import { Editor } from './editor';
 import { Generate } from './generate';
 import { Working } from './working';
 
-import { generator, layout, player } from '../core';
+import logging, { Events } from '../core/logging';
+import { generator, layout } from '../core';
 import { theme } from '../core/theme';
+import featureFlags from '../core/feature-flags';
 
 @observer
 export default class Main extends React.Component {
+  componentDidMount() {
+    logging.logEvent(Events.APP_LOAD, { baseline: featureFlags.baseline });
+  }
+
   stageRef: HTMLDivElement;
 
   render() {

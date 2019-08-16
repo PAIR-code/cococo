@@ -20,6 +20,7 @@ import { observer } from 'mobx-react';
 import { editor, player } from '../core';
 import { COLOR_PLAYING, COLOR_SECONDARY, COLOR_PRIMARY } from '../core/theme';
 import { ScaleValue } from '../core/editor';
+import logging, { Events } from '../core/logging';
 import { Note } from '../core/note';
 
 import { Group } from './group';
@@ -103,6 +104,7 @@ class Key extends React.Component<KeyProps> {
               player.playNoteUp(note);
             };
             document.addEventListener('mouseup', mouseup);
+            logging.logEvent(Events.PRESS_PIANOROLL);
           }}
           onMouseEnter={() => {
             editor.setNoteHoverName(scaleValue);

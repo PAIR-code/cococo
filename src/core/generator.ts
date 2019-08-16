@@ -15,9 +15,11 @@ limitations under the License.
 import { computed, observable } from 'mobx';
 import * as mm from '@magenta/music';
 
+import featureFlags from './feature-flags';
+import logging, { Events } from './logging';
 import { Note } from './note';
 import { NoteSequence } from './note-sequence';
-import { editor, masks, player } from '../core';
+import { editor, masks, player, undo } from '../core';
 import { Coconet } from './coconet';
 import { fromMagentaSequence, getMagentaNoteSequence } from './magenta-utils';
 import { MODEL_URL, DifferenceFromOriginal, Mood } from './constants';
@@ -32,10 +34,42 @@ export class Generator {
   @observable isWorking = false;
   @observable isModelLoaded = true;
 
-  @observable nSequencesToGenerate = 2;
-  @observable conventionalSurprising = -1;
-  @observable happySad = 0;
-  @observable differenceFromOriginal = DifferenceFromOriginal.SomewhatDifferent;
+  @observable private _nSequencesToGenerate = 2;
+  @computed get nSequencesToGenerate() {
+    return this._nSequencesToGenerate;
+  }
+  setNSequencesToGenerate(nSequences: number) {
+    logging.logEvent(Events.SET_N_SAMPLES_TO_GENERATE, nSequences);
+    this._nSequencesToGenerate = nSequences;
+  }
+
+  @observable private _conventionalSurprising = -1;
+  @computed get conventionalSurprising() {
+    return this._conventionalSurprising;
+  }
+  setConventionalSurprising(value: number) {
+    logging.logEvent(Events.SET_CONVENTIONAL_SURPRISING, value);
+    this._conventionalSurprising = value;
+  }
+
+  @observable private _majorMinor = 0;
+  @computed get majorMinor() {
+    return this._majorMinor;
+  }
+  setMajorMinor(value: number) {
+    logging.logEvent(Events.SET_MAJOR_MINOR, value);
+    this._majorMinor = value;
+  }
+
+  @observable private _differenceFromOriginal =
+    DifferenceFromOriginal.SomewhatDifferent;
+  @computed get differenceFromOriginal() {
+    return this._differenceFromOriginal;
+  }
+  setDifferenceFromOriginal(value: number) {
+    logging.logEvent(Events.SET_SIMILAR_DIFFERENT, value);
+    this._differenceFromOriginal = value;
+  }
 
   @observable candidateSequences: NoteSequence[] = [];
   @observable selectedCandidateSequenceIndex: number | null = 0;
@@ -83,21 +117,23 @@ export class Generator {
   };
 
   selectCandidateSequence = (index: number | null) => {
+    logging.logEvent(Events.SELECT_CANDIDATE_SEQUENCE, index);
     this.selectedCandidateSequenceIndex = index;
 
     // Try restarting the player with the new sequence added.
     if (player.isPlaying) {
-      player.stop();
-      player.start();
+      player.restart();
     }
   };
 
-  commitSelectedCandidateSequence = () => {
+  commitSelectedCandidateSequence = (clearMasks = true, shouldLog = true) => {
+    if (shouldLog)
+      logging.logEvent(Events.CHOOSE_CANDIDATE_SEQUENCE, undo.getUndoStep());
     // Add the selected sequence
     const sequence = this.selectedCandidateSequence;
     if (sequence) {
       editor.addGeneratedSequence(sequence);
-      masks.clearMasks();
+      if (clearMasks) masks.clearMasks();
     }
 
     // Then, clear the sequences
@@ -113,6 +149,7 @@ export class Generator {
   };
 
   clearCandidateSequences = () => {
+    logging.logEvent(Events.CLEAR_CANDIDATE_SEQUENCES);
     this.selectedCandidateSequenceIndex = 0;
     this.candidateSequences = [];
   };
@@ -149,19 +186,22 @@ export class Generator {
   }
 
   private prepareForHarmonization() {
-    // First, commit any selected candidate sequence before beginning harmpnization
+    // First, commit any selected candidate sequence before beginning harmonization
     if (this.candidateSequences.length) {
-      this.commitSelectedCandidateSequence();
+      const clearMasks = false;
+      const shouldLog = false;
+      this.commitSelectedCandidateSequence(clearMasks, shouldLog);
     }
 
     // If we're working from an implicit mask, promote that mask to the
     // _userMasks in order to properly handle note highlighting
-    if (masks.doImplicitMasksExist) {
+    if (featureFlags.baseline && masks.doImplicitMasksExist) {
       masks.addImplicitMasksToUserMasks();
     }
   }
 
-  async harmonize() {
+  async generate() {
+    logging.logEvent(Events.GENERATE);
     this.prepareForHarmonization();
     this.isWorking = true;
 
@@ -176,7 +216,7 @@ export class Generator {
       conventionalSurprising,
       differenceFromOriginal,
       nSequencesToGenerate,
-      happySad,
+      majorMinor: happySad,
     } = this;
     const temperature = this.computeTemperature(conventionalSurprising);
     const happyNeutralSad = this.binHappySad(happySad);
@@ -251,10 +291,11 @@ export class Generator {
       return new NoteSequence(notes);
     });
 
+    logging.logEvent(Events.GENERATE, undo.getUndoStep());
+
     this.setCandidateSequences(noteSequences);
     // Select the first, non-masked sequence
     this.selectCandidateSequence(1);
-
     this.isWorking = false;
   }
 }
