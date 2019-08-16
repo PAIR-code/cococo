@@ -278,7 +278,7 @@ class Editor {
     if (
       isMasked &&
       isCandidateSequenceSelected &&
-      featureFlags.variant === 'a' // candidate sequence concept only valid in variant a
+      !featureFlags.baseline // candidate sequence concept only valid in variant a
     ) {
       generator.addNoteToSelected(note);
     }

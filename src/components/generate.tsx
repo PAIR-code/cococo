@@ -116,7 +116,8 @@ export class Generate extends React.Component<GenerateProps> {
       width: '100%',
     });
 
-    const showCandidateSequences = generator.candidateSequences.length > 0;
+    const showCandidateSequences =
+      !baseline && generator.candidateSequences.length > 0;
 
     const maskedSequenceExists = masks.maskedNotes.length > 0;
     const candidateSequenceSelected =
@@ -138,23 +139,26 @@ export class Generate extends React.Component<GenerateProps> {
           🤖 Generate
           <MusicNote />
         </Button>
-        <FormControl classes={{ root: nSequenceContainerStyle }}>
-          <Select
-            value={generator.nSequencesToGenerate}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const value = e.target.value;
-              if (value !== null) {
-                generator.setNSequencesToGenerate(Number(value));
-              }
-            }}
-            autoWidth
-          >
-            <MenuItem value={1}>1 sequence</MenuItem>
-            <MenuItem value={2}>2 sequences</MenuItem>
-            <MenuItem value={3}>3 sequences</MenuItem>
-            <MenuItem value={4}>4 sequences</MenuItem>
-          </Select>
-        </FormControl>
+        {baseline ? null : (
+          <FormControl classes={{ root: nSequenceContainerStyle }}>
+            <Select
+              value={generator.nSequencesToGenerate}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const value = e.target.value;
+                if (value !== null) {
+                  generator.setNSequencesToGenerate(Number(value));
+                }
+              }}
+              disabled={baseline}
+              autoWidth
+            >
+              <MenuItem value={1}>1 sequence</MenuItem>
+              <MenuItem value={2}>2 sequences</MenuItem>
+              <MenuItem value={3}>3 sequences</MenuItem>
+              <MenuItem value={4}>4 sequences</MenuItem>
+            </Select>
+          </FormControl>
+        )}
         {baseline ? null : (
           <>
             <ParameterSlider
