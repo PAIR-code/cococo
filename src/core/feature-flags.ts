@@ -14,15 +14,22 @@ limitations under the License.
 ==============================================================================*/
 
 import queryString from 'query-string';
+import { observable, computed } from 'mobx';
+
+export type Variant = 'a' | 'b';
 
 export class FeatureFlags {
-  readonly baseline: boolean = false;
+  @observable readonly variant: Variant = 'a';
+
+  @computed get baseline() {
+    return this.variant === 'b';
+  }
 
   constructor() {
     const parsed = queryString.parse(window.location.search);
-    const { baseline } = parsed;
-    if (baseline === 'true') {
-      this.baseline = true;
+    const { variant } = parsed;
+    if (variant === 'b') {
+      this.variant = variant;
     }
   }
 }
