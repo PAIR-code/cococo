@@ -23,6 +23,7 @@ import {
   PIANO_ROLL_WIDTH,
   MASK_LANE_HEIGHT,
   TIMELINE_HEIGHT,
+  TIMELINE_MARGIN,
 } from './constants';
 
 class Layout {
@@ -45,6 +46,7 @@ class Layout {
   @observable sequenceHeight = 80;
   @observable editorHeight = 600;
   @observable timelineHeight = TIMELINE_HEIGHT;
+  @observable timelineMargin = TIMELINE_MARGIN;
 
   @computed get maskLanesHeight() {
     return featureFlags.baseline ? 0 : 4 * MASK_LANE_HEIGHT;
@@ -52,7 +54,12 @@ class Layout {
   @observable pianoRollWidth = PIANO_ROLL_WIDTH;
 
   @computed get notesHeight() {
-    return this.editorHeight - this.timelineHeight - this.maskLanesHeight;
+    return (
+      this.editorHeight -
+      this.timelineHeight -
+      this.maskLanesHeight -
+      this.timelineMargin
+    );
   }
 
   @computed get notesWidth() {
@@ -68,7 +75,7 @@ class Layout {
   }
 
   @computed get maskLanesY() {
-    return this.timelineHeight;
+    return this.timelineHeight + this.timelineMargin;
   }
 
   @computed get notesY() {
