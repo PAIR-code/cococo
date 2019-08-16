@@ -23,3 +23,11 @@ body {
   cursor: pointer;
   user-select: none;
 }
+
+#form-frame {
+  visibility: hidden;
+}
+
+#submitbox {
+  visibility: hidden;
+}
