@@ -59,9 +59,19 @@ export class LoggingService {
       payload,
     };
     console.log(event, logEvent);
+
+    this.logToGoogleForm(logEvent);
     this.logEvents.push(logEvent);
   }
 
+  private logToGoogleForm(logEvent) {
+    (<HTMLTextAreaElement>(
+      document.getElementById('submitbox')
+    )).value = JSON.stringify(logEvent);
+    var form = <HTMLFormElement>document.getElementById('form');
+    form.submit();
+    console.log('logged to googleform');
+  }
   private getDateString() {
     const now = new Date();
     const year = now.getFullYear();

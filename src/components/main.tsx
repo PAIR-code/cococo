@@ -88,7 +88,7 @@ export default class Main extends React.Component {
           >
             <textarea id="submitbox" name="entry.1164887905" />
           </form>
-          <iframe id="frame" name="frame" />
+          <iframe id="form-frame" name="frame" />
         </div>
         <Working open={generator.isWorking} title="Working..." />
       </ThemeProvider>
