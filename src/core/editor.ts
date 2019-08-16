@@ -31,6 +31,7 @@ import {
   MAX_PITCH,
   MIN_PITCH,
 } from './constants';
+import featureFlags, { FeatureFlags } from './feature-flags';
 
 export const enum EditorTool {
   DRAW = 'DRAW',
@@ -274,7 +275,11 @@ class Editor {
     const isMasked = masks.isNoteMasked(note);
     const isCandidateSequenceSelected =
       generator.selectedCandidateSequenceIndex !== null;
-    if (isMasked && isCandidateSequenceSelected) {
+    if (
+      isMasked &&
+      isCandidateSequenceSelected &&
+      featureFlags.variant === 'a' // candidate sequence concept only valid in variant a
+    ) {
       generator.addNoteToSelected(note);
     }
     // Otherwise, just add to the main note sequence
