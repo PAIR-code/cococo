@@ -44,7 +44,8 @@ export const DEFAULT_SEQUENCES_WIDTH = 200;
 export const PIANO_ROLL_WIDTH = 24;
 export const NOTE_HEIGHT = 12;
 export const MASK_LANE_HEIGHT = 20;
-export const TIMELINE_HEIGHT = 20;
+export const TIMELINE_HEIGHT = 25;
+export const TIMELINE_MARGIN = 10;
 
 export const VOICES = ['SOPRANO', 'ALTO', 'TENOR', 'BASS'];
 
