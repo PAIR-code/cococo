@@ -228,24 +228,31 @@ export class Generator {
         happy: happyNeutralSad === Mood.HAPPY,
       };
     }
-    let discourageNotes;
-    let nudgeFactor;
+    let similarDifferentConfig;
     // Check to see if the selected value is less than the cap values for
     // similarity
     if (differenceFromOriginal < DifferenceFromOriginal.Similar) {
-      discourageNotes = false;
-      nudgeFactor = 2; // 2 translates to a 1:12 ratio
+      similarDifferentConfig = {
+        discourageNotes: false,
+        nudgeFactor: 2, // 2 translates to a 1:12 ratio
+      };
     } else if (
       differenceFromOriginal < DifferenceFromOriginal.SomewhatDifferent
     ) {
-      discourageNotes = false;
-      nudgeFactor = 1; // 1 translates to a 1:3 ratio
+      similarDifferentConfig = {
+        discourageNotes: false,
+        nudgeFactor: 1, // 1 translates to a 1:3 ratio
+      };
     } else if (differenceFromOriginal < DifferenceFromOriginal.Different) {
-      discourageNotes = true;
-      nudgeFactor = 1;
+      similarDifferentConfig = {
+        discourageNotes: true,
+        nudgeFactor: 1,
+      };
     } else if (differenceFromOriginal <= DifferenceFromOriginal.VeryDifferent) {
-      discourageNotes = true;
-      nudgeFactor = 2;
+      similarDifferentConfig = {
+        discourageNotes: true,
+        nudgeFactor: 2,
+      };
     }
 
     const outputNotes: Note[][] = [];
@@ -260,8 +267,7 @@ export class Generator {
       const results = await this.model.infill(sequence, {
         temperature,
         infillMask,
-        discourageNotes,
-        nudgeFactor,
+        similarDifferentConfig,
         moodConfig,
       });
 
