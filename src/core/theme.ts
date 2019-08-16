@@ -17,7 +17,7 @@ import { createMuiTheme } from '@material-ui/core/styles';
 import blue from '@material-ui/core/colors/blue';
 import pink from '@material-ui/core/colors/pink';
 import red from '@material-ui/core/colors/red';
-
+import yellow from '@material-ui/core/colors/yellow';
 const primary = blue;
 const secondary = pink;
 const error = red;
@@ -34,6 +34,7 @@ export const COLOR_PRIMARY = primary[500];
 export const COLOR_SECONDARY = secondary[500];
 export const COLOR_PLAYING = secondary[500];
 export const COLOR_SELECTED = secondary[500];
+export const COLOR_TIMELINE = yellow[500];
 
 // colorblind palette found using
 // http://colorbrewer2.org/#type=sequential&scheme=YlGnBu&n=5
