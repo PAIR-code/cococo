@@ -43,7 +43,7 @@ export class Generator {
     this._nSequencesToGenerate = nSequences;
   }
 
-  @observable private _conventionalSurprising = -1;
+  @observable private _conventionalSurprising = 0;
   @computed get conventionalSurprising() {
     return this._conventionalSurprising;
   }
