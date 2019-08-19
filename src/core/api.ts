@@ -25,9 +25,23 @@ const firebaseConfig = {
 };
 
 class APIManager {
-  app = firebase.initializeApp(firebaseConfig);
+  app: firebase.app.App;
+  isFirebaseInitialized = false;
+
+  constructor() {
+    try {
+      this.app = firebase.initializeApp(firebaseConfig);
+      this.isFirebaseInitialized = true;
+    } catch (err) {
+      console.log('Firebase not initialized with config:', firebaseConfig);
+    }
+  }
 
   writeLogEvent(sessionId: string, logEvent: LogEvent) {
+    if (!this.isFirebaseInitialized) {
+      return;
+    }
+
     firebase
       .database()
       .ref(`logs/${sessionId}/${logEvent.timestamp}`)
