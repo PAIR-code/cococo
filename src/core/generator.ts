@@ -34,7 +34,7 @@ export class Generator {
   @observable isWorking = false;
   @observable isModelLoaded = true;
 
-  @observable private _nSequencesToGenerate = 2;
+  @observable private _nSequencesToGenerate = featureFlags.baseline ? 1 : 2;
   @computed get nSequencesToGenerate() {
     return this._nSequencesToGenerate;
   }
@@ -43,7 +43,7 @@ export class Generator {
     this._nSequencesToGenerate = nSequences;
   }
 
-  @observable private _conventionalSurprising = -1;
+  @observable private _conventionalSurprising = 0;
   @computed get conventionalSurprising() {
     return this._conventionalSurprising;
   }
@@ -302,6 +302,9 @@ export class Generator {
     this.setCandidateSequences(noteSequences);
     // Select the first, non-masked sequence
     this.selectCandidateSequence(1);
+    if (featureFlags.baseline) {
+      this.commitSelectedCandidateSequence();
+    }
     this.isWorking = false;
   }
 }
