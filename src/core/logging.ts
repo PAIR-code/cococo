@@ -92,9 +92,11 @@ export class LoggingService {
 
   private logToGoogleForm(logEvent) {
     (<HTMLTextAreaElement>(
-      document.getElementById('submitbox')
+      document.getElementById('sheets-logging-textarea')
     )).value = JSON.stringify(logEvent);
-    const form = <HTMLFormElement>document.getElementById('form');
+    const form = <HTMLFormElement>(
+      document.getElementById('sheets-logging-form')
+    );
     form.submit();
     console.log('logged to googleform');
   }

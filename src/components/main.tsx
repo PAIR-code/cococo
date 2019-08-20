@@ -79,16 +79,19 @@ export default class Main extends React.Component {
             <Generate />
           </div>
         </div>
-        <div id="logging">
+        <div id="sheets-logging">
           <form
-            action="https://docs.google.com/forms/d/e/1FAIpQLSdbVw9HViwZtTFFmXGTVxRi3uoQrPk1zbbN3kG1tVxR-hq8EQ/formResponse"
+            action={process.env.GOOGLE_FORM_LOGGING_URL}
             target="frame"
             method="POST"
-            id="form"
+            id="sheets-logging-form"
           >
-            <textarea id="submitbox" name="entry.1164887905" />
+            <textarea
+              id="sheets-logging-textarea"
+              name={process.env.GOOGLE_FORM_ENTRY_ID}
+            />
           </form>
-          <iframe id="form-frame" name="frame" />
+          <iframe id="sheets-logging-iframe" name="sheets-logging-iframe" />
         </div>
         <Working open={generator.isWorking} title="Working..." />
       </ThemeProvider>

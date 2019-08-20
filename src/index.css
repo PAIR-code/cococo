@@ -24,10 +24,10 @@ body {
   user-select: none;
 }
 
-#form-frame {
+#sheets-logging-iframe {
   visibility: hidden;
 }
 
-#submitbox {
+#sheets-logging-textarea {
   visibility: hidden;
 }

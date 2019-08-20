@@ -18,16 +18,30 @@ import { LogEvent } from './logging';
 
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
-  databaseURL: 'https://bach-cococo.firebaseio.com',
-  projectId: 'bach-cococo',
-  messagingSenderId: '427475510875',
-  appId: '1:427475510875:web:cd7d8ee2b33b3feb',
+  databaseURL: process.env.FIREBASE_DATA_URL,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  messagingSenderId: process.env.FIREBASE_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID,
 };
 
 class APIManager {
-  app = firebase.initializeApp(firebaseConfig);
+  app: firebase.app.App;
+  isFirebaseInitialized = false;
+
+  constructor() {
+    try {
+      this.app = firebase.initializeApp(firebaseConfig);
+      this.isFirebaseInitialized = true;
+    } catch (err) {
+      console.log('Firebase not initialized with config:', firebaseConfig);
+    }
+  }
 
   writeLogEvent(sessionId: string, logEvent: LogEvent) {
+    if (!this.isFirebaseInitialized) {
+      return;
+    }
+
     firebase
       .database()
       .ref(`logs/${sessionId}/${logEvent.timestamp}`)
