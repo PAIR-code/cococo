@@ -34,7 +34,8 @@ export const COLOR_PRIMARY = primary[500];
 export const COLOR_SECONDARY = secondary[500];
 export const COLOR_PLAYING = secondary[500];
 export const COLOR_SELECTED = secondary[500];
-export const COLOR_TIMELINE = yellow[500];
+export const COLOR_TIMELINE_HANDLE = yellow[800];
+export const COLOR_TIMELINE_RANGE = yellow[700];
 
 // colorblind palette found using
 // http://colorbrewer2.org/#type=sequential&scheme=YlGnBu&n=5
