@@ -18,6 +18,9 @@ import editor, { EditorTool } from './editor';
 import logging, { Events } from './logging';
 import undo from './undo';
 import { Voice } from './note';
+import { debounce } from 'lodash';
+
+const DEBOUNCE_TIME_MS = 100;
 
 class KeyboardManager {
   constructor() {
@@ -25,7 +28,7 @@ class KeyboardManager {
     document.addEventListener('keydown', this.handleKeyDown);
   }
 
-  handleKeyDown = (e: KeyboardEvent) => {
+  handleKeyDown = debounce((e: KeyboardEvent) => {
     if (e.key === 'z' && e.metaKey && !e.shiftKey) {
       undo.undo();
     } else if (e.key === 'z' && e.metaKey && e.shiftKey) {
@@ -33,9 +36,9 @@ class KeyboardManager {
     } else if (e.key === 'l' && e.metaKey && e.shiftKey) {
       logging.saveLogsToJSON();
     }
-  };
+  }, DEBOUNCE_TIME_MS);
 
-  handleKeyPress = (e: KeyboardEvent) => {
+  handleKeyPress = debounce((e: KeyboardEvent) => {
     if (e.key === ' ') {
       player.togglePlay();
     } else if (e.key === 's') {
@@ -51,7 +54,7 @@ class KeyboardManager {
       editor.selectVoice(Voice.BASS);
       editor.selectTool(EditorTool.DRAW, false /** logging */);
     }
-  };
+  }, DEBOUNCE_TIME_MS);
 }
 
 export default new KeyboardManager();
