@@ -17,6 +17,7 @@ import React from 'react';
 import _ from 'lodash';
 import { style } from 'typestyle';
 import { observer } from 'mobx-react';
+import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import Slider from '@material-ui/core/Slider';
@@ -168,12 +169,14 @@ export class Generate extends React.Component<GenerateProps> {
               }
               range={[MIN_SURPRISE_FACTOR, MAX_SURPRISE_FACTOR]}
               labels={['Conventional', 'Surprising']}
+              nMarks={3}
             />
             <ParameterSlider
               value={generator.majorMinor}
               onChange={newValue => generator.setMajorMinor(newValue)}
               range={[MIN_HAPPY_SAD_FACTOR, MAX_HAPPY_SAD_FACTOR]}
               labels={['😢 Minor', 'Major 😊']}
+              nMarks={3}
             />
             <ParameterSlider
               value={generator.differenceFromOriginal}
@@ -183,6 +186,7 @@ export class Generate extends React.Component<GenerateProps> {
               range={[MIN_DIFFERENCE_FACTOR, MAX_DIFFERENCE_FACTOR]}
               labels={['Similar', 'Different']}
               disabled={!similaritySliderEnabled}
+              nMarks={3}
             />
           </>
         )}
@@ -203,20 +207,42 @@ export class Generate extends React.Component<GenerateProps> {
   }
 }
 
+const MarkedSlider = withStyles({
+  mark: {
+    backgroundColor: '#bfbfbf',
+    height: 8,
+    width: 4,
+    marginTop: -3,
+    marginLeft: -2, // half of width to make it centered
+  },
+  markActive: {
+    backgroundColor: 'currentColor',
+  },
+})(Slider);
+
 interface ParameterSliderProps {
   value: number;
   onChange: (newValue: number) => void;
   range: number[];
   labels: string[];
   disabled?: boolean;
+  nMarks?: number;
 }
 
 function ParameterSlider(props: ParameterSliderProps) {
   const labelColor = props.disabled ? 'textSecondary' : 'textPrimary';
 
+  const deltaRange = props.range[1] - props.range[0];
+  const marks = _.range(props.nMarks).map(index => {
+    const value = props.range[0] + (deltaRange / (props.nMarks - 1)) * index;
+    return { value };
+  });
+
+  console.log(marks);
+
   return (
     <div className="horizontal-slider">
-      <Slider
+      <MarkedSlider
         value={props.value}
         onChange={(e: any, newValue: number | number[]) => {
           if (typeof newValue === 'number') props.onChange(newValue);
@@ -226,6 +252,7 @@ function ParameterSlider(props: ParameterSliderProps) {
         min={props.range[0]}
         max={props.range[1]}
         disabled={props.disabled}
+        marks={marks}
       />
       <div className="slider-label">
         <Typography variant="caption" color={labelColor}>
