@@ -211,8 +211,9 @@ const MarkedSlider = withStyles({
   mark: {
     backgroundColor: '#bfbfbf',
     height: 8,
-    width: 1,
+    width: 4,
     marginTop: -3,
+    marginLeft: -2, // half of width to make it centered
   },
   markActive: {
     backgroundColor: 'currentColor',
