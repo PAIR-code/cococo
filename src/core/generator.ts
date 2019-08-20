@@ -19,10 +19,11 @@ import featureFlags from './feature-flags';
 import logging, { Events } from './logging';
 import { Note } from './note';
 import { NoteSequence } from './note-sequence';
-import { editor, masks, player, undo } from '../core';
+import { editor, masks, player } from '../core';
 import { Coconet } from './coconet';
 import { fromMagentaSequence, getMagentaNoteSequence } from './magenta-utils';
 import { MODEL_URL, DifferenceFromOriginal, Mood } from './constants';
+import undo, { undoable } from '../core/undo';
 
 interface InfillMask {
   step: number;
@@ -126,7 +127,8 @@ export class Generator {
     }
   };
 
-  commitSelectedCandidateSequence = (clearMasks = true, shouldLog = true) => {
+  @undoable('generator.commitSelectedCandidateSequence')
+  commitSelectedCandidateSequence(clearMasks = true, shouldLog = true) {
     if (shouldLog)
       logging.logEvent(Events.CHOOSE_CANDIDATE_SEQUENCE, undo.getUndoStep());
     // Add the selected sequence
@@ -137,8 +139,8 @@ export class Generator {
     }
 
     // Then, clear the sequences
-    this.clearCandidateSequences();
-  };
+    this.clearCandidateSequences(false /** shouldLog */);
+  }
 
   addBackOriginalSequence = () => {
     // Add back the original sequence
@@ -148,8 +150,8 @@ export class Generator {
     this.clearCandidateSequences();
   };
 
-  clearCandidateSequences = () => {
-    logging.logEvent(Events.CLEAR_CANDIDATE_SEQUENCES);
+  clearCandidateSequences = (shouldLog = true) => {
+    if (shouldLog) logging.logEvent(Events.CLEAR_CANDIDATE_SEQUENCES);
     this.selectedCandidateSequenceIndex = 0;
     this.candidateSequences = [];
   };
@@ -200,7 +202,59 @@ export class Generator {
     }
   }
 
+  private getSimilarDifferentConfig() {
+    const { differenceFromOriginal } = this;
+
+    // Check to see if the selected value is less than the cap values for
+    // similarity
+    if (differenceFromOriginal < DifferenceFromOriginal.Similar) {
+      return {
+        discourageNotes: false,
+        nudgeFactor: 2, // 2 translates to a 1:12 ratio
+      };
+    } else if (
+      differenceFromOriginal < DifferenceFromOriginal.SomewhatDifferent
+    ) {
+      return {
+        discourageNotes: false,
+        nudgeFactor: 1, // 1 translates to a 1:3 ratio
+      };
+    } else if (differenceFromOriginal < DifferenceFromOriginal.Different) {
+      return {
+        discourageNotes: true,
+        nudgeFactor: 1,
+      };
+    } else if (differenceFromOriginal <= DifferenceFromOriginal.VeryDifferent) {
+      return {
+        discourageNotes: true,
+        nudgeFactor: 2,
+      };
+    } else {
+      return {
+        discourageNotes: true,
+        nudgeFactor: 2,
+      };
+    }
+  }
+
+  private getMoodConfig() {
+    const { majorMinor: happySad } = this;
+    const happyNeutralSad = this.binHappySad(happySad);
+
+    let moodConfig;
+    if (happyNeutralSad !== Mood.NEUTRAL) {
+      moodConfig = {
+        key: editor.key,
+        mode: editor.mode,
+        happy: happyNeutralSad === Mood.HAPPY,
+      };
+    }
+    return moodConfig;
+  }
+
   async generate() {
+    undo.beginUndoable('generator.generate');
+
     logging.logEvent(Events.GENERATE);
     this.prepareForHarmonization();
     this.isWorking = true;
@@ -212,48 +266,10 @@ export class Generator {
       player.stop();
     }
 
-    const {
-      conventionalSurprising,
-      differenceFromOriginal,
-      nSequencesToGenerate,
-      majorMinor: happySad,
-    } = this;
+    const { conventionalSurprising, nSequencesToGenerate } = this;
     const temperature = this.computeTemperature(conventionalSurprising);
-    const happyNeutralSad = this.binHappySad(happySad);
-    let moodConfig;
-    if (happyNeutralSad !== Mood.NEUTRAL) {
-      moodConfig = {
-        key: editor.key,
-        mode: editor.mode,
-        happy: happyNeutralSad === Mood.HAPPY,
-      };
-    }
-    let similarDifferentConfig;
-    // Check to see if the selected value is less than the cap values for
-    // similarity
-    if (differenceFromOriginal < DifferenceFromOriginal.Similar) {
-      similarDifferentConfig = {
-        discourageNotes: false,
-        nudgeFactor: 2, // 2 translates to a 1:12 ratio
-      };
-    } else if (
-      differenceFromOriginal < DifferenceFromOriginal.SomewhatDifferent
-    ) {
-      similarDifferentConfig = {
-        discourageNotes: false,
-        nudgeFactor: 1, // 1 translates to a 1:3 ratio
-      };
-    } else if (differenceFromOriginal < DifferenceFromOriginal.Different) {
-      similarDifferentConfig = {
-        discourageNotes: true,
-        nudgeFactor: 1,
-      };
-    } else if (differenceFromOriginal <= DifferenceFromOriginal.VeryDifferent) {
-      similarDifferentConfig = {
-        discourageNotes: true,
-        nudgeFactor: 2,
-      };
-    }
+    const similarDifferentConfig = this.getSimilarDifferentConfig();
+    const moodConfig = this.getMoodConfig();
 
     const outputNotes: Note[][] = [];
     for (let i = 0; i < nSequencesToGenerate; i++) {
@@ -306,6 +322,7 @@ export class Generator {
       this.commitSelectedCandidateSequence();
     }
     this.isWorking = false;
+    undo.completeUndoable('generator.generate');
   }
 }
 

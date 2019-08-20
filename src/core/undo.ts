@@ -14,16 +14,18 @@ limitations under the License.
 ==============================================================================*/
 
 import { computed, observable } from 'mobx';
+import _ from 'lodash';
 
 import logging, { Events } from './logging';
 import { Note, SerializedNote } from './note';
 import { NoteSequence } from './note-sequence';
-import { editor, generator } from './index';
-import masks, { IMasks } from './masks';
+import { editor, generator, masks } from './index';
+import { IMasks } from './masks';
 
 export interface UndoStep {
   notes: SerializedNote[];
   candidateNotes: SerializedNote[][];
+  selectedCandidateIndex: number;
   masks: IMasks;
 }
 
@@ -32,7 +34,8 @@ class Undo {
   @observable redoStack: UndoStep[] = [];
 
   private pendingUndoStep: UndoStep | null = null;
-  private undoableNesting = 0;
+  private undoableNesting: string[] = [];
+  private undoLocked = false;
 
   @computed get canUndo() {
     return this.undoStack.length > 0;
@@ -62,31 +65,45 @@ class Undo {
       notes: this.getSerializedNotes(),
       candidateNotes: this.getSerializedCandidateNotes(),
       masks: this.getSerializedMasks(),
+      selectedCandidateIndex: generator.selectedCandidateSequenceIndex,
     };
   }
 
-  beginUndoable() {
-    this.undoableNesting += 1;
+  beginUndoable(label: string) {
+    if (this.undoLocked) return;
+
+    this.undoableNesting.push(label);
+    const topLabel = _.last(this.undoableNesting);
     if (this.pendingUndoStep) {
-      console.warn('Pending undo step already present...');
+      console.warn(`Pending undo step from ${topLabel} already present...`);
       return;
     }
     this.pendingUndoStep = this.getUndoStep();
   }
 
-  completeUndoable() {
-    this.undoableNesting -= 1;
-    if (this.undoableNesting < 0) {
+  completeUndoable(label: string) {
+    if (this.undoLocked) return;
+
+    const topLabel = this.undoableNesting.pop();
+    if (label !== topLabel) {
       console.error(
-        'Called completeUndoable() more times than corresponding beginUndoable()'
+        `Undoables of types ${label}, ${topLabel} completed in incorrect order `
       );
     }
 
-    if (this.undoableNesting === 0) {
+    if (this.undoableNesting.length === 0) {
       this.undoStack.push(this.pendingUndoStep);
       this.redoStack = [];
       this.pendingUndoStep = null;
     }
+  }
+
+  private lockUndo() {
+    this.undoLocked = true;
+  }
+
+  private unlockUndo() {
+    this.undoLocked = false;
   }
 
   undo() {
@@ -108,26 +125,27 @@ class Undo {
   }
 
   private rehydrateStep(step: UndoStep) {
-    const { notes, candidateNotes } = step;
-
-    const deserializedNotes = notes.map(note => Note.fromSerialized(note));
+    this.lockUndo();
+    const deserializedNotes = step.notes.map(note => Note.fromSerialized(note));
     editor.replaceAllNotes(deserializedNotes);
 
-    const sequences = candidateNotes.map(serialized => {
+    const sequences = step.candidateNotes.map(serialized => {
       const sequence = new NoteSequence(
         serialized.map(note => Note.fromSerialized(note))
       );
       return sequence;
     });
     generator.setCandidateSequences(sequences);
+    generator.selectedCandidateSequenceIndex = step.selectedCandidateIndex;
     masks.setMasks(step.masks);
+    this.unlockUndo();
   }
 }
 
 const undo = new Undo();
 export default undo;
 
-export function undoable() {
+export function undoable(label: string) {
   return function(
     target: any,
     propertyKey: string,
@@ -135,9 +153,9 @@ export function undoable() {
   ) {
     const originalMethod = descriptor.value;
     descriptor.value = function() {
-      undo.beginUndoable();
+      undo.beginUndoable(label);
       originalMethod.apply(this, arguments);
-      undo.completeUndoable();
+      undo.completeUndoable(label);
     };
     return descriptor;
   };

@@ -81,6 +81,7 @@ class Masks {
     return _masks;
   }
 
+  @undoable('masks.maskNotes')
   maskNotes(notesInMask: Note[], replaceMask = true) {
     const notePositions = this.getPositionsPerVoice(notesInMask);
     notePositions.forEach((positions, voice) => {
@@ -93,16 +94,16 @@ class Masks {
   }
 
   beginDrawingMask() {
-    undo.beginUndoable();
+    undo.beginUndoable('masks.drawMask');
   }
   drawMask(voiceIndex: number, mask: IMask) {
     this._setMask(voiceIndex, mask);
   }
   endDrawingMask() {
-    undo.completeUndoable();
+    undo.completeUndoable('masks.drawMask');
   }
 
-  @undoable()
+  @undoable('masks.setMask')
   setMask(voiceIndex: number, mask: IMask) {
     this._setMask(voiceIndex, mask);
   }
