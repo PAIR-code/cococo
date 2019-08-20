@@ -112,6 +112,7 @@ class Masks {
     this._userMasks[voiceIndex] = [...mask];
   }
 
+  @undoable('masks.setMasks')
   setMasks(masks: IMasks) {
     this._userMasks = masks;
   }

@@ -16,7 +16,15 @@ limitations under the License.
 import React from 'react';
 import _ from 'lodash';
 import { observable } from 'mobx';
-import { EditorTool, editor, generator, masks, player, layout } from './index';
+import {
+  EditorTool,
+  editor,
+  generator,
+  masks,
+  player,
+  layout,
+  undo,
+} from './index';
 import { MAX_PITCH, MIN_PITCH } from './constants';
 import logging, { Events } from './logging';
 import { Note, Source } from './note';
@@ -332,13 +340,19 @@ class Interactions {
         MAX_PITCH - Math.floor(startY / layout.noteHeight),
       ];
 
+      undo.beginUndoable('maskTool.drawMasks');
       const notesInRange = editor.getNotesInRange(positionRange, pitchRange);
       if (notesInRange.length === 0 && this.emptyMaskDeselectsAll) {
         masks.clearMasks();
       } else {
         const replaceMask = !this.maskToolShiftDrag;
+        if (generator.candidateSequences.length > 0) {
+          generator.commitSelectedCandidateSequence();
+        }
+
         masks.maskNotes(notesInRange, replaceMask);
       }
+      undo.completeUndoable('maskTool.drawMasks');
 
       logging.logEvent(Events.USE_MASK_TOOL, masks.masks);
 
@@ -363,9 +377,14 @@ class Interactions {
   private maskLaneDragStartClientX = 0;
   private hasMaskDragMoved = false;
 
-  handleMaskLaneMouseDown = voiceIndex => (
+  handleMaskLaneMouseDown = (voiceIndex, candidateSequencesExist = false) => (
     e: React.MouseEvent<SVGRectElement>
   ) => {
+    masks.beginDrawingMask();
+    if (candidateSequencesExist) {
+      generator.commitSelectedCandidateSequence();
+    }
+
     e.preventDefault();
     const editorGrid = document.getElementById('editor-grid')!;
     const dim = editorGrid.getBoundingClientRect() as DOMRect;
@@ -374,8 +393,6 @@ class Interactions {
     this.maskLaneDragX = e.clientX - dim.left;
     this.maskLaneDragStartClientX = e.clientX;
     this.hasMaskDragMoved = false;
-
-    masks.beginDrawingMask();
 
     const mouseMove = (e: MouseEvent) => {
       this.maskLaneDragX =
