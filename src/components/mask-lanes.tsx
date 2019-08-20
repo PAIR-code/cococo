@@ -18,7 +18,7 @@ import * as _ from 'lodash';
 import { observer } from 'mobx-react';
 
 import { editor, generator, interactions, masks } from '../core';
-import { VOICE_COLORS, MUTED_COLOR } from '../core/theme';
+import { VOICE_COLORS, MUTED_COLOR, COLOR_PRIMARY } from '../core/theme';
 
 import { Group } from './group';
 
@@ -48,9 +48,19 @@ export class MaskLanes extends React.Component<Props> {
             editor.toggleVoiceMute(voiceIndex);
           }}
         >
+          <rect
+            x={1}
+            y={y + 1}
+            height={laneHeight - 2}
+            width={labelWidth - 2}
+            fillOpacity={0}
+            stroke={COLOR_PRIMARY}
+            strokeWidth={0.5}
+            rx="3"
+          />
           <text
-            x={4}
-            y={y + 14}
+            x={6}
+            y={y + 16}
             height={laneHeight}
             width={labelWidth}
             fill={color}
