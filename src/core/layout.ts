@@ -32,8 +32,16 @@ class Layout {
     this.handleResize();
   }
 
+  computeEditorHeight() {
+    const editorContainer = document.getElementById('editor-container');
+    if (editorContainer) {
+      const { height } = editorContainer.getBoundingClientRect();
+      this.editorHeight = height;
+    }
+  }
+
   handleResize() {
-    const { innerWidth, innerHeight } = window;
+    const { innerWidth } = window;
     const defaultAppWidth = DEFAULT_EDITOR_WIDTH + DEFAULT_SEQUENCES_WIDTH;
     const appWidth = Math.min(innerWidth, defaultAppWidth);
 
@@ -41,17 +49,23 @@ class Layout {
     this.editorWidth = appWidth - this.sequencesWidth;
   }
 
+  @observable editorHeight = 0;
   @observable editorWidth = 1200;
+
+  @observable controlsHeight = 50;
   @observable sequencesWidth = 200;
   @observable sequenceHeight = 80;
-  @observable editorHeight = 600;
   @observable timelineHeight = TIMELINE_HEIGHT;
   @observable timelineMargin = TIMELINE_MARGIN;
 
   @computed get maskLanesHeight() {
     return featureFlags.baseline ? 0 : 4 * MASK_LANE_HEIGHT;
   }
-  @observable pianoRollWidth = PIANO_ROLL_WIDTH;
+
+  @computed get pianoRollWidth() {
+    const computedWidth = this.editorHeight / 20;
+    return Math.max(PIANO_ROLL_WIDTH, computedWidth);
+  }
 
   @computed get notesHeight() {
     return (

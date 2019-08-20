@@ -47,13 +47,13 @@ export default class Main extends React.Component {
       display: 'flex',
       flexDirection: 'row',
       justifyContent: 'center',
+      flexGrow: 1,
     });
     const editorContainerStyle = style({
       width: layout.editorWidth,
       height: '100%',
       display: 'flex',
       flexDirection: 'column',
-      justifyContent: 'center',
       alignItems: 'center',
     });
     const sequencesContainerStyle = style({

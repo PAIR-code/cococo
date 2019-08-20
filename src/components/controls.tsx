@@ -61,7 +61,8 @@ export class Controls extends React.Component<{}, State> {
       alignItems: 'center',
       paddingLeft: PADDING,
       paddingRight: PADDING,
-      marginTop: 10,
+      margin: '20px 0 60px',
+      height: layout.controlsHeight,
     });
 
     const playDisabled = !player.isPlayerLoaded;
