@@ -86,7 +86,6 @@ export class MaskLanes extends React.Component<Props> {
           fill={color}
           fillOpacity={candidateSequencesExist ? 0.6 : 1}
           onMouseDown={mouseDownHandler}
-          cursor={candidateSequencesExist ? 'not-allowed' : 'default'}
         />
       );
     });
@@ -161,7 +160,6 @@ export class MaskLanes extends React.Component<Props> {
               fillOpacity={0.75}
               onClick={clickHandler}
               onMouseDown={mouseDownHandler}
-              cursor={candidateSequencesExist ? 'not-allowed' : 'default'}
             />
           </>
         );

@@ -375,6 +375,8 @@ class Interactions {
     this.maskLaneDragStartClientX = e.clientX;
     this.hasMaskDragMoved = false;
 
+    masks.beginDrawingMask();
+
     const mouseMove = (e: MouseEvent) => {
       this.maskLaneDragX =
         e.clientX - this.maskLaneDragStartClientX + this.maskLaneDragStartX;
@@ -397,16 +399,17 @@ class Interactions {
         true
       );
 
-      masks.setMask(voiceIndex, _.range(startPosition, endPosition));
+      masks.drawMask(voiceIndex, _.range(startPosition, endPosition));
     };
 
     const mouseUp = () => {
       if (!this.hasMaskDragMoved) {
         const { loopStart, loopEnd } = player;
-        masks.setMask(voiceIndex, _.range(loopStart, loopEnd));
+        masks.drawMask(voiceIndex, _.range(loopStart, loopEnd));
       }
 
       logging.logEvent(Events.USE_MASK_LANE, masks.masks);
+      masks.endDrawingMask();
       this.hasMaskDragMoved = false;
       document.removeEventListener('mousemove', mouseMove);
       document.removeEventListener('mouseup', mouseUp);

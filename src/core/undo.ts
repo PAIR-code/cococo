@@ -19,10 +19,12 @@ import logging, { Events } from './logging';
 import { Note, SerializedNote } from './note';
 import { NoteSequence } from './note-sequence';
 import { editor, generator } from './index';
+import masks, { IMasks } from './masks';
 
 export interface UndoStep {
   notes: SerializedNote[];
   candidateNotes: SerializedNote[][];
+  masks: IMasks;
 }
 
 class Undo {
@@ -50,10 +52,16 @@ class Undo {
     });
   }
 
+  getSerializedMasks() {
+    // Create a copy of the masks to avoid mutation.
+    return masks.userMasks.map(mask => [...mask]) as IMasks;
+  }
+
   getUndoStep(): UndoStep {
     return {
       notes: this.getSerializedNotes(),
       candidateNotes: this.getSerializedCandidateNotes(),
+      masks: this.getSerializedMasks(),
     };
   }
 
@@ -112,6 +120,7 @@ class Undo {
       return sequence;
     });
     generator.setCandidateSequences(sequences);
+    masks.setMasks(step.masks);
   }
 }
 

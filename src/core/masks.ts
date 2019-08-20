@@ -20,6 +20,7 @@ import editor from './editor';
 import featureFlags from './feature-flags';
 import { Note } from './note';
 import { TOTAL_SIXTEENTHS } from './constants';
+import undo, { undoable } from './undo';
 
 export class EditorMaskRegion {
   constructor(
@@ -30,14 +31,21 @@ export class EditorMaskRegion {
   ) {}
 }
 
+export type IMask = number[];
+export type IMasks = [IMask, IMask, IMask, IMask];
+
 class Masks {
   // Masks are maintained as an array of masked sixteenth notes, one per voice.
-  @observable private _userMasks = this.emptyMasks();
+  @observable private _userMasks: IMasks = this.emptyMasks();
 
   @computed private get _implicitMasks() {
     return featureFlags.baseline
       ? this.computeMasksFromEmptyRegions()
       : this.emptyMasks();
+  }
+
+  @computed get userMasks() {
+    return this._userMasks;
   }
 
   @computed get masks() {
@@ -50,7 +58,7 @@ class Masks {
     }
   }
 
-  emptyMasks(): number[][] {
+  emptyMasks(): IMasks {
     return [[], [], [], []];
   }
 
@@ -84,8 +92,27 @@ class Masks {
     });
   }
 
-  setMask(voiceIndex: number, mask: number[]) {
+  beginDrawingMask() {
+    undo.beginUndoable();
+  }
+  drawMask(voiceIndex: number, mask: IMask) {
+    this._setMask(voiceIndex, mask);
+  }
+  endDrawingMask() {
+    undo.completeUndoable();
+  }
+
+  @undoable()
+  setMask(voiceIndex: number, mask: IMask) {
+    this._setMask(voiceIndex, mask);
+  }
+
+  _setMask(voiceIndex: number, mask: IMask) {
     this._userMasks[voiceIndex] = [...mask];
+  }
+
+  setMasks(masks: IMasks) {
+    this._userMasks = masks;
   }
 
   addMask(voiceIndex: number, mask: number[]) {
@@ -101,7 +128,7 @@ class Masks {
   }
 
   clearMasks() {
-    this._userMasks = this._userMasks.map(() => []);
+    this._userMasks = this.emptyMasks();
   }
 
   isNoteMasked(note: Note) {
