@@ -16,7 +16,7 @@ limitations under the License.
 import React from 'react';
 import _ from 'lodash';
 import { observable } from 'mobx';
-import { EditorTool, editor, masks, player, layout } from './index';
+import { EditorTool, editor, generator, masks, player, layout } from './index';
 import { MAX_PITCH, MIN_PITCH } from './constants';
 import logging, { Events } from './logging';
 import { Note, Source } from './note';
@@ -419,9 +419,17 @@ class Interactions {
     document.addEventListener('mouseup', mouseUp);
   };
 
-  handleMaskRectClick = (voiceIndex: number, maskIndices: number[]) => () => {
+  handleMaskRectClick = (
+    voiceIndex: number,
+    maskIndices: number[],
+    pendingCandidateSequences = false
+  ) => () => {
     if (!this.hasMaskDragMoved) {
-      masks.removeMask(voiceIndex, maskIndices);
+      if (pendingCandidateSequences) {
+        generator.commitSelectedCandidateSequence();
+      } else {
+        masks.removeMask(voiceIndex, maskIndices);
+      }
     }
   };
 }

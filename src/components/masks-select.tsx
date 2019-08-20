@@ -26,7 +26,7 @@ export interface NotesProps {
 }
 
 @observer
-export class Masks extends React.Component<NotesProps> {
+export class MasksSelect extends React.Component<NotesProps> {
   renderDragRect() {
     const { maskToolDragStartXY, maskToolDragXY } = interactions;
     const maskToolDragWidth = maskToolDragXY[0] - maskToolDragStartXY[0];

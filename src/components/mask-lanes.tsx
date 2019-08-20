@@ -86,6 +86,7 @@ export class MaskLanes extends React.Component<Props> {
           fill={color}
           fillOpacity={candidateSequencesExist ? 0.6 : 1}
           onMouseDown={mouseDownHandler}
+          cursor={candidateSequencesExist ? 'not-allowed' : 'default'}
         />
       );
     });
@@ -130,9 +131,12 @@ export class MaskLanes extends React.Component<Props> {
         const mouseDownHandler = candidateSequencesExist
           ? () => {}
           : interactions.handleMaskLaneMouseDown(voiceIndex);
-        const clickHandler = candidateSequencesExist
-          ? () => {}
-          : interactions.handleMaskRectClick(voiceIndex, maskIndices);
+
+        const clickHandler = interactions.handleMaskRectClick(
+          voiceIndex,
+          maskIndices,
+          candidateSequencesExist
+        );
 
         const isMuted = editor.isVoiceMuted(voiceIndex);
         const color = isMuted ? MUTED_COLOR : VOICE_COLORS[voiceIndex];
@@ -160,6 +164,7 @@ export class MaskLanes extends React.Component<Props> {
               fillOpacity={0.75}
               onClick={clickHandler}
               onMouseDown={mouseDownHandler}
+              cursor={candidateSequencesExist ? 'pointer' : 'default'}
             />
           </>
         );
