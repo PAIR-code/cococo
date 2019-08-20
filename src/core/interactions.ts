@@ -376,11 +376,14 @@ class Interactions {
   private maskLaneDragX = 0;
   private maskLaneDragStartClientX = 0;
   private hasMaskDragMoved = false;
+  private maskLaneShiftDrag = false;
 
   handleMaskLaneMouseDown = (voiceIndex, candidateSequencesExist = false) => (
     e: React.MouseEvent<SVGRectElement>
   ) => {
-    masks.beginDrawingMask();
+    undo.beginUndoable('masks.drawMaskLane');
+    this.maskLaneShiftDrag = e.shiftKey;
+
     if (candidateSequencesExist) {
       generator.commitSelectedCandidateSequence();
     }
@@ -416,20 +419,31 @@ class Interactions {
         true
       );
 
-      masks.drawMask(voiceIndex, _.range(startPosition, endPosition));
+      const range = _.range(startPosition, endPosition);
+      if (this.maskLaneShiftDrag) {
+        masks.addMask(voiceIndex, range);
+      } else {
+        masks.setMask(voiceIndex, range);
+      }
     };
 
     const mouseUp = () => {
       if (!this.hasMaskDragMoved) {
         const { loopStart, loopEnd } = player;
-        masks.drawMask(voiceIndex, _.range(loopStart, loopEnd));
+        const range = _.range(loopStart, loopEnd);
+        if (this.maskLaneShiftDrag) {
+          masks.addMask(voiceIndex, range);
+        } else {
+          masks.setMask(voiceIndex, range);
+        }
       }
 
       logging.logEvent(Events.USE_MASK_LANE, masks.masks);
-      masks.endDrawingMask();
       this.hasMaskDragMoved = false;
-      document.removeEventListener('mousemove', mouseMove);
+      undo.completeUndoable('masks.drawMaskLane');
+
       document.removeEventListener('mouseup', mouseUp);
+      document.removeEventListener('mousemove', mouseMove);
     };
 
     document.addEventListener('mousemove', mouseMove);

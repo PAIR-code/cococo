@@ -75,7 +75,6 @@ class Undo {
     this.undoableNesting.push(label);
     const topLabel = _.last(this.undoableNesting);
     if (this.pendingUndoStep) {
-      console.warn(`Pending undo step from ${topLabel} already present...`);
       return;
     }
     this.pendingUndoStep = this.getUndoStep();

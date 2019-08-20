@@ -128,9 +128,6 @@ export class MaskLanes extends React.Component<Props> {
         const maskIndices = _.range(bounds.start, bounds.end + 1);
 
         const candidateSequencesExist = generator.candidateSequences.length > 0;
-        const mouseDownHandler = candidateSequencesExist
-          ? () => {}
-          : interactions.handleMaskLaneMouseDown(voiceIndex);
 
         const clickHandler = interactions.handleMaskRectClick(
           voiceIndex,
@@ -163,7 +160,6 @@ export class MaskLanes extends React.Component<Props> {
               fill={`url(#diagonal-stripe)`}
               fillOpacity={0.75}
               onClick={clickHandler}
-              onMouseDown={mouseDownHandler}
               cursor={candidateSequencesExist ? 'pointer' : 'default'}
             />
           </>

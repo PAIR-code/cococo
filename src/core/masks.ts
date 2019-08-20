@@ -93,16 +93,6 @@ class Masks {
     });
   }
 
-  beginDrawingMask() {
-    undo.beginUndoable('masks.drawMask');
-  }
-  drawMask(voiceIndex: number, mask: IMask) {
-    this._setMask(voiceIndex, mask);
-  }
-  endDrawingMask() {
-    undo.completeUndoable('masks.drawMask');
-  }
-
   @undoable('masks.setMask')
   setMask(voiceIndex: number, mask: IMask) {
     this._setMask(voiceIndex, mask);
