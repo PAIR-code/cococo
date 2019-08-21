@@ -15,6 +15,8 @@ limitations under the License.
 
 import React from 'react';
 import { observer } from 'mobx-react';
+import { style } from 'typestyle';
+
 import { editor, layout, EditorTool } from '../core';
 
 import { PianoRoll } from './piano-roll';
@@ -32,6 +34,13 @@ export interface Props {}
 
 @observer
 export class Editor extends React.Component<Props> {
+  componentDidMount() {
+    // We need to compute the editor height after all initial components are
+    // laid out, since the height is dependent on the flex layout of subsequent
+    // components in the react tree.
+    setTimeout(() => layout.computeEditorHeight());
+  }
+
   render() {
     const {
       noteHeight,
@@ -46,42 +55,51 @@ export class Editor extends React.Component<Props> {
 
     const isMaskToolSelected = editor.selectedTool === EditorTool.MASK;
 
+    const editorContainerStyle = style({
+      flexGrow: 1,
+      maxHeight: 1000,
+    });
+
     return (
-      <svg width={editorWidth} height={editorHeight}>
-        <Filters />
-        <Group x={pianoRollWidth}>
-          <Timeline width={notesWidth} height={timelineHeight} />
-        </Group>
-        {featureFlags.baseline ? null : (
-          <Group y={layout.maskLanesY}>
-            <MaskLanes
-              width={notesWidth}
-              height={maskLanesHeight}
-              labelWidth={pianoRollWidth}
-            />
-          </Group>
-        )}
-        <Group
-          y={layout.notesY}
-          onMouseLeave={() => editor.setNoteHoverName(null)}
-        >
-          <PianoRoll
-            width={pianoRollWidth}
-            height={notesHeight}
-            noteHeight={noteHeight}
-          />
-          <Group x={pianoRollWidth}>
-            <Grid width={notesWidth} noteHeight={noteHeight} />
-            <Notes width={notesWidth} noteHeight={noteHeight} />
-          </Group>
-        </Group>
-        <Group y={layout.notesY} x={pianoRollWidth}>
-          {isMaskToolSelected && (
-            <MasksSelect width={notesWidth} height={notesHeight} />
-          )}
-          <LoopOverlay width={notesWidth} height={notesHeight} />
-        </Group>
-      </svg>
+      <div id="editor-container" className={editorContainerStyle}>
+        {editorHeight > 0 ? (
+          <svg width={editorWidth} height={editorHeight}>
+            <Filters />
+            <Group x={pianoRollWidth}>
+              <Timeline width={notesWidth} height={timelineHeight} />
+            </Group>
+            {featureFlags.baseline ? null : (
+              <Group y={layout.maskLanesY}>
+                <MaskLanes
+                  width={notesWidth}
+                  height={maskLanesHeight}
+                  labelWidth={pianoRollWidth}
+                />
+              </Group>
+            )}
+            <Group
+              y={layout.notesY}
+              onMouseLeave={() => editor.setNoteHoverName(null)}
+            >
+              <PianoRoll
+                width={pianoRollWidth}
+                height={notesHeight}
+                noteHeight={noteHeight}
+              />
+              <Group x={pianoRollWidth}>
+                <Grid width={notesWidth} noteHeight={noteHeight} />
+                <Notes width={notesWidth} noteHeight={noteHeight} />
+              </Group>
+            </Group>
+            <Group y={layout.notesY} x={pianoRollWidth}>
+              {isMaskToolSelected && (
+                <MasksSelect width={notesWidth} height={notesHeight} />
+              )}
+              <LoopOverlay width={notesWidth} height={notesHeight} />
+            </Group>
+          </svg>
+        ) : null}
+      </div>
     );
   }
 }

@@ -17,7 +17,7 @@ import React from 'react';
 import * as _ from 'lodash';
 import { observer } from 'mobx-react';
 
-import { editor, generator, interactions, masks } from '../core';
+import { editor, generator, interactions, masks, layout } from '../core';
 import { VOICE_COLORS, MUTED_COLOR, COLOR_PRIMARY } from '../core/theme';
 
 import { Group } from './group';
@@ -59,7 +59,7 @@ export class MaskLanes extends React.Component<Props> {
             rx="3"
           />
           <text
-            x={6}
+            x={layout.pianoRollWidth / 2 - 6}
             y={y + 16}
             height={laneHeight}
             width={labelWidth}
