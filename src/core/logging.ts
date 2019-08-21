@@ -15,6 +15,7 @@ limitations under the License.
 
 import api from './api';
 import featureFlags from './feature-flags';
+import { getDateString } from './utils';
 
 export const enum Events {
   // Generic Events
@@ -67,7 +68,7 @@ export interface LogEvent {
 
 export class LoggingService {
   private logEvents: LogEvent[] = [];
-  private sessionId = this.getDateString();
+  private sessionId = getDateString();
 
   logEvent(event: Events, payload: any = undefined) {
     const logEvent: LogEvent = {
@@ -99,42 +100,6 @@ export class LoggingService {
     );
     form.submit();
     console.log('logged to googleform');
-  }
-
-  private getDateString() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const day = now.getDate();
-    const hour = now.getHours();
-    const minute = now.getMinutes();
-    const second = now.getSeconds();
-    return `${year}-${month}-${day}_${hour}:${minute}:${second}`;
-  }
-
-  saveLogsToJSON() {
-    const json = JSON.stringify(this.logEvents);
-    const blob = new Blob([json], { type: 'application/json' });
-    const filename = `cococo_logs_${this.getDateString()}`;
-    this.downloadBlob(blob, filename);
-  }
-
-  private downloadBlob(blob: Blob, filename: string) {
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename || 'download';
-
-    const clickHandler = () => {
-      setTimeout(() => {
-        URL.revokeObjectURL(url);
-        a.removeEventListener('click', clickHandler);
-      }, 150);
-    };
-
-    a.addEventListener('click', clickHandler, false);
-    a.click();
   }
 }
 
