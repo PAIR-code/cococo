@@ -121,7 +121,7 @@ class Undo {
     }
   }
 
-  private rehydrateStep(step: UndoStep) {
+  rehydrateStep(step: UndoStep) {
     this.lockUndo();
     const deserializedNotes = step.notes.map(note => Note.fromSerialized(note));
     editor.replaceAllNotes(deserializedNotes);

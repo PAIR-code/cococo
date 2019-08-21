@@ -15,7 +15,7 @@ limitations under the License.
 
 import player from './player';
 import editor, { EditorTool } from './editor';
-import logging, { Events } from './logging';
+import saveLoad from './save-load';
 import undo from './undo';
 import { Voice } from './note';
 import { debounce } from 'lodash';
@@ -24,37 +24,42 @@ const DEBOUNCE_TIME_MS = 100;
 
 class KeyboardManager {
   constructor() {
-    document.addEventListener('keypress', this.handleKeyPress);
-    document.addEventListener('keydown', this.handleKeyDown);
+    document.addEventListener('keydown', this.handleKeyDown, false);
   }
 
-  handleKeyDown = debounce((e: KeyboardEvent) => {
-    if (e.key === 'z' && e.metaKey && !e.shiftKey) {
+  handlePlayPause = debounce(() => {
+    player.togglePlay();
+  }, DEBOUNCE_TIME_MS);
+
+  handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === ' ') {
+      this.handlePlayPause();
+    } else if (e.key === 's' && !e.metaKey) {
+      editor.selectVoice(Voice.SOPRANO);
+      editor.selectTool(EditorTool.DRAW, false /** logging */);
+    } else if (e.key === 'a' && !e.metaKey) {
+      editor.selectVoice(Voice.ALTO);
+      editor.selectTool(EditorTool.DRAW, false /** logging */);
+    } else if (e.key === 't' && !e.metaKey) {
+      editor.selectVoice(Voice.TENOR);
+      editor.selectTool(EditorTool.DRAW, false /** logging */);
+    } else if (e.key === 'b' && !e.metaKey) {
+      editor.selectVoice(Voice.BASS);
+      editor.selectTool(EditorTool.DRAW, false /** logging */);
+    } else if (e.key === 'z' && e.metaKey && !e.shiftKey) {
       undo.undo();
     } else if (e.key === 'z' && e.metaKey && e.shiftKey) {
       undo.redo();
-    } else if (e.key === 'l' && e.metaKey && e.shiftKey) {
-      logging.saveLogsToJSON();
+    } else if (e.key === 's' && e.metaKey) {
+      e.preventDefault();
+      saveLoad.saveJSON();
+      return false;
+    } else if (e.key === 'l' && e.metaKey) {
+      e.preventDefault();
+      saveLoad.loadJSON();
+      return false;
     }
-  }, DEBOUNCE_TIME_MS);
-
-  handleKeyPress = debounce((e: KeyboardEvent) => {
-    if (e.key === ' ') {
-      player.togglePlay();
-    } else if (e.key === 's') {
-      editor.selectVoice(Voice.SOPRANO);
-      editor.selectTool(EditorTool.DRAW, false /** logging */);
-    } else if (e.key === 'a') {
-      editor.selectVoice(Voice.ALTO);
-      editor.selectTool(EditorTool.DRAW, false /** logging */);
-    } else if (e.key === 't') {
-      editor.selectVoice(Voice.TENOR);
-      editor.selectTool(EditorTool.DRAW, false /** logging */);
-    } else if (e.key === 'b') {
-      editor.selectVoice(Voice.BASS);
-      editor.selectTool(EditorTool.DRAW, false /** logging */);
-    }
-  }, DEBOUNCE_TIME_MS);
+  };
 }
 
 export default new KeyboardManager();
