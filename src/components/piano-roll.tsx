@@ -22,6 +22,7 @@ import { COLOR_PLAYING, COLOR_SECONDARY, COLOR_PRIMARY } from '../core/theme';
 import { ScaleValue } from '../core/editor';
 import logging, { Events } from '../core/logging';
 import { Note } from '../core/note';
+import blue from '@material-ui/core/colors/blue';
 
 import { Group } from './group';
 
@@ -85,7 +86,7 @@ class Key extends React.Component<KeyProps> {
 
     const isInScale = editor.isPitchInScale(scaleValue.pitch);
     const isRoot = editor.key === scaleValue.name;
-    const highlightFill = isRoot ? COLOR_SECONDARY : COLOR_PRIMARY;
+    const highlightFill = isRoot ? blue[600] : blue[200];
     const highlightSize = 5;
 
     return (

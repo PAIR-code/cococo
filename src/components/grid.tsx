@@ -20,7 +20,7 @@ import { range } from 'lodash';
 import { editor, interactions } from '../core';
 import { DIVISIONS } from '../core/constants';
 import { ScaleValue } from '../core/editor';
-import { COLOR_PRIMARY, COLOR_SECONDARY } from '../core/theme';
+import blue from '@material-ui/core/colors/blue';
 
 import { Group } from './group';
 
@@ -67,11 +67,11 @@ export class Grid extends React.Component<Props> {
           const isRoot = editor.key === scaleValue.name;
           const fillColor = isInScale
             ? isRoot
-              ? COLOR_SECONDARY
-              : COLOR_PRIMARY
-            : '#fff';
+              ? blue[500]
+              : blue[400]
+            : 'white';
           const fillOpacity = isRoot ? 0.25 : 0.12;
-          const strokeColor = isInScale ? fillColor : '#ccc';
+          const strokeColor = fillColor;
 
           return (
             <rect
