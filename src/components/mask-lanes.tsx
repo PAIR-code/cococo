@@ -97,7 +97,7 @@ export class MaskLanes extends React.Component<Props> {
     const laneHeight = height / 4;
 
     return _.range(4).map(voiceIndex => {
-      const mask = masks.masks[voiceIndex];
+      const mask = masks.userMasks[voiceIndex];
       const y = voiceIndex * laneHeight;
 
       // Merge the mask indices into left/right bounds in order to draw

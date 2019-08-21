@@ -12,7 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-import { computed, observable } from 'mobx';
+import { computed, observable, toJS } from 'mobx';
 import * as mm from '@magenta/music';
 
 import featureFlags from './feature-flags';
@@ -129,8 +129,9 @@ export class Generator {
 
   @undoable('generator.commitSelectedCandidateSequence')
   commitSelectedCandidateSequence(clearMasks = true, shouldLog = true) {
-    if (shouldLog)
+    if (shouldLog) {
       logging.logEvent(Events.CHOOSE_CANDIDATE_SEQUENCE, undo.getUndoStep());
+    }
     // Add the selected sequence
     const sequence = this.selectedCandidateSequence;
     if (sequence) {
@@ -158,7 +159,7 @@ export class Generator {
 
   getInfillMask(): InfillMask[] | undefined {
     const infillMask = [];
-    masks.masks.forEach((mask, voice) => {
+    masks.userOrImplicitMasks.forEach((mask, voice) => {
       mask.forEach(maskIndex => {
         infillMask.push({ voice, step: maskIndex });
       });
@@ -287,23 +288,23 @@ export class Generator {
         moodConfig,
       });
 
-      const output = fromMagentaSequence(
-        mm.sequences.mergeConsecutiveNotes(results)
-      );
-
-      // Now, filter the output by removing the notes fed to model that were non-masked
-      const inputNotesSet = new Set<string>();
-      const makeKey = note =>
-        `${note.pitch}:${note.position}:${note.duration}:${note.voice}`;
-      masks.nonMaskedNotes.forEach(note => {
-        inputNotesSet.add(makeKey(note));
+      const output = fromMagentaSequence(results);
+      // Now, we need to remove the notes that have been returned that weren't
+      // masked
+      const generationMasks = masks.userOrImplicitMasks;
+      const maskIndices = new Set<string>();
+      generationMasks.forEach((mask, voice) => {
+        mask.forEach(index => maskIndices.add(`${voice}:${index}`));
       });
-      const filtered = output.filter(note => {
-        const key = makeKey(note);
-        return !inputNotesSet.has(key);
+      const masked = output.filter(note => {
+        const key = `${note.voice}:${note.position}`;
+        return maskIndices.has(key);
       });
 
-      outputNotes.push(filtered);
+      // Unfortunately, the magenta util doesn't merge notes that touch on a
+      // measure boundary, so we'll have to do it ourselves...
+      const joined = NoteSequence.mergeConsecutiveNotes(masked);
+      outputNotes.push(joined.notes);
     }
 
     // Now, set the first candidate sequence to be the original, masked sequence
@@ -318,9 +319,15 @@ export class Generator {
     this.setCandidateSequences(noteSequences);
     // Select the first, non-masked sequence
     this.selectCandidateSequence(1);
+
     if (featureFlags.baseline) {
-      this.commitSelectedCandidateSequence();
+      const generationMasks = toJS(masks.userOrImplicitMasks);
+      const clearMasks = true;
+      const shouldLog = false;
+      this.commitSelectedCandidateSequence(clearMasks, shouldLog);
+      masks.setMasks(generationMasks);
     }
+
     this.isWorking = false;
     undo.completeUndoable('generator.generate');
   }

@@ -71,9 +71,7 @@ class Undo {
 
   beginUndoable(label: string) {
     if (this.undoLocked) return;
-
     this.undoableNesting.push(label);
-    const topLabel = _.last(this.undoableNesting);
     if (this.pendingUndoStep) {
       return;
     }

@@ -48,7 +48,11 @@ class Masks {
     return this._userMasks;
   }
 
-  @computed get masks() {
+  @computed get implicitMasks() {
+    return this._implicitMasks;
+  }
+
+  @computed get userOrImplicitMasks() {
     // When in baseline mode, we want to infill all voices that are either
     // masked or empty.
     if (featureFlags.baseline) {
@@ -71,13 +75,13 @@ class Masks {
     return notePositions;
   }
 
-  private computeMasksFromEmptyRegions() {
+  private computeMasksFromEmptyRegions(): IMasks {
     const notePositions = this.getPositionsPerVoice(editor.allNotes);
     const _masks = _.range(4).map(voice => {
       return _.range(TOTAL_SIXTEENTHS).filter(
         position => !notePositions[voice].has(position)
       );
-    });
+    }) as IMasks;
     return _masks;
   }
 
@@ -125,8 +129,7 @@ class Masks {
 
   isNoteMasked(note: Note) {
     const { voice, start, end } = note;
-    const masks = this.masks;
-    const mask = masks[voice];
+    const mask = this.userOrImplicitMasks[voice];
 
     for (let maskIndex of mask) {
       if (maskIndex >= start && maskIndex < end) return true;

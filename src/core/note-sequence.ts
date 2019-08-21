@@ -72,6 +72,41 @@ export class NoteSequence {
     return false;
   }
 
+  static mergeConsecutiveNotes(inputNotes: Note[]) {
+    const notesPerVoice = new Map<number, Note[]>();
+    for (const note of inputNotes) {
+      const notes = notesPerVoice.get(note.voice) || [];
+      notes.push(note);
+      notesPerVoice.set(note.voice, notes);
+    }
+
+    for (const [voice, notes] of notesPerVoice.entries()) {
+      notes.sort((a, b) => a.position - b.position);
+      const joinedNotes: Note[] = [];
+      let joiningNote: Note | null = null;
+
+      for (let i = 0; i < notes.length; i++) {
+        if (joiningNote === null) joiningNote = notes[i];
+        const { end, pitch, duration, position, source, voice } = joiningNote;
+        const nextNote = notes[i + 1];
+        if (nextNote && end === nextNote.start && pitch === nextNote.pitch) {
+          const newDuration = duration + nextNote.duration;
+          joiningNote = new Note(pitch, position, newDuration, source, voice);
+        } else {
+          joinedNotes.push(joiningNote);
+          joiningNote = null;
+        }
+      }
+      notesPerVoice.set(voice, joinedNotes);
+    }
+
+    const flattened: Note[] = [];
+    for (const notes of notesPerVoice.values()) {
+      flattened.push(...notes);
+    }
+    return new NoteSequence(flattened);
+  }
+
   static empty() {
     return new NoteSequence();
   }

@@ -354,7 +354,7 @@ class Interactions {
       }
       undo.completeUndoable('maskTool.drawMasks');
 
-      logging.logEvent(Events.USE_MASK_TOOL, masks.masks);
+      logging.logEvent(Events.USE_MASK_TOOL, masks.userMasks);
 
       this.isMaskToolDragging = false;
       this.maskToolDragStartClientXY = [0, 0];
@@ -438,7 +438,7 @@ class Interactions {
         }
       }
 
-      logging.logEvent(Events.USE_MASK_LANE, masks.masks);
+      logging.logEvent(Events.USE_MASK_LANE, masks.userMasks);
       this.hasMaskDragMoved = false;
       undo.completeUndoable('masks.drawMaskLane');
 
