@@ -26,7 +26,7 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import { MusicNote } from '@material-ui/icons';
 
-import { generator, masks } from '../core';
+import { editor, generator, masks } from '../core';
 import { NoteSequence } from '../core/note-sequence';
 
 import { Sequence } from './sequence';
@@ -110,7 +110,8 @@ export class Generate extends React.Component<GenerateProps> {
     const { baseline } = featureFlags;
     const isModelBusy = !generator.isModelLoaded || generator.isWorking;
     const noMasks = baseline ? !masks.doAnyMasksExist : !masks.doUserMasksExist;
-    const isGenerateButtonDisabled = noMasks || isModelBusy;
+    const noInputNotes = editor.allNotes.length === 0;
+    const isGenerateButtonDisabled = noMasks || isModelBusy || noInputNotes;
 
     const nSequenceContainerStyle = style({
       margin: '5px 0 15px',
