@@ -238,8 +238,6 @@ function ParameterSlider(props: ParameterSliderProps) {
     return { value };
   });
 
-  console.log(marks);
-
   return (
     <div className="horizontal-slider">
       <MarkedSlider
