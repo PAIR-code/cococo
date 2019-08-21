@@ -274,7 +274,8 @@ class Editor {
     // We need to potentially add the note to a candidate sequence
     const isMasked = masks.isNoteMasked(note);
     const isCandidateSequenceSelected =
-      generator.selectedCandidateSequenceIndex !== null;
+      generator.selectedCandidateSequence !== null;
+
     if (
       isMasked &&
       isCandidateSequenceSelected &&

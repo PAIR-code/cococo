@@ -73,7 +73,7 @@ export class Generator {
   }
 
   @observable candidateSequences: NoteSequence[] = [];
-  @observable selectedCandidateSequenceIndex: number | null = 0;
+  @observable selectedCandidateSequenceIndex: number | null = null;
 
   @computed get selectedCandidateSequence(): NoteSequence | null {
     const index = this.selectedCandidateSequenceIndex;
@@ -153,7 +153,7 @@ export class Generator {
 
   clearCandidateSequences = (shouldLog = true) => {
     if (shouldLog) logging.logEvent(Events.CLEAR_CANDIDATE_SEQUENCES);
-    this.selectedCandidateSequenceIndex = 0;
+    this.selectedCandidateSequenceIndex = null;
     this.candidateSequences = [];
   };
 
