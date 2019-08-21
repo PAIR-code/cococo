@@ -582,11 +582,6 @@ class Coconet {
    */
   async infill(sequence: INoteSequence, config?: CoconetConfig) {
     sequences.assertIsRelativeQuantizedSequence(sequence);
-    if (sequence.notes.length === 0) {
-      throw new Error(
-        `NoteSequence ${sequence.id} does not have any notes to infill.`
-      );
-    }
     const numSteps =
       sequence.totalQuantizedSteps ||
       sequence.notes[sequence.notes.length - 1].quantizedEndStep;
