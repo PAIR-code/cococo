@@ -21,6 +21,8 @@ export type Variant = 'a' | 'b';
 export type Logging = 'console' | 'firebase' | 'sheets';
 
 export class FeatureFlags {
+  @observable id = 'cococo';
+
   @observable readonly variant: Variant = 'a';
   @computed get baseline() {
     return this.variant === 'b';
@@ -36,12 +38,15 @@ export class FeatureFlags {
 
   constructor() {
     const parsed = queryString.parse(window.location.search);
-    const { variant, logging } = parsed;
+    const { variant, logging, id } = parsed;
     if (variant === 'b') {
       this.variant = variant;
     }
     if (logging === 'firebase' || logging === 'sheets') {
       this.logging = logging;
+    }
+    if (id) {
+      this.id = `${id}`;
     }
   }
 }

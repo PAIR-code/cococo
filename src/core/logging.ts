@@ -63,6 +63,7 @@ export interface LogEvent {
   event: Events;
   timestamp: number;
   payload?: any;
+  id: string;
 }
 
 export class LoggingService {
@@ -73,6 +74,7 @@ export class LoggingService {
     const logEvent: LogEvent = {
       event,
       timestamp: Date.now(),
+      id: featureFlags.id,
     };
 
     if (payload !== undefined) {
