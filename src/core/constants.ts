@@ -32,11 +32,7 @@ export const MODEL_URL =
 
 export const DIVISIONS = [4, 8, 12, 16, 20, 24, 28];
 
-// prettier-ignore
-export const DEFAULT_NOTES = [
-  [72, 4], [74, 2], [76, 2], [74, 6], /* give the impression that a full melody is not required */
-  // [77, 2], [79, 4], [74, 2], [76, 2], [72, 8],
-];
+export const DEFAULT_NOTES = [];
 
 export const DEFAULT_EDITOR_WIDTH = 1200;
 export const DEFAULT_SEQUENCES_WIDTH = 200;
