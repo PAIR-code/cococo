@@ -110,8 +110,7 @@ export class Generate extends React.Component<GenerateProps> {
     const { baseline } = featureFlags;
     const isModelBusy = !generator.isModelLoaded || generator.isWorking;
     const noMasks = baseline ? !masks.doAnyMasksExist : !masks.doUserMasksExist;
-    const noInputNotes = editor.allNotes.length === 0;
-    const isGenerateButtonDisabled = noMasks || isModelBusy || noInputNotes;
+    const isGenerateButtonDisabled = noMasks || isModelBusy;
 
     const nSequenceContainerStyle = style({
       margin: '5px 0 15px',
