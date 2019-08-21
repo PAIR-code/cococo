@@ -62,7 +62,7 @@ export function makeNoteScale(max = MAX_PITCH, min = MIN_PITCH): ScaleValue[] {
 
 export function makeNoteScaleForKey(key: string, mode: string): ScaleValue[] {
   const scaleNotes = new Set<string>(tonal.Scale.notes(key, mode));
-  const scale = makeNoteScale(MIN_PITCH, MAX_PITCH);
+  const scale = makeNoteScale(MAX_PITCH, MIN_PITCH);
   return scale.filter(note => {
     const { pitch } = note;
     const { accidental, letter } = getNoteDetails(pitch);
