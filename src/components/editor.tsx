@@ -25,7 +25,7 @@ import { LoopOverlay } from './loop-overlay';
 import { MaskLanes } from './mask-lanes';
 import { Notes } from './notes';
 import { Timeline } from './timeline';
-import { Masks } from './masks';
+import { MasksSelect } from './masks-select';
 import featureFlags from '../core/feature-flags';
 
 export interface Props {}
@@ -77,7 +77,7 @@ export class Editor extends React.Component<Props> {
         </Group>
         <Group y={layout.notesY} x={pianoRollWidth}>
           {isMaskToolSelected && (
-            <Masks width={notesWidth} height={notesHeight} />
+            <MasksSelect width={notesWidth} height={notesHeight} />
           )}
           <LoopOverlay width={notesWidth} height={notesHeight} />
         </Group>

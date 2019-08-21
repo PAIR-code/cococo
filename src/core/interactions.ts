@@ -16,7 +16,15 @@ limitations under the License.
 import React from 'react';
 import _ from 'lodash';
 import { observable } from 'mobx';
-import { EditorTool, editor, masks, player, layout } from './index';
+import {
+  EditorTool,
+  editor,
+  generator,
+  masks,
+  player,
+  layout,
+  undo,
+} from './index';
 import { MAX_PITCH, MIN_PITCH } from './constants';
 import logging, { Events } from './logging';
 import { Note, Source } from './note';
@@ -332,15 +340,21 @@ class Interactions {
         MAX_PITCH - Math.floor(startY / layout.noteHeight),
       ];
 
+      undo.beginUndoable('maskTool.drawMasks');
       const notesInRange = editor.getNotesInRange(positionRange, pitchRange);
       if (notesInRange.length === 0 && this.emptyMaskDeselectsAll) {
         masks.clearMasks();
       } else {
         const replaceMask = !this.maskToolShiftDrag;
+        if (generator.candidateSequences.length > 0) {
+          generator.commitSelectedCandidateSequence();
+        }
+
         masks.maskNotes(notesInRange, replaceMask);
       }
+      undo.completeUndoable('maskTool.drawMasks');
 
-      logging.logEvent(Events.USE_MASK_TOOL, masks.masks);
+      logging.logEvent(Events.USE_MASK_TOOL, masks.userMasks);
 
       this.isMaskToolDragging = false;
       this.maskToolDragStartClientXY = [0, 0];
@@ -362,10 +376,18 @@ class Interactions {
   private maskLaneDragX = 0;
   private maskLaneDragStartClientX = 0;
   private hasMaskDragMoved = false;
+  private maskLaneShiftDrag = false;
 
-  handleMaskLaneMouseDown = voiceIndex => (
+  handleMaskLaneMouseDown = (voiceIndex, candidateSequencesExist = false) => (
     e: React.MouseEvent<SVGRectElement>
   ) => {
+    undo.beginUndoable('masks.drawMaskLane');
+    this.maskLaneShiftDrag = e.shiftKey;
+
+    if (candidateSequencesExist) {
+      generator.commitSelectedCandidateSequence();
+    }
+
     e.preventDefault();
     const editorGrid = document.getElementById('editor-grid')!;
     const dim = editorGrid.getBoundingClientRect() as DOMRect;
@@ -397,28 +419,48 @@ class Interactions {
         true
       );
 
-      masks.setMask(voiceIndex, _.range(startPosition, endPosition));
+      const range = _.range(startPosition, endPosition);
+      if (this.maskLaneShiftDrag) {
+        masks.addMask(voiceIndex, range);
+      } else {
+        masks.setMask(voiceIndex, range);
+      }
     };
 
     const mouseUp = () => {
       if (!this.hasMaskDragMoved) {
         const { loopStart, loopEnd } = player;
-        masks.setMask(voiceIndex, _.range(loopStart, loopEnd));
+        const range = _.range(loopStart, loopEnd);
+        if (this.maskLaneShiftDrag) {
+          masks.addMask(voiceIndex, range);
+        } else {
+          masks.setMask(voiceIndex, range);
+        }
       }
 
-      logging.logEvent(Events.USE_MASK_LANE, masks.masks);
+      logging.logEvent(Events.USE_MASK_LANE, masks.userMasks);
       this.hasMaskDragMoved = false;
-      document.removeEventListener('mousemove', mouseMove);
+      undo.completeUndoable('masks.drawMaskLane');
+
       document.removeEventListener('mouseup', mouseUp);
+      document.removeEventListener('mousemove', mouseMove);
     };
 
     document.addEventListener('mousemove', mouseMove);
     document.addEventListener('mouseup', mouseUp);
   };
 
-  handleMaskRectClick = (voiceIndex: number, maskIndices: number[]) => () => {
+  handleMaskRectClick = (
+    voiceIndex: number,
+    maskIndices: number[],
+    pendingCandidateSequences = false
+  ) => () => {
     if (!this.hasMaskDragMoved) {
-      masks.removeMask(voiceIndex, maskIndices);
+      if (pendingCandidateSequences) {
+        generator.commitSelectedCandidateSequence();
+      } else {
+        masks.removeMask(voiceIndex, maskIndices);
+      }
     }
   };
 }

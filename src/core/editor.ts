@@ -75,7 +75,7 @@ class Editor {
 
   @observable noteBeingDrawn: Note | null = null;
   beginDrawingNote(note: Note) {
-    undo.beginUndoable();
+    undo.beginUndoable('editor.drawNote');
     this.noteBeingDrawn = note;
     this._addNote(note);
   }
@@ -92,7 +92,7 @@ class Editor {
     if (this.noteBeingDrawn) {
       logging.logEvent(Events.DRAW_NOTE, undo.getUndoStep());
       this.noteBeingDrawn = null;
-      undo.completeUndoable();
+      undo.completeUndoable('editor.drawNote');
     }
   }
 
@@ -260,7 +260,7 @@ class Editor {
     }
   }
 
-  @undoable()
+  @undoable('editor.addNote')
   addNote(note: Note, shouldSelect = false) {
     this._addNote(note);
     if (shouldSelect) {
@@ -288,7 +288,7 @@ class Editor {
     }
   }
 
-  @undoable()
+  @undoable('editor.removeNote')
   removeNote(note: Note) {
     this._removeNote(note);
     logging.logEvent(Events.DELETE_NOTE, undo.getUndoStep());
@@ -309,7 +309,6 @@ class Editor {
     return this.scale[scaleIndex].pitch;
   }
 
-  @undoable()
   addGeneratedSequence(sequence: NoteSequence) {
     sequence.notes.forEach(note => {
       this.mainSequence.addNote(note);
@@ -317,7 +316,7 @@ class Editor {
   }
 
   startNoteDrag() {
-    undo.beginUndoable();
+    undo.beginUndoable('editor.dragNote');
   }
 
   // Resolves conflicting note edits
@@ -328,7 +327,7 @@ class Editor {
         this.mainSequence.removeNote(note);
       }
     }
-    undo.completeUndoable();
+    undo.completeUndoable('editor.dragNote');
     logging.logEvent(Events.MOVE_NOTE, undo.getUndoStep());
   }
 
@@ -336,7 +335,7 @@ class Editor {
   replaceAllNotes(notes: Note[]) {
     this.mainSequence.clearNotes();
     for (const note of notes) {
-      this._addNote(note);
+      this.mainSequence.addNote(note);
     }
   }
 
