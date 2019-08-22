@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-import * as firebase from 'firebase/app';
+import * as firebase from 'firebase';
 import { LogEvent } from './logging';
 
 const firebaseConfig = {
