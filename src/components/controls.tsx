@@ -77,6 +77,7 @@ export class Controls extends React.Component<{}, State> {
             variant="outlined"
             color="primary"
             onClick={() => player.togglePlay()}
+            disabled={editor.allNotes.length === 0}
           >
             {showPlay ? <PlayArrow /> : <Stop />}
           </Button>
