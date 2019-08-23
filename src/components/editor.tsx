@@ -26,7 +26,7 @@ import { Group } from './group';
 import { LoopOverlay } from './loop-overlay';
 import { MaskLanes } from './mask-lanes';
 import { Notes } from './notes';
-import { Timeline } from './timeline';
+import { LoopHandles } from './loop-handles';
 import { MasksSelect } from './masks-select';
 import featureFlags from '../core/feature-flags';
 
@@ -50,7 +50,7 @@ export class Editor extends React.Component<Props> {
       editorHeight,
       notesWidth,
       notesHeight,
-      timelineHeight,
+      loopHandleHeight,
     } = layout;
 
     const isMaskToolSelected = editor.selectedTool === EditorTool.MASK;
@@ -66,7 +66,7 @@ export class Editor extends React.Component<Props> {
           <svg width={editorWidth} height={editorHeight}>
             <Filters />
             <Group x={pianoRollWidth}>
-              <Timeline width={notesWidth} height={timelineHeight} />
+              <LoopHandles width={notesWidth} height={loopHandleHeight} />
             </Group>
             {featureFlags.baseline ? null : (
               <Group y={layout.maskLanesY}>
@@ -91,11 +91,17 @@ export class Editor extends React.Component<Props> {
                 <Notes width={notesWidth} noteHeight={noteHeight} />
               </Group>
             </Group>
+            <Group x={pianoRollWidth} y={loopHandleHeight}>
+              <LoopOverlay
+                width={notesWidth}
+                height={notesHeight + maskLanesHeight}
+              />
+              >
+            </Group>
             <Group y={layout.notesY} x={pianoRollWidth}>
               {isMaskToolSelected && (
                 <MasksSelect width={notesWidth} height={notesHeight} />
               )}
-              <LoopOverlay width={notesWidth} height={notesHeight} />
             </Group>
           </svg>
         ) : null}

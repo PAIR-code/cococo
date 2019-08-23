@@ -32,6 +32,10 @@ export class LoopOverlay extends React.Component<Props> {
     const startX = (width / editor.totalSixteenths) * player.loopStart - 1;
     const endX = (width / editor.totalSixteenths) * player.loopEnd - 1;
 
+    const loopOverlayStyle = {
+      pointerEvents: 'none' as 'none', // Don't intercept clicks on this region
+    };
+
     return (
       <Group>
         <rect
@@ -42,6 +46,7 @@ export class LoopOverlay extends React.Component<Props> {
           width={Math.max(startX, 0)}
           fill={'black'}
           fillOpacity={0.1}
+          style={loopOverlayStyle}
         />
         <rect
           key="loop-border-right"
@@ -51,6 +56,7 @@ export class LoopOverlay extends React.Component<Props> {
           width={Math.max(width - endX, 0)}
           fill={'black'}
           fillOpacity={0.1}
+          style={loopOverlayStyle}
         />
       </Group>
     );

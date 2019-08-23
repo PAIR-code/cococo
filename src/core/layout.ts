@@ -22,8 +22,8 @@ import {
   DEFAULT_SEQUENCES_WIDTH,
   PIANO_ROLL_WIDTH,
   MASK_LANE_HEIGHT,
-  TIMELINE_HEIGHT,
-  TIMELINE_MARGIN,
+  LOOP_HANDLE_HEIGHT,
+  LOOP_HANDLE_MARGIN,
 } from './constants';
 
 class Layout {
@@ -55,8 +55,8 @@ class Layout {
   @observable controlsHeight = 50;
   @observable sequencesWidth = 200;
   @observable sequenceHeight = 80;
-  @observable timelineHeight = TIMELINE_HEIGHT;
-  @observable timelineMargin = TIMELINE_MARGIN;
+  @observable loopHandleHeight = LOOP_HANDLE_HEIGHT;
+  @observable loopHandleMargin = LOOP_HANDLE_MARGIN;
 
   @computed get maskLanesHeight() {
     return featureFlags.baseline ? 0 : 4 * MASK_LANE_HEIGHT;
@@ -70,9 +70,9 @@ class Layout {
   @computed get notesHeight() {
     return (
       this.editorHeight -
-      this.timelineHeight -
+      this.loopHandleHeight -
       this.maskLanesHeight -
-      this.timelineMargin
+      this.loopHandleMargin
     );
   }
 
@@ -89,7 +89,7 @@ class Layout {
   }
 
   @computed get maskLanesY() {
-    return this.timelineHeight + this.timelineMargin;
+    return this.loopHandleHeight + this.loopHandleMargin;
   }
 
   @computed get notesY() {

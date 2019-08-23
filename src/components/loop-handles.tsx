@@ -35,7 +35,7 @@ function toSVGPoints(coordinates: number[][]) {
 }
 
 @observer
-export class Timeline extends React.Component<Props> {
+export class LoopHandles extends React.Component<Props> {
   render() {
     const { width, height } = this.props;
 

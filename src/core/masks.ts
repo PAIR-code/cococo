@@ -20,7 +20,8 @@ import editor from './editor';
 import featureFlags from './feature-flags';
 import { Note } from './note';
 import { TOTAL_SIXTEENTHS } from './constants';
-import undo, { undoable } from './undo';
+import { undoable } from './undo';
+import { player } from '../core';
 
 export class EditorMaskRegion {
   constructor(
@@ -44,6 +45,7 @@ class Masks {
       : this.emptyMasks();
   }
 
+  // We're going to constrain our bounds to the loop start / end
   @computed get userMasks() {
     return this._userMasks;
   }
@@ -52,7 +54,7 @@ class Masks {
     return this._implicitMasks;
   }
 
-  @computed get userOrImplicitMasks() {
+  @computed private get userOrImplicitMasks() {
     // When in baseline mode, we want to infill all voices that are either
     // masked or empty.
     if (featureFlags.baseline) {
@@ -60,6 +62,23 @@ class Masks {
     } else {
       return this._userMasks;
     }
+  }
+
+  // The masks that will be used to generate, which are constrained by the loop
+  // bounds - but only when not in baseline mode.
+  @computed get generationMasks(): IMasks {
+    if (featureFlags.baseline) {
+      return this.userOrImplicitMasks;
+    } else {
+      return this.constrainToLoopBounds(this.userOrImplicitMasks);
+    }
+  }
+
+  private constrainToLoopBounds(masks: IMasks): IMasks {
+    const { loopStart, loopEnd } = player;
+    return masks.map(mask => {
+      return mask.filter(value => value >= loopStart && value < loopEnd);
+    }) as IMasks;
   }
 
   emptyMasks(): IMasks {
