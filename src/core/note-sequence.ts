@@ -107,6 +107,25 @@ export class NoteSequence {
     return new NoteSequence(flattened);
   }
 
+  static removeOverlappingNotes(noteSequence: NoteSequence) {
+    // An extremely naiive n^2 solution for removing note overlap, but it only
+    // takes a ms or so so no big deal...
+    const nextNotes = noteSequence.notes.filter(note => {
+      for (const otherNote of noteSequence.notes) {
+        const positionRange = [otherNote.start, otherNote.end];
+        const pitchRange = [otherNote.pitch, otherNote.pitch];
+        if (
+          otherNote !== note &&
+          NoteSequence.overlaps(note, positionRange, pitchRange)
+        ) {
+          return false;
+        }
+      }
+      return true;
+    });
+    return new NoteSequence(nextNotes);
+  }
+
   static empty() {
     return new NoteSequence();
   }

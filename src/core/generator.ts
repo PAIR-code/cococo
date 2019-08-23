@@ -308,7 +308,10 @@ export class Generator {
       // Unfortunately, the magenta util doesn't merge notes that touch on a
       // measure boundary, so we'll have to do it ourselves...
       const joined = NoteSequence.mergeConsecutiveNotes(masked);
-      outputNotes.push(joined.notes);
+
+      // Also, remove notes that overlap with other generated notes.
+      const filtered = NoteSequence.removeOverlappingNotes(joined);
+      outputNotes.push(filtered.notes);
     }
 
     // Now, set the first candidate sequence to be the original, masked sequence
