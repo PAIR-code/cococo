@@ -49,7 +49,6 @@ export class Generator {
     return this._conventionalSurprising;
   }
   setConventionalSurprising(value: number) {
-    logging.logEvent(Events.SET_CONVENTIONAL_SURPRISING, value);
     this._conventionalSurprising = value;
   }
 
@@ -58,7 +57,6 @@ export class Generator {
     return this._majorMinor;
   }
   setMajorMinor(value: number) {
-    logging.logEvent(Events.SET_MAJOR_MINOR, value);
     this._majorMinor = value;
   }
 
@@ -68,7 +66,6 @@ export class Generator {
     return this._differenceFromOriginal;
   }
   setDifferenceFromOriginal(value: number) {
-    logging.logEvent(Events.SET_SIMILAR_DIFFERENT, value);
     this._differenceFromOriginal = value;
   }
 
@@ -117,8 +114,8 @@ export class Generator {
     return [];
   };
 
-  selectCandidateSequence = (index: number | null) => {
-    logging.logEvent(Events.SELECT_CANDIDATE_SEQUENCE, index);
+  selectCandidateSequence = (index: number | null, shouldLog = true) => {
+    if (shouldLog) logging.logEvent(Events.SELECT_CANDIDATE_SEQUENCE, index);
     this.selectedCandidateSequenceIndex = index;
 
     // Try restarting the player with the new sequence added.
@@ -256,7 +253,6 @@ export class Generator {
   async generate() {
     undo.beginUndoable('generator.generate');
 
-    logging.logEvent(Events.GENERATE);
     this.prepareForHarmonization();
     this.isWorking = true;
 
@@ -271,6 +267,14 @@ export class Generator {
     const temperature = this.computeTemperature(conventionalSurprising);
     const similarDifferentConfig = this.getSimilarDifferentConfig();
     const moodConfig = this.getMoodConfig();
+
+    logging.logEvent(Events.START_GENERATE, {
+      conventionalSurprising,
+      nSequencesToGenerate,
+      differenceFromOriginal: this.differenceFromOriginal,
+      majorMinor: this.majorMinor,
+      masks: masks.generationMasks,
+    });
 
     const outputNotes: Note[][] = [];
     for (let i = 0; i < nSequencesToGenerate; i++) {
@@ -318,7 +322,7 @@ export class Generator {
 
     this.setCandidateSequences(noteSequences);
     // Select the first, non-masked sequence
-    this.selectCandidateSequence(1);
+    this.selectCandidateSequence(1, false /** shouldLog */);
 
     if (featureFlags.baseline) {
       const generationMasks = toJS(masks.generationMasks);

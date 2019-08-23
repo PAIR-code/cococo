@@ -65,7 +65,7 @@ export class Controls extends React.Component<{}, State> {
       height: layout.controlsHeight,
     });
 
-    const playDisabled = !player.isPlayerLoaded;
+    const playDisabled = !player.isPlayerLoaded || editor.allNotes.length === 0;
     const showPlay = !player.isPlaying;
     const maskButtonDisabled = generator.candidateSequences.length > 1;
 

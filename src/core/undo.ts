@@ -104,20 +104,20 @@ class Undo {
   }
 
   undo() {
-    logging.logEvent(Events.UNDO);
     if (this.undoStack.length) {
       this.redoStack.push(this.getUndoStep());
       const lastStep = this.undoStack.pop();
       this.rehydrateStep(lastStep);
+      logging.logEvent(Events.UNDO, lastStep);
     }
   }
 
   redo() {
-    logging.logEvent(Events.REDO);
     if (this.redoStack.length) {
       this.undoStack.push(this.getUndoStep());
       const lastStep = this.redoStack.pop();
       this.rehydrateStep(lastStep);
+      logging.logEvent(Events.REDO, lastStep);
     }
   }
 

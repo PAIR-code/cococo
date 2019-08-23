@@ -165,8 +165,6 @@ class Interactions {
     if (nextPosition !== player.loopEnd && nextPosition > player.loopStart) {
       player.loopEnd = nextPosition;
     }
-
-    logging.logEvent(Events.CHANGE_LOOP, [player.loopStart, player.loopEnd]);
   };
 
   handleLoopStartMouseDown = (e: React.MouseEvent) => {
@@ -177,6 +175,7 @@ class Interactions {
 
     const mouseMove = this.handleLoopStartDrag;
     const mouseUp = () => {
+      logging.logEvent(Events.CHANGE_LOOP, [player.loopStart, player.loopEnd]);
       document.removeEventListener('mousemove', mouseMove);
       document.removeEventListener('mouseup', mouseUp);
     };
@@ -192,6 +191,7 @@ class Interactions {
 
     const mouseMove = this.handleLoopEndDrag;
     const mouseUp = () => {
+      logging.logEvent(Events.CHANGE_LOOP, [player.loopStart, player.loopEnd]);
       document.removeEventListener('mousemove', mouseMove);
       document.removeEventListener('mouseup', mouseUp);
     };
@@ -348,6 +348,7 @@ class Interactions {
         const replaceMask = !this.maskToolShiftDrag;
         if (generator.candidateSequences.length > 0) {
           generator.commitSelectedCandidateSequence();
+          logging.logEvent(Events.IMPLICITLY_COMMIT_CANDIDATE, masks.userMasks);
         }
 
         masks.maskNotes(notesInRange, replaceMask);
@@ -386,6 +387,7 @@ class Interactions {
 
     if (candidateSequencesExist) {
       generator.commitSelectedCandidateSequence();
+      logging.logEvent(Events.IMPLICITLY_COMMIT_CANDIDATE, masks.userMasks);
     }
 
     e.preventDefault();
@@ -458,9 +460,11 @@ class Interactions {
     if (!this.hasMaskDragMoved) {
       if (pendingCandidateSequences) {
         generator.commitSelectedCandidateSequence();
+        logging.logEvent(Events.IMPLICITLY_COMMIT_CANDIDATE, masks.userMasks);
       } else {
         masks.removeMask(voiceIndex, maskIndices);
       }
+      logging.logEvent(Events.USE_MASK_LANE, masks.userMasks);
     }
   };
 }

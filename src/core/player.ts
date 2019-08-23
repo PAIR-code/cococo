@@ -90,6 +90,8 @@ class Player {
   }
 
   togglePlay() {
+    if (editor.allNotes.length === 0) return;
+
     if (this.isPlaying) {
       this.stop();
     } else {
