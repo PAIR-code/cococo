@@ -159,7 +159,7 @@ export class Generator {
 
   getInfillMask(): InfillMask[] | undefined {
     const infillMask = [];
-    masks.userOrImplicitMasks.forEach((mask, voice) => {
+    masks.generationMasks.forEach((mask, voice) => {
       mask.forEach(maskIndex => {
         infillMask.push({ voice, step: maskIndex });
       });
@@ -291,7 +291,7 @@ export class Generator {
       const output = fromMagentaSequence(results);
       // Now, we need to remove the notes that have been returned that weren't
       // masked
-      const generationMasks = masks.userOrImplicitMasks;
+      const generationMasks = masks.generationMasks;
       const maskIndices = new Set<string>();
       generationMasks.forEach((mask, voice) => {
         mask.forEach(index => maskIndices.add(`${voice}:${index}`));
@@ -321,7 +321,7 @@ export class Generator {
     this.selectCandidateSequence(1);
 
     if (featureFlags.baseline) {
-      const generationMasks = toJS(masks.userOrImplicitMasks);
+      const generationMasks = toJS(masks.generationMasks);
       const clearMasks = true;
       const shouldLog = false;
       this.commitSelectedCandidateSequence(clearMasks, shouldLog);
