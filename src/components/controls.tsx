@@ -65,7 +65,7 @@ export class Controls extends React.Component<{}, State> {
       height: layout.controlsHeight,
     });
 
-    const playDisabled = !player.isPlayerLoaded;
+    const playDisabled = !player.isPlayerLoaded || editor.allNotes.length === 0;
     const showPlay = !player.isPlaying;
     const maskButtonDisabled = generator.candidateSequences.length > 1;
 
@@ -77,7 +77,6 @@ export class Controls extends React.Component<{}, State> {
             variant="outlined"
             color="primary"
             onClick={() => player.togglePlay()}
-            disabled={editor.allNotes.length === 0}
           >
             {showPlay ? <PlayArrow /> : <Stop />}
           </Button>

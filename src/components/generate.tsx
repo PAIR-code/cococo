@@ -26,7 +26,8 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import { MusicNote } from '@material-ui/icons';
 
-import { editor, generator, masks } from '../core';
+import { editor, generator, logging, masks } from '../core';
+import { Events } from '../core/logging';
 import { NoteSequence } from '../core/note-sequence';
 
 import { Sequence } from './sequence';
@@ -167,6 +168,12 @@ export class Generate extends React.Component<GenerateProps> {
               onChange={newValue =>
                 generator.setConventionalSurprising(newValue)
               }
+              onChangeCommitted={() => {
+                logging.logEvent(
+                  Events.SET_CONVENTIONAL_SURPRISING,
+                  generator.conventionalSurprising
+                );
+              }}
               range={[MIN_SURPRISE_FACTOR, MAX_SURPRISE_FACTOR]}
               labels={['Conventional', 'Surprising']}
               nMarks={3}
@@ -174,6 +181,9 @@ export class Generate extends React.Component<GenerateProps> {
             <ParameterSlider
               value={generator.majorMinor}
               onChange={newValue => generator.setMajorMinor(newValue)}
+              onChangeCommitted={() => {
+                logging.logEvent(Events.SET_MAJOR_MINOR, generator.majorMinor);
+              }}
               range={[MIN_HAPPY_SAD_FACTOR, MAX_HAPPY_SAD_FACTOR]}
               labels={['😢 Minor', 'Major 😊']}
               nMarks={3}
@@ -183,6 +193,12 @@ export class Generate extends React.Component<GenerateProps> {
               onChange={newValue =>
                 generator.setDifferenceFromOriginal(newValue)
               }
+              onChangeCommitted={() => {
+                logging.logEvent(
+                  Events.SET_SIMILAR_DIFFERENT,
+                  generator.differenceFromOriginal
+                );
+              }}
               range={[MIN_DIFFERENCE_FACTOR, MAX_DIFFERENCE_FACTOR]}
               labels={['Similar', 'Different']}
               disabled={!similaritySliderEnabled}
@@ -223,6 +239,7 @@ const MarkedSlider = withStyles({
 interface ParameterSliderProps {
   value: number;
   onChange: (newValue: number) => void;
+  onChangeCommitted?: (value: number) => void;
   range: number[];
   labels: string[];
   disabled?: boolean;
@@ -245,6 +262,9 @@ function ParameterSlider(props: ParameterSliderProps) {
         onChange={(e: any, newValue: number | number[]) => {
           if (typeof newValue === 'number') props.onChange(newValue);
         }}
+        onChangeCommitted={(e: any, value: number) => {
+          props.onChangeCommitted(value);
+        }}
         step={0.1}
         valueLabelDisplay="off"
         min={props.range[0]}
@@ -266,4 +286,5 @@ function ParameterSlider(props: ParameterSliderProps) {
 
 ParameterSlider.defaultProps = {
   enabled: true,
+  onChangeCommitted: () => {},
 };
