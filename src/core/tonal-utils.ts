@@ -61,7 +61,10 @@ export function makeNoteScale(max = MAX_PITCH, min = MIN_PITCH): ScaleValue[] {
 }
 
 export function makeNoteScaleForKey(key: string, mode: string): ScaleValue[] {
-  const scaleNotes = new Set<string>(tonal.Scale.notes(key, mode));
+  const noteNames = tonal.Scale.notes(key, mode);
+  const simplified = noteNames.map(noteName => tonal.Note.simplify(noteName));
+  const scaleNotes = new Set<string>(simplified);
+
   const scale = makeNoteScale(MAX_PITCH, MIN_PITCH);
   return scale.filter(note => {
     const { pitch } = note;
@@ -91,7 +94,11 @@ export function makeNotesTriadForKey(key: string, mode: string): ScaleValue[] {
     );
     return;
   }
-  const chordNotes = new Set<string>(tonal.Chord.notes(key, mode));
+
+  const noteNames = tonal.Chord.notes(key, mode);
+  const simplified = noteNames.map(noteName => tonal.Note.simplify(noteName));
+  const chordNotes = new Set<string>(simplified);
+
   const scale = makeNoteScale(MIN_PITCH, MAX_PITCH);
   return scale.filter(note => {
     const { pitch } = note;
