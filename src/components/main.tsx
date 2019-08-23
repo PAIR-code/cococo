@@ -34,7 +34,11 @@ import featureFlags from '../core/feature-flags';
 @observer
 export default class Main extends React.Component {
   componentDidMount() {
-    logging.logEvent(Events.APP_LOAD, { baseline: featureFlags.baseline });
+    logging.logEvent(Events.APP_LOAD, {
+      baseline: featureFlags.baseline,
+      id: featureFlags.id,
+      url: window.location.href,
+    });
   }
 
   stageRef: HTMLDivElement;
