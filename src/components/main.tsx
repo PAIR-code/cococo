@@ -82,7 +82,7 @@ export default class Main extends React.Component {
         <div id="sheets-logging">
           <form
             action={process.env.GOOGLE_FORM_LOGGING_URL}
-            target="frame"
+            target="sheets-logging-iframe"
             method="POST"
             id="sheets-logging-form"
           >
