@@ -62,6 +62,8 @@ export const enum Events {
   // Fired when another event triggers committing the candidate sequence,
   // such as drawing a new mask
   IMPLICITLY_COMMIT_CANDIDATE = 'IMPLICITLY_COMMIT_CANDIDATE',
+  // Saving state via Ctrl+S
+  SAVE_STATE = 'SAVE_STATE',
 }
 
 export interface LogEvent {

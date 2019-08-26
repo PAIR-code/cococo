@@ -1,10 +1,12 @@
 import { undo } from '../core';
 import { getDateString } from './utils';
 import featureFlags from './feature-flags';
+import logging, { Events } from './logging';
 
 export class SaveLoad {
   saveJSON() {
     const state = undo.getUndoStep();
+    logging.logEvent(Events.SAVE_STATE, state);
     const json = JSON.stringify(state);
     const blob = new Blob([json], { type: 'application/json' });
     const ffMeta = `${featureFlags.id}_variant-${featureFlags.variant}`;
