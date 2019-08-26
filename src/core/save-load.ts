@@ -1,12 +1,14 @@
 import { undo } from '../core';
 import { getDateString } from './utils';
+import featureFlags from './feature-flags';
 
 export class SaveLoad {
   saveJSON() {
     const state = undo.getUndoStep();
     const json = JSON.stringify(state);
     const blob = new Blob([json], { type: 'application/json' });
-    this.downloadBlob(blob, `cococo_state_${getDateString()}`);
+    const ffMeta = `${featureFlags.id}_variant-${featureFlags.variant}`;
+    this.downloadBlob(blob, `cococo_state_${getDateString()}_${ffMeta}`);
   }
 
   loadJSON() {
