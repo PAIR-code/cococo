@@ -75,10 +75,7 @@ export class KeySignatures extends React.Component<Props, {}> {
                 value={editor.mode}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const value = e.target.value;
-                  if (value) {
-                    editor.selectMode(value);
-                    generator.setMajorMinor(value === 'major' ? 1 : -1);
-                  }
+                  if (value) editor.selectMode(value);
                 }}
                 autoWidth
               >
