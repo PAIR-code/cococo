@@ -35,7 +35,7 @@ export class Generator {
   @observable isWorking = false;
   @observable isModelLoaded = true;
 
-  @observable private _nSequencesToGenerate = featureFlags.baseline ? 1 : 2;
+  @observable private _nSequencesToGenerate = featureFlags.baseline ? 1 : 3;
   @computed get nSequencesToGenerate() {
     return this._nSequencesToGenerate;
   }
