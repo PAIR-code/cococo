@@ -119,7 +119,7 @@ class Editor {
     this._mode = mode;
   }
 
-  @observable private _constrainToKey = false;
+  @observable private _constrainToKey = true;
   @computed get constrainToKey() {
     return this._constrainToKey;
   }
