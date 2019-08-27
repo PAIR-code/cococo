@@ -18,6 +18,7 @@ import { style } from 'typestyle';
 import { observer } from 'mobx-react';
 
 import { Note as NoteModel } from '../core/note';
+import { EditorTool } from '../core/editor';
 import { editor, interactions, masks } from '../core';
 import { VOICES } from '../core/constants';
 import { COLOR_PLAYING, VOICE_COLORS, MUTED_COLOR } from '../core/theme';
@@ -57,6 +58,7 @@ export class Note extends React.Component<NoteProps> {
       fill,
       stroke: '#ddd',
       strokeWidth: 1,
+      cursor: editor.selectedTool === EditorTool.ERASE ? 'pointer' : 'default',
     });
 
     const VOICE = VOICES[note.voice];

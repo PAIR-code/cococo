@@ -16,11 +16,13 @@ limitations under the License.
 import React from 'react';
 import { observer } from 'mobx-react';
 import { range } from 'lodash';
+import { style } from 'typestyle';
+import blue from '@material-ui/core/colors/blue';
 
+import { EditorTool } from '../core/editor';
 import { editor, interactions } from '../core';
 import { DIVISIONS } from '../core/constants';
 import { ScaleValue } from '../core/editor';
-import blue from '@material-ui/core/colors/blue';
 
 import { Group } from './group';
 
@@ -99,8 +101,12 @@ export class Grid extends React.Component<Props> {
   }
 
   render() {
+    const gridStyle = style({
+      cursor: 'default',
+    });
+
     return (
-      <g id="editor-grid">
+      <g id="editor-grid" className={gridStyle}>
         {editor.scale.map((scaleValue: ScaleValue, index: number) => {
           return this.renderNoteGrid(scaleValue, index);
         })}

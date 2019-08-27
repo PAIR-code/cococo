@@ -15,6 +15,7 @@ limitations under the License.
 
 import React from 'react';
 import { observer } from 'mobx-react';
+import { style } from 'typestyle';
 
 import { interactions, editor } from '../core';
 
@@ -53,6 +54,10 @@ export class MasksSelect extends React.Component<NotesProps> {
   render() {
     const { width, height } = this.props;
 
+    const maskOverlayStyle = style({
+      cursor: 'crosshair',
+    });
+
     return (
       <Group>
         <rect
@@ -60,6 +65,7 @@ export class MasksSelect extends React.Component<NotesProps> {
           height={height}
           fillOpacity={0}
           onMouseDown={interactions.handleMaskToolMouseDown}
+          className={maskOverlayStyle}
         />
         {interactions.isMaskToolDragging && this.renderDragRect()}
       </Group>
