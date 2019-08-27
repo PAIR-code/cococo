@@ -58,6 +58,8 @@ class KeyboardManager {
       e.preventDefault();
       saveLoad.loadJSON();
       return false;
+    } else if (e.key === 'Backspace') {
+      editor.removeMaskedNotes();
     }
   };
 }

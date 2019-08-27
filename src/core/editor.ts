@@ -306,6 +306,13 @@ class Editor {
     notes.forEach(note => this._removeNote(note));
   }
 
+  @undoable('editor.removeMaskedNotes')
+  removeMaskedNotes() {
+    const maskedNotes = masks.maskedNotes;
+    this.removeNotes(maskedNotes);
+    logging.logEvent(Events.DELETE_MASKED_NOTES, undo.getUndoStep());
+  }
+
   getPitchFromScaleIndex(scaleIndex: number) {
     return this.scale[scaleIndex].pitch;
   }

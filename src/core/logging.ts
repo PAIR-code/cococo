@@ -23,6 +23,7 @@ export const enum Events {
   // Note edit events
   DRAW_NOTE = 'DRAW_NOTE',
   DELETE_NOTE = 'DELETE_NOTE',
+  DELETE_MASKED_NOTES = 'DELETE_MASKED_NOTES',
   MOVE_NOTE = 'MOVE_NOTE',
   // Play pause events
   PLAY = 'PLAY',
