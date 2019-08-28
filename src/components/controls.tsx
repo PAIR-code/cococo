@@ -25,7 +25,7 @@ import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import {
   PlayArrow,
   Stop,
-  Delete,
+  DeleteSweep,
   Edit,
   SelectAll,
   Undo,
@@ -116,7 +116,7 @@ export class Controls extends React.Component<{}, State> {
             <SelectAll />
           </ToggleButton>
           <ToggleButton value={EditorTool.ERASE}>
-            <Delete />
+            <DeleteSweep />
           </ToggleButton>
         </ToggleButtonGroup>
         <div>
