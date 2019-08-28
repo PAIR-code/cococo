@@ -58,7 +58,8 @@ export class Note extends React.Component<NoteProps> {
       fill,
       stroke: '#ddd',
       strokeWidth: 1,
-      cursor: editor.selectedTool === EditorTool.ERASE ? 'pointer' : 'default',
+      cursor:
+        editor.selectedTool === EditorTool.ERASE ? 'context-menu' : 'default',
     });
 
     const VOICE = VOICES[note.voice];

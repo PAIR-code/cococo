@@ -102,7 +102,8 @@ export class Grid extends React.Component<Props> {
 
   render() {
     const gridStyle = style({
-      cursor: 'default',
+      cursor:
+        editor.selectedTool === EditorTool.ERASE ? 'context-menu' : 'default',
     });
 
     return (
