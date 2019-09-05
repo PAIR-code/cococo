@@ -14,17 +14,15 @@ limitations under the License.
 ==============================================================================*/
 
 import React from 'react';
-import { style } from 'typestyle';
 import { observer } from 'mobx-react';
+import { Group, Rect } from 'react-konva';
 
 import { editor, player } from '../core';
-import { COLOR_PLAYING, COLOR_SECONDARY, COLOR_PRIMARY } from '../core/theme';
+import { COLOR_PLAYING } from '../core/theme';
 import { ScaleValue } from '../core/editor';
 import logging, { Events } from '../core/logging';
 import { Note } from '../core/note';
 import blue from '@material-ui/core/colors/blue';
-
-import { Group } from './group';
 
 export interface Props {
   width: number;
@@ -38,7 +36,7 @@ export class PianoRoll extends React.Component<Props> {
     const { noteHeight, width } = this.props;
 
     return (
-      <g
+      <Group
         y={0}
         width={width}
         onMouseEnter={() => {
@@ -52,7 +50,7 @@ export class PianoRoll extends React.Component<Props> {
           const keyProps = { scaleValue, index, height: noteHeight, width };
           return <Key {...keyProps} />;
         })}
-      </g>
+      </Group>
     );
   }
 }
@@ -77,27 +75,26 @@ class Key extends React.Component<KeyProps> {
     fill = isActive ? COLOR_PLAYING : fill;
     const fadeDuration = isActive ? 0 : 0.5;
 
-    const rectStyle = style({
-      transition: `fill ${fadeDuration}s`,
-      fill,
-      stroke: '#CCC',
-      strokeWidth: 1,
-    });
-
     const isInScale = editor.isPitchInScale(scaleValue.pitch);
     const isRoot = editor.key === scaleValue.name;
     const highlightFill = isRoot ? blue[600] : blue[200];
     const highlightSize = 5;
 
+    const rectStyle = {
+      fill,
+      stroke: '#CCC',
+      strokeWidth: 1,
+      width,
+      height,
+    };
+
     return (
       <Group x={0} y={y}>
-        <rect
+        <Rect
           key={index}
-          className={rectStyle}
-          width={width}
-          height={height}
+          {...rectStyle}
           onMouseDown={e => {
-            e.preventDefault();
+            e.evt.preventDefault();
             const note = new Note(scaleValue.pitch, 0, 0.2);
             player.playNoteDown(note);
 
@@ -112,7 +109,7 @@ class Key extends React.Component<KeyProps> {
           }}
         />
         {isInScale && (
-          <rect
+          <Rect
             x={width - highlightSize}
             y={0}
             width={highlightSize}

@@ -14,17 +14,17 @@ limitations under the License.
 ==============================================================================*/
 
 import React from 'react';
+import _ from 'lodash';
 import { observer } from 'mobx-react';
 import { range } from 'lodash';
 import { style } from 'typestyle';
+import { Group, Line, Rect } from 'react-konva';
 import blue from '@material-ui/core/colors/blue';
 
 import { EditorTool } from '../core/editor';
 import { editor, interactions } from '../core';
 import { DIVISIONS } from '../core/constants';
 import { ScaleValue } from '../core/editor';
-
-import { Group } from './group';
 
 export interface Props {
   width: number;
@@ -41,13 +41,14 @@ export class Grid extends React.Component<Props> {
     const color = isWhole ? '#494949' : '#555';
     const strokeWidth = isWhole ? 2 : 1;
 
+    const startPoint = [x, 0];
+    const endPoint = [x, height];
+    const points = _.flatten([startPoint, endPoint]);
+
     return (
-      <line
+      <Line
         key={divisionIndex}
-        x1={x}
-        y1={0}
-        x2={x}
-        y2={height}
+        points={points}
         stroke={color}
         strokeWidth={strokeWidth}
       />
@@ -75,8 +76,13 @@ export class Grid extends React.Component<Props> {
           const fillOpacity = isRoot ? 0.25 : 0.12;
           const strokeColor = fillColor;
 
+          const mouseDownHandler = interactions.handleGridMouseDown(
+            scaleIndex,
+            divisionIndex
+          );
+
           return (
-            <rect
+            <Rect
               key={divisionIndex}
               x={x}
               y={0}
@@ -86,10 +92,7 @@ export class Grid extends React.Component<Props> {
               opacity={fillOpacity}
               fill={fillColor}
               strokeWidth={1}
-              onMouseDown={interactions.handleGridMouseDown(
-                scaleIndex,
-                divisionIndex
-              )}
+              onMouseDown={e => mouseDownHandler(e.evt)}
               onMouseEnter={() => {
                 editor.setNoteHoverName(scaleValue);
               }}
@@ -107,12 +110,12 @@ export class Grid extends React.Component<Props> {
     });
 
     return (
-      <g id="editor-grid" className={gridStyle}>
+      <Group id="editor-grid" className={gridStyle}>
         {editor.scale.map((scaleValue: ScaleValue, index: number) => {
           return this.renderNoteGrid(scaleValue, index);
         })}
         {DIVISIONS.map(division => this.renderDivision(division))}
-      </g>
+      </Group>
     );
   }
 }

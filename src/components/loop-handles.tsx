@@ -15,8 +15,7 @@ limitations under the License.
 
 import React from 'react';
 import { observer } from 'mobx-react';
-
-import { Group } from './group';
+import { Group, Rect, Path } from 'react-konva';
 
 import { editor, player, interactions, layout } from '../core';
 import { COLOR_TIMELINE_RANGE, COLOR_TIMELINE_HANDLE } from '../core/theme';
@@ -57,7 +56,7 @@ export class LoopHandles extends React.Component<Props> {
 
     return (
       <Group>
-        <rect
+        <Rect
           key="loopRegion"
           x={startX}
           y={height / 2 - 1}
@@ -66,17 +65,17 @@ export class LoopHandles extends React.Component<Props> {
           fill={COLOR_TIMELINE_RANGE}
         />
 
-        <polygon
+        <Path
           key="loopStart"
-          points={toSVGPoints(startHandleCoordinates)}
+          data={toSVGPoints(startHandleCoordinates)}
           fill={COLOR_TIMELINE_HANDLE}
-          onMouseDown={interactions.handleLoopStartMouseDown}
+          onMouseDown={e => interactions.handleLoopStartMouseDown(e.evt)}
         />
-        <polygon
+        <Path
           key="loopEnd"
-          points={toSVGPoints(endHandleCoordinates)}
+          data={toSVGPoints(endHandleCoordinates)}
           fill={COLOR_TIMELINE_HANDLE}
-          onMouseDown={interactions.handleLoopEndMouseDown}
+          onMouseDown={e => interactions.handleLoopEndMouseDown(e.evt)}
         />
       </Group>
     );

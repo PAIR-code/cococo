@@ -14,12 +14,11 @@ limitations under the License.
 ==============================================================================*/
 
 import React from 'react';
+import { Group, Rect } from 'react-konva';
 import { observer } from 'mobx-react';
 import { style } from 'typestyle';
 
 import { interactions, editor } from '../core';
-
-import { Group } from './group';
 
 export interface NotesProps {
   height: number;
@@ -60,11 +59,11 @@ export class MasksSelect extends React.Component<NotesProps> {
 
     return (
       <Group>
-        <rect
+        <Rect
           width={width}
           height={height}
           fillOpacity={0}
-          onMouseDown={interactions.handleMaskToolMouseDown}
+          onMouseDown={e => interactions.handleMaskToolMouseDown(e.evt)}
           className={maskOverlayStyle}
         />
         {interactions.isMaskToolDragging && this.renderDragRect()}

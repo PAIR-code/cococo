@@ -15,11 +15,11 @@ limitations under the License.
 
 import React from 'react';
 import { observer } from 'mobx-react';
+import { Group } from 'react-konva';
 
 import { Note as NoteModel } from '../core/note';
 import { editor } from '../core';
 
-import { Group } from './group';
 import { Note } from './note';
 
 export interface NotesProps {

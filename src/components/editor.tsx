@@ -16,13 +16,12 @@ limitations under the License.
 import React from 'react';
 import { observer } from 'mobx-react';
 import { style } from 'typestyle';
+import { Stage, Group, Layer } from 'react-konva';
 
 import { editor, layout, EditorTool } from '../core';
 
 import { PianoRoll } from './piano-roll';
-import { Filters } from './filters';
 import { Grid } from './grid';
-import { Group } from './group';
 import { LoopOverlay } from './loop-overlay';
 import { MaskLanes } from './mask-lanes';
 import { Notes } from './notes';
@@ -63,47 +62,47 @@ export class Editor extends React.Component<Props> {
     return (
       <div id="editor-container" className={editorContainerStyle}>
         {editorHeight > 0 ? (
-          <svg width={editorWidth} height={editorHeight}>
-            <Filters />
-            <Group x={pianoRollWidth}>
-              <LoopHandles width={notesWidth} height={loopHandleHeight} />
-            </Group>
-            {featureFlags.baseline ? null : (
-              <Group y={layout.maskLanesY}>
-                <MaskLanes
+          <Stage width={editorWidth} height={editorHeight}>
+            <Layer>
+              <Group x={pianoRollWidth}>
+                <LoopHandles width={notesWidth} height={loopHandleHeight} />
+              </Group>
+              {featureFlags.baseline ? null : (
+                <Group y={layout.maskLanesY}>
+                  <MaskLanes
+                    width={notesWidth}
+                    height={maskLanesHeight}
+                    labelWidth={pianoRollWidth}
+                  />
+                </Group>
+              )}
+              <Group
+                y={layout.notesY}
+                onMouseLeave={() => editor.setNoteHoverName(null)}
+              >
+                <PianoRoll
+                  width={pianoRollWidth}
+                  height={notesHeight}
+                  noteHeight={noteHeight}
+                />
+                <Group x={pianoRollWidth}>
+                  <Grid width={notesWidth} noteHeight={noteHeight} />
+                  <Notes width={notesWidth} noteHeight={noteHeight} />
+                </Group>
+              </Group>
+              <Group x={pianoRollWidth} y={loopHandleHeight}>
+                <LoopOverlay
                   width={notesWidth}
-                  height={maskLanesHeight}
-                  labelWidth={pianoRollWidth}
+                  height={notesHeight + maskLanesHeight}
                 />
               </Group>
-            )}
-            <Group
-              y={layout.notesY}
-              onMouseLeave={() => editor.setNoteHoverName(null)}
-            >
-              <PianoRoll
-                width={pianoRollWidth}
-                height={notesHeight}
-                noteHeight={noteHeight}
-              />
-              <Group x={pianoRollWidth}>
-                <Grid width={notesWidth} noteHeight={noteHeight} />
-                <Notes width={notesWidth} noteHeight={noteHeight} />
+              <Group y={layout.notesY} x={pianoRollWidth}>
+                {isMaskToolSelected && (
+                  <MasksSelect width={notesWidth} height={notesHeight} />
+                )}
               </Group>
-            </Group>
-            <Group x={pianoRollWidth} y={loopHandleHeight}>
-              <LoopOverlay
-                width={notesWidth}
-                height={notesHeight + maskLanesHeight}
-              />
-              >
-            </Group>
-            <Group y={layout.notesY} x={pianoRollWidth}>
-              {isMaskToolSelected && (
-                <MasksSelect width={notesWidth} height={notesHeight} />
-              )}
-            </Group>
-          </svg>
+            </Layer>
+          </Stage>
         ) : null}
       </div>
     );

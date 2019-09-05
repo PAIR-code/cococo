@@ -16,6 +16,7 @@ limitations under the License.
 import React from 'react';
 import { style } from 'typestyle';
 import { observer } from 'mobx-react';
+import { Rect } from 'react-konva';
 
 import { Note as NoteModel } from '../core/note';
 import { EditorTool } from '../core/editor';
@@ -77,14 +78,14 @@ export class Note extends React.Component<NoteProps> {
 
     return (
       <>
-        <rect key={`${note.id}-glow`} filter={filter} {...sizeProps} />
-        <rect
+        {/* <Rect key={`${note.id}-glow`} filter={filter} {...sizeProps} /> */}
+        <Rect
           key={note.id}
           className={rectStyle}
           {...sizeProps}
           height={height - 2 * NOTE_BORDER}
-          onMouseDown={interactions.handleNoteMouseDown(note)}
-          onMouseMove={interactions.handleNoteHover(note)}
+          onMouseDown={e => interactions.handleNoteMouseDown(note)(e.evt)}
+          onMouseMove={e => interactions.handleNoteHover(note)(e.evt)}
         />
       </>
     );

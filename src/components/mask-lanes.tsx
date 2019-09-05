@@ -16,11 +16,10 @@ limitations under the License.
 import React from 'react';
 import * as _ from 'lodash';
 import { observer } from 'mobx-react';
+import { Group, Rect, Text } from 'react-konva';
 
 import { editor, generator, interactions, masks, layout } from '../core';
 import { VOICE_COLORS, MUTED_COLOR, COLOR_PRIMARY } from '../core/theme';
-
-import { Group } from './group';
 
 export interface Props {
   width: number;
@@ -41,14 +40,8 @@ export class MaskLanes extends React.Component<Props> {
       const isMuted = editor.isVoiceMuted(voiceIndex);
       const color = isMuted ? MUTED_COLOR : VOICE_COLORS[voiceIndex];
       return (
-        <g
-          key={`label_${voiceIndex}`}
-          className="mask-lane-label"
-          onClick={(e: React.MouseEvent<SVGGElement>) => {
-            editor.toggleVoiceMute(voiceIndex);
-          }}
-        >
-          <rect
+        <Group key={`label_${voiceIndex}`} className="mask-lane-label">
+          <Rect
             x={1}
             y={y + 1}
             height={laneHeight - 2}
@@ -57,17 +50,19 @@ export class MaskLanes extends React.Component<Props> {
             stroke={COLOR_PRIMARY}
             strokeWidth={0.5}
             rx="3"
+            onClick={() => {
+              editor.toggleVoiceMute(voiceIndex);
+            }}
           />
-          <text
+          <Text
             x={layout.pianoRollWidth / 2 - 6}
             y={y + 16}
             height={laneHeight}
             width={labelWidth}
             fill={color}
-          >
-            {VOICE_INITIALS[voiceIndex]}
-          </text>
-        </g>
+            text={VOICE_INITIALS[voiceIndex]}
+          />
+        </Group>
       );
     });
   }
@@ -88,7 +83,7 @@ export class MaskLanes extends React.Component<Props> {
       );
 
       return (
-        <rect
+        <Rect
           key={`lane_${voiceIndex}`}
           x={0}
           y={y}
@@ -96,7 +91,7 @@ export class MaskLanes extends React.Component<Props> {
           width={width}
           fill={color}
           fillOpacity={candidateSequencesExist ? 0.6 : 1}
-          onMouseDown={mouseDownHandler}
+          onMouseDown={e => mouseDownHandler(e.evt)}
         />
       );
     });

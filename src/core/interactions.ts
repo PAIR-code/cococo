@@ -67,7 +67,7 @@ class Interactions {
   private noteDragStartPosition = 0;
   private noteDragStartPitch = 0;
 
-  handleNoteHover = (note: Note) => (e: React.MouseEvent) => {
+  handleNoteHover = (note: Note) => (e: MouseEvent) => {
     if (this.isEraseToolDragging) {
       editor.removeNote(note);
     }
@@ -99,7 +99,7 @@ class Interactions {
     }
   };
 
-  handleStartNoteDrag(note: Note, e: React.MouseEvent) {
+  handleStartNoteDrag(note: Note, e: MouseEvent) {
     editor.startNoteDrag();
     e.preventDefault();
 
@@ -118,7 +118,7 @@ class Interactions {
     document.addEventListener('mouseup', mouseUp);
   }
 
-  handleNoteMouseDown = (note: Note) => (e: React.MouseEvent) => {
+  handleNoteMouseDown = (note: Note) => (e: MouseEvent) => {
     if (editor.selectedTool === EditorTool.ERASE) {
       editor.removeNote(note);
     } else if (editor.selectedTool === EditorTool.DRAW) {
@@ -167,7 +167,7 @@ class Interactions {
     }
   };
 
-  handleLoopStartMouseDown = (e: React.MouseEvent) => {
+  handleLoopStartMouseDown = (e: MouseEvent) => {
     e.preventDefault();
 
     this.loopStartDragStartX = e.clientX;
@@ -183,7 +183,7 @@ class Interactions {
     document.addEventListener('mouseup', mouseUp);
   };
 
-  handleLoopEndMouseDown = (e: React.MouseEvent) => {
+  handleLoopEndMouseDown = (e: MouseEvent) => {
     e.preventDefault();
 
     this.loopEndDragStartX = e.clientX;
@@ -227,7 +227,7 @@ class Interactions {
   private handleDrawMouseDown = (
     scaleIndex: number,
     divisionIndex: number,
-    e: React.MouseEvent
+    e: MouseEvent
   ) => {
     const pitch = editor.getPitchFromScaleIndex(scaleIndex);
     const voice = editor.selectedVoice;
@@ -264,7 +264,7 @@ class Interactions {
   };
 
   handleGridMouseDown = (scaleIndex: number, divisionIndex: number) => (
-    e: React.MouseEvent
+    e: MouseEvent
   ) => {
     let toolMouseUp: () => void = () => {};
     let mouseMove: (e: MouseEvent) => void = () => {};
@@ -312,7 +312,7 @@ class Interactions {
     ];
   };
 
-  handleMaskToolMouseDown = (e: React.MouseEvent<SVGRectElement>) => {
+  handleMaskToolMouseDown = (e: MouseEvent) => {
     e.preventDefault();
     this.maskToolShiftDrag = e.shiftKey;
     const target = e.target as SVGRectElement;
@@ -380,7 +380,7 @@ class Interactions {
   private maskLaneShiftDrag = false;
 
   handleMaskLaneMouseDown = (voiceIndex, candidateSequencesExist = false) => (
-    e: React.MouseEvent<SVGRectElement>
+    e: MouseEvent
   ) => {
     undo.beginUndoable('masks.drawMaskLane');
     this.maskLaneShiftDrag = e.shiftKey;

@@ -14,11 +14,10 @@ limitations under the License.
 ==============================================================================*/
 
 import React from 'react';
+import { Group, Rect } from 'react-konva';
 import { observer } from 'mobx-react';
 
 import { player, editor } from '../core';
-
-import { Group } from './group';
 
 export interface Props {
   width: number;
@@ -38,7 +37,7 @@ export class LoopOverlay extends React.Component<Props> {
 
     return (
       <Group>
-        <rect
+        <Rect
           key="loop-border-left"
           x={0}
           y={0}
@@ -48,7 +47,7 @@ export class LoopOverlay extends React.Component<Props> {
           fillOpacity={0.1}
           style={loopOverlayStyle}
         />
-        <rect
+        <Rect
           key="loop-border-right"
           x={endX}
           y={0}
