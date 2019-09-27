@@ -38,7 +38,7 @@ export class Editor extends React.Component<Props> {
     // We need to compute the editor height after all initial components are
     // laid out, since the height is dependent on the flex layout of subsequent
     // components in the react tree.
-    setTimeout(() => layout.computeEditorHeight());
+    setTimeout(() => layout.computeEditorHeight(), 100);
   }
 
   render() {
