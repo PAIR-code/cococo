@@ -6,9 +6,12 @@ Bach CoCoCo is an experimental user interface to collaboratively compose counter
 
 #### How to use
 
-Watch the [Cococo video demo](https://youtu.be/XwsWg1rsvis)
+![Preview](./content/preview.gif)
+
+For more detailed instructions, watch the [Cococo video demo](https://youtu.be/XwsWg1rsvis)
 
 #### Running the app
+
 ```bash
 yarn install
 yarn dev
