@@ -38,7 +38,13 @@ export class Editor extends React.Component<Props> {
     // We need to compute the editor height after all initial components are
     // laid out, since the height is dependent on the flex layout of subsequent
     // components in the react tree.
-    setTimeout(() => layout.computeEditorHeight(), 100);
+    const editorContainer = document.getElementById('editor-container');
+    const resizeObserver = new (window as any).ResizeObserver(entries => {
+      const { height } = editorContainer.getBoundingClientRect();
+      layout.editorHeight = height;
+      resizeObserver.disconnect();
+    });
+    resizeObserver.observe(editorContainer);
   }
 
   render() {
