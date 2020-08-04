@@ -39,6 +39,7 @@ import { Voice } from '../core/note';
 
 import { KeySignatures } from './key-signatures';
 import { Spacer } from './spacer';
+import featureFlags from '../core/feature-flags';
 
 interface State {
   keyDialogOpen: boolean;
@@ -51,6 +52,7 @@ export class Controls extends React.Component<{}, State> {
   };
 
   render() {
+    const { baseline } = featureFlags;
     const PADDING = 0;
     const width = layout.editorWidth;
 
@@ -112,9 +114,10 @@ export class Controls extends React.Component<{}, State> {
           <ToggleButton value={EditorTool.DRAW}>
             <Edit />
           </ToggleButton>
-          <ToggleButton value={EditorTool.MASK} disabled={maskButtonDisabled}>
-            <SelectAll />
-          </ToggleButton>
+          {baseline ? null : (
+            <ToggleButton value={EditorTool.MASK} disabled={maskButtonDisabled}>
+              <SelectAll />
+            </ToggleButton>)}
           <ToggleButton value={EditorTool.ERASE}>
             <DeleteSweep />
           </ToggleButton>
