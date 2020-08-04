@@ -76,7 +76,7 @@ function getPositionRange(noteSequences: NoteSequence[]) {
 
 const horizontalSliderStyle = style({});
 
-export interface GenerateProps {}
+export interface GenerateProps { }
 
 @observer
 export class Generate extends React.Component<GenerateProps> {
@@ -127,20 +127,21 @@ export class Generate extends React.Component<GenerateProps> {
     const similaritySliderEnabled = candidateSequenceSelected
       ? true
       : maskedSequenceExists;
-
     return (
       <div className="container">
-        <Button
-          disabled={isGenerateButtonDisabled}
-          variant="outlined"
-          color="primary"
-          onClick={() => {
-            generator.generate();
-          }}
-        >
-          🤖 Generate
+        {baseline ? null : (
+          <Button
+            disabled={isGenerateButtonDisabled}
+            variant="outlined"
+            color="primary"
+            onClick={() => {
+              generator.generate();
+            }}
+          >
+
+            🤖 Generate
           <MusicNote />
-        </Button>
+          </Button>)}
         {baseline ? null : (
           <FormControl classes={{ root: nSequenceContainerStyle }}>
             <Select
@@ -163,58 +164,58 @@ export class Generate extends React.Component<GenerateProps> {
         )}
         {baseline ? null : (
           <>
-            <ParameterSlider
-              value={generator.conventionalSurprising}
-              onChange={newValue =>
-                generator.setConventionalSurprising(newValue)
-              }
-              onChangeCommitted={() => {
-                logging.logEvent(
-                  Events.SET_CONVENTIONAL_SURPRISING,
-                  generator.conventionalSurprising
-                );
-              }}
-              range={[MIN_SURPRISE_FACTOR, MAX_SURPRISE_FACTOR]}
-              labels={['Conventional', 'Surprising']}
-              nMarks={3}
-            />
-            <ParameterSlider
-              value={generator.majorMinor}
-              onChange={newValue => generator.setMajorMinor(newValue)}
-              onChangeCommitted={() => {
-                logging.logEvent(Events.SET_MAJOR_MINOR, generator.majorMinor);
-              }}
-              range={[MIN_HAPPY_SAD_FACTOR, MAX_HAPPY_SAD_FACTOR]}
-              labels={['😢 Minor', 'Major 😊']}
-              nMarks={3}
-            />
-            <ParameterSlider
-              value={generator.differenceFromOriginal}
-              onChange={newValue =>
-                generator.setDifferenceFromOriginal(newValue)
-              }
-              onChangeCommitted={() => {
-                logging.logEvent(
-                  Events.SET_SIMILAR_DIFFERENT,
-                  generator.differenceFromOriginal
-                );
-              }}
-              range={[MIN_DIFFERENCE_FACTOR, MAX_DIFFERENCE_FACTOR]}
-              labels={['Similar', 'Different']}
-              disabled={!similaritySliderEnabled}
-              nMarks={3}
-            />
+          <ParameterSlider
+            value={generator.conventionalSurprising}
+            onChange={newValue =>
+              generator.setConventionalSurprising(newValue)
+            }
+            onChangeCommitted={() => {
+              logging.logEvent(
+                Events.SET_CONVENTIONAL_SURPRISING,
+                generator.conventionalSurprising
+              );
+            }}
+            range={[MIN_SURPRISE_FACTOR, MAX_SURPRISE_FACTOR]}
+            labels={['Conventional', 'Surprising']}
+            nMarks={3}
+          />
+          <ParameterSlider
+            value={generator.majorMinor}
+            onChange={newValue => generator.setMajorMinor(newValue)}
+            onChangeCommitted={() => {
+              logging.logEvent(Events.SET_MAJOR_MINOR, generator.majorMinor);
+            }}
+            range={[MIN_HAPPY_SAD_FACTOR, MAX_HAPPY_SAD_FACTOR]}
+            labels={['😢 Minor', 'Major 😊']}
+            nMarks={3}
+          />
+          <ParameterSlider
+            value={generator.differenceFromOriginal}
+            onChange={newValue =>
+              generator.setDifferenceFromOriginal(newValue)
+            }
+            onChangeCommitted={() => {
+              logging.logEvent(
+                Events.SET_SIMILAR_DIFFERENT,
+                generator.differenceFromOriginal
+              );
+            }}
+            range={[MIN_DIFFERENCE_FACTOR, MAX_DIFFERENCE_FACTOR]}
+            labels={['Similar', 'Different']}
+            disabled={!similaritySliderEnabled}
+            nMarks={3}
+          />
           </>
         )}
         {showCandidateSequences && (
           <>
-            {this.renderSequences()}
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={() => generator.commitSelectedCandidateSequence()}
-            >
-              Choose
+          {this.renderSequences()}
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={() => generator.commitSelectedCandidateSequence()}
+          >
+            Choose
             </Button>
           </>
         )}
@@ -286,5 +287,5 @@ function ParameterSlider(props: ParameterSliderProps) {
 
 ParameterSlider.defaultProps = {
   enabled: true,
-  onChangeCommitted: () => {},
+  onChangeCommitted: () => { },
 };
