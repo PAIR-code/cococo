@@ -13,7 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-import * as firebase from 'firebase';
+import { FirebaseApp, initializeApp } from "firebase/app";
+import { getDatabase, ref, set } from "firebase/database";
+
 import { LogEvent } from './logging';
 
 const firebaseConfig = {
@@ -25,12 +27,12 @@ const firebaseConfig = {
 };
 
 class APIManager {
-  app: firebase.app.App;
+  app: FirebaseApp;
   isFirebaseInitialized = false;
 
   constructor() {
     try {
-      this.app = firebase.initializeApp(firebaseConfig);
+      this.app = initializeApp(firebaseConfig);
       this.isFirebaseInitialized = true;
     } catch (err) {
       console.log('Firebase not initialized with config:', firebaseConfig);
@@ -42,10 +44,9 @@ class APIManager {
       return;
     }
 
-    firebase
-      .database()
-      .ref(`logs/${sessionId}/${logEvent.timestamp}`)
-      .set(logEvent);
+    const db = getDatabase();
+    set(ref(db, `logs/${sessionId}/${logEvent.timestamp}`),
+        logEvent);
   }
 }
 
