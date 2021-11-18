@@ -45,23 +45,14 @@ module.exports = {
         test: /\.tsx?$/,
         use: [
           { loader: 'cache-loader' },
-          {
-            loader: 'thread-loader',
-            options: {
-              // there should be 1 cpu for the fork-ts-checker-webpack-plugin
-              workers: require('os').cpus().length - 1,
-              poolTimeout: Infinity, // set this to Infinity in watch mode - see https://github.com/webpack-contrib/thread-loader
-            },
-          },
-          {
-            loader: 'babel-loader',
-            options: {
-              cacheDirectory: true,
-              babelrc: false,
-              presets: ['@babel/preset-env', '@babel/preset-react'],
-              plugins: ['react-hot-loader/babel'],
-            },
-          },
+          // {
+          //   loader: 'thread-loader',
+          //   options: {
+          //     // there should be 1 cpu for the fork-ts-checker-webpack-plugin
+          //     workers: require('os').cpus().length - 1,
+          //     poolTimeout: Infinity, // set this to Infinity in watch mode - see https://github.com/webpack-contrib/thread-loader
+          //   },
+          // },
           {
             loader: 'ts-loader',
             options: {
@@ -89,21 +80,21 @@ module.exports = {
     ],
   },
   plugins: [
-    new ForkTsCheckerWebpackPlugin({
-      checkSyntacticErrors: true,
-      tsconfig: resolve(__dirname, '../../tsconfig.json'),
-      exclude: '',
-    }),
+    // new ForkTsCheckerWebpackPlugin({
+    //   checkSyntacticErrors: true,
+    //   tsconfig: resolve(__dirname, '../../tsconfig.json'),
+    //   exclude: '',
+    // }),
     new Dotenv(),
     new HtmlWebpackPlugin({ inject: true, template: 'index.html.ejs' }),
-    new AutoDllPlugin({
-      inject: true, // will inject the DLL bundles to index.html
-      filename: dllFilename,
-      entry: {
-        vendor: vendorDependencies,
-      },
-      context: resolve(__dirname, '../../src'),
-    }),
+    // new AutoDllPlugin({
+    //   inject: true, // will inject the DLL bundles to index.html
+    //   filename: dllFilename,
+    //   entry: {
+    //     vendor: vendorDependencies,
+    //   },
+    //   context: resolve(__dirname, '../../src'),
+    // }),
   ],
   performance: {
     hints: false,
