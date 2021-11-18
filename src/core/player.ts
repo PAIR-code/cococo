@@ -64,7 +64,7 @@ class Player {
 
   private player = new mm.SoundFontPlayer(
     SOUNDFONT_URL,
-    Tone.master,
+    Tone.Destination,
     undefined,
     undefined,
     this.playerCallbackObject
