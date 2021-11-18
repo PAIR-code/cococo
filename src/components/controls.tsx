@@ -30,10 +30,12 @@ import {
   SelectAll,
   Undo,
   Redo,
+  Save,
 } from '@material-ui/icons';
 import { observer } from 'mobx-react';
 
 import { generator, player, layout, editor, EditorTool, undo } from '../core';
+import saveload from '../core/save-load';
 import * as theme from '../core/theme';
 import { Voice } from '../core/note';
 
@@ -81,6 +83,16 @@ export class Controls extends React.Component<{}, State> {
             onClick={() => player.togglePlay()}
           >
             {showPlay ? <PlayArrow /> : <Stop />}
+          </Button>
+        </div>
+        <div>
+          <Button
+            disabled={playDisabled}
+            variant="outlined"
+            color="primary"
+            onClick={() => saveload.saveMIDI()}
+          >
+            <Save />
           </Button>
         </div>
         <div>
