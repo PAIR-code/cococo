@@ -30,7 +30,7 @@ import {
   SelectAll,
   Undo,
   Redo,
-  Save,
+  CloudDownload,
 } from '@material-ui/icons';
 import { observer } from 'mobx-react';
 
@@ -92,7 +92,7 @@ export class Controls extends React.Component<{}, State> {
             color="primary"
             onClick={() => saveload.saveMIDI()}
           >
-            <Save />
+            <CloudDownload/>
           </Button>
         </div>
         <div>
