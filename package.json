@@ -12,6 +12,9 @@
     "test-dev": "NODE_ENV=dev webpack --config=configs/webpack/dev.js",
     "deploy": "yarn build && node deploy.js"
   },
+  "engines": {
+    "node": "~12.22.7"
+  },
   "devDependencies": {
     "@babel/cli": "^7.4.4",
     "@babel/core": "^7.4.4",

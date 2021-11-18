@@ -12,6 +12,8 @@ For more detailed instructions, watch the [Cococo video demo](https://youtu.be/X
 
 #### Running the app
 
+CoCoCo requires node version 12 (it has been tested successfully on v12.22.7 but not on v16), and the build process requires that you run on OSX or Windows (not Linux due to an issue with case-sensitive imports in Typescript).
+
 ```bash
 yarn install
 yarn dev
