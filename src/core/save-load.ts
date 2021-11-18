@@ -1,7 +1,9 @@
-import { undo } from '../core';
+import { undo, editor, player } from '../core';
 import { getDateString } from './utils';
 import featureFlags from './feature-flags';
 import logging, { Events } from './logging';
+import { sequenceProtoToMidi } from '@magenta/music';
+import { getMagentaNoteSequence } from './magenta-utils';
 
 export class SaveLoad {
   saveJSON() {
@@ -11,6 +13,18 @@ export class SaveLoad {
     const blob = new Blob([json], { type: 'application/json' });
     const ffMeta = `${featureFlags.id}_variant-${featureFlags.variant}`;
     this.downloadBlob(blob, `cococo_state_${getDateString()}_${ffMeta}`);
+  }
+
+  saveMIDI() {
+    const inputNotes = [...editor.allNotes];
+    const sequence = getMagentaNoteSequence(
+      inputNotes,
+      player.bpm,
+      editor.totalSixteenths,
+      true
+    );
+    const blob = new Blob([sequenceProtoToMidi(sequence)], { type: 'audio/midi' });
+    this.downloadBlob(blob, `cococo_music_${getDateString()}`);
   }
 
   loadJSON() {
